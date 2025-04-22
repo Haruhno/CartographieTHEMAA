@@ -30,8 +30,9 @@ Application web développée pour THEMAA (Association nationale des Théâtres d
 - Git (pour cloner le dépôt)
 
 ### Premier démarrage
-```bash
+
 # 1. Cloner le dépôt
+```bash
 git clone https://github.com/votre-utilisateur/cartographie-formations-THEMAA.git
 cd cartographie-formations-THEMAA
 ```
