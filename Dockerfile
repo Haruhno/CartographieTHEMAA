@@ -19,8 +19,8 @@ RUN pip install --no-cache-dir \
     mysqlclient==2.2.1 \
     gunicorn==21.2.0  # Pour la production
 
-COPY . .
+COPY . /app
 
 EXPOSE 5000
 
-CMD ["flask", "run", "--host=0.0.0.0"]
+CMD ["python", "app/app.py"]
