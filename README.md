@@ -33,8 +33,8 @@ Application web développée pour THEMAA (Association nationale des Théâtres d
 
 # 1. Cloner le dépôt
 ```bash
-git clone https://github.com/votre-utilisateur/cartographie-formations-THEMAA.git
-cd cartographie-formations-THEMAA
+git clone https://github.com/Haruhno/CartographieTHEMAA.git
+cd CartographieTHEMAA
 ```
 
 # 2. Lancer les containers Docker
