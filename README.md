@@ -4,7 +4,7 @@
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-2.0+-green.svg)](https://flask.palletsprojects.com/)
 
-Application web développée pour THEMAA (Association nationale des Théâtres de Marionnettes et des Arts Associés) dans le cadre d'un projet étudiant.
+Application web développée pour THEMAA (Association nationale des Théâtres de Marionnettes et des Arts Associés) dans le cadre d'un stage.
 
 ## Fonctionnalités principales
 
@@ -25,5 +25,5 @@ Application web développée pour THEMAA (Association nationale des Théâtres d
 
 1. Cloner le dépôt :
 ```bash
-git clone https://github.com/votre-utilisateur/cartographie-formations-marionnette.git
-cd cartographie-formations-marionnette
+git clone https://github.com/Haruhno/Cartographie-Formations-THEMAA.git
+cd Cartographie-Formations-THEMAA
