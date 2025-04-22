@@ -16,7 +16,7 @@ Application web développée pour THEMAA (Association nationale des Théâtres d
 - ✅ **Système de modération** des contributions
 - 📱 **Design responsive** adapté à tous les appareils
 
-## Prérequis (Si tu n'utilises pas docker)
+## Prérequis (Si docker n'est pas utilisé)
 
 - Python 3.9+
 - pip
