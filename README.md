@@ -10,8 +10,8 @@ Application web développée pour THEMAA (Association nationale des Théâtres d
 
 - 🌍 **Carte interactive** des formations avec Leaflet.js
 - 🔍 **Moteur de recherche** avec filtres (type de formation, techniques, financements...)
-- 📝 **Formulaire** de contribution pour les organismes
-- 👥 **Gestion des rôles** (public, contributeur, administrateur)
+- 📝 **Formulaire** de contribution (ajouts de formations) pour les organismes
+- 👥 **Gestion des rôles** (visiteur, adhérent, administrateur)
 - ✅ **Système de modération** des contributions
 - 📱 **Design responsive** adapté à tous les appareils
 
