@@ -3,6 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-2.0+-green.svg)](https://flask.palletsprojects.com/)
+[![Docker](https://img.shields.io/badge/Docker-✓-blue.svg)](https://www.docker.com/)
 
 Application web développée pour THEMAA (Association nationale des Théâtres de Marionnettes et des Arts Associés) dans le cadre d'un stage.
 
@@ -15,15 +16,34 @@ Application web développée pour THEMAA (Association nationale des Théâtres d
 - ✅ **Système de modération** des contributions
 - 📱 **Design responsive** adapté à tous les appareils
 
-## Prérequis
+## Prérequis (Si tu n'utilises pas docker)
 
 - Python 3.9+
 - pip
-- Node.js (pour les assets frontend)
+- WampServer (ou MAMP, XAMPP..)
 
-## Installation
 
-1. Cloner le dépôt :
+## 🚀 Installation avec Docker (recommandé)
+
+### Prérequis
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installé
+- Git (pour cloner le dépôt)
+
+### Premier démarrage
 ```bash
-git clone https://github.com/Haruhno/Cartographie-Formations-THEMAA.git
-cd Cartographie-Formations-THEMAA
+# 1. Cloner le dépôt
+git clone https://github.com/votre-utilisateur/cartographie-formations-THEMAA.git
+cd cartographie-formations-THEMAA
+```
+
+# 2. Lancer les containers Docker
+```bash
+docker-compose up --build -d
+```
+
+# 3. Accéder aux services :
+```bash
+Application : http://localhost:5000/
+
+phpMyAdmin : http://localhost:8080/ 
+```
