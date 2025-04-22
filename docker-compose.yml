@@ -1,0 +1,43 @@
+services:
+  web:
+    image: themaa-flask-app:latest  # Image personnalisée nommée
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    environment:
+      - FLASK_ENV=development
+      - DATABASE_URL=mysql+pymysql://root:@db:3306/themapp_db
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.3
+    environment:
+      MYSQL_ROOT_PASSWORD: ""
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE: themapp_db
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d  # Pour les scripts d'initialisation
+    ports:
+      - "3306:3306"
+    restart: unless-stopped
+
+  phpmyadmin:
+    image: phpmyadmin:5.2  # Version spécifiée
+    environment:
+      PMA_HOST: db
+      PMA_ARBITRARY: 1
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
