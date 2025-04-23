@@ -37,12 +37,12 @@ git clone https://github.com/Haruhno/CartographieTHEMAA.git
 cd CartographieTHEMAA
 ```
 
-# 2. Lancer les containers Docker
+#### 2. Lancer les containers Docker
 ```bash
 docker-compose up --build -d
 ```
 
-# 3. Accéder aux services :
+#### 3. Accéder aux services :
 ```bash
 Application : http://localhost:5000/
 
