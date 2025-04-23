@@ -31,7 +31,7 @@ Application web développée pour THEMAA (Association nationale des Théâtres d
 
 ### Premier démarrage
 
-# 1. Cloner le dépôt
+#### 1. Cloner le dépôt
 ```bash
 git clone https://github.com/Haruhno/CartographieTHEMAA.git
 cd CartographieTHEMAA
