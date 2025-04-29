@@ -1,0 +1,73 @@
+/* Style de base pour la page */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+/* Style du container */
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+/* Style des titres */
+h1 {
+    font-size: 2rem;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Style des boutons */
+button {
+    font-size: 1rem;
+    padding: 10px 20px;
+    margin-right: 10px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+
+}
+
+button:focus {
+    outline: none;
+}
+
+button:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+/* Style de la table */
+table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+}
+
+table th, table td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+table th {
+    background-color: #f8f8f8;
+}
+
+table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+table tr:hover {
+    background-color: #f1f1f1;
+}
+
+#tableOrganismes td {
+    pointer-events: none;
+    user-select: none;
+}

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ajouter un Organisme</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Ajouter un Organisme</h1>
+
+    <form method="POST" action="{{ url_for('organisme.create_organisme') }}">
+        <div class="form-group">
+            <label for="nom">Nom *</label>
+            <input type="text" class="form-control" name="nom" required>
+        </div>
+        <div class="form-group">
+            <label for="adresse">Adresse *</label>
+            <input type="text" class="form-control" name="adresse" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Email *</label>
+            <input type="email" class="form-control" name="email" required>
+        </div>
+        <div class="form-group">
+            <label for="telephone">Téléphone *</label>
+            <input type="text" class="form-control" name="telephone" required 
+                   pattern="^(\+?\d{1,3})?[0-9]{6,14}$" 
+                   title="Le numéro doit contenir uniquement des chiffres, avec éventuellement un + en début pour les formats internationaux.">
+        </div>
+        
+        <div class="form-group">
+            <label for="site_web">Site Web</label>
+            <input type="url" class="form-control" name="site_web">
+        </div>
+        <div class="form-group">
+            <label for="presentation">Présentation *</label>
+            <textarea class="form-control" name="presentation" required></textarea>
+        </div>
+        <div class="form-group">
+            <label for="num_adherent">Numéro Adhérent</label>
+            <input type="text" class="form-control" name="num_adherent">
+        </div>
+        <div class="form-group">
+            <label for="statut">Statut *</label>
+            <select class="form-control" name="statut" required>
+                <option value="">-- Sélectionner --</option>
+                <option value="initiale">Initiale</option>
+                <option value="continue">Continue</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="label">Label</label>
+            <input type="text" class="form-control" name="label">
+        </div>
+
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary">Ajouter l'Organisme</button>
+            <a href="{{ url_for('organisme.edit_organismes') }}" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>

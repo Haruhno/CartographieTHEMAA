@@ -3,10 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Docker Flask</title>
+    <title>Liste des Organismes</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 </head>
 <body>
-    <h1>Bienvenue sur l'application Flask avec Docker !</h1>
-    <p>C'est une page de test pour vérifier que le container fonctionne correctement.</p>
+
+<div class="container mt-5">
+    <h1 class="text-center">Liste des Organismes</h1>
+    
+    <!-- Boutons -->
+    <button id="btnAfficherOrganismes" class="btn btn-primary mb-3">Afficher les Organismes</button>
+    <button id="btnToggleTable" class="btn btn-secondary mb-3">Cacher/Montrer la Table</button>
+    <button onclick="window.location.href='/organismes/edit'" class="btn btn-warning mb-3">Modifier les Organismes</button>
+    <button onclick="window.location.href='/organismes/new'" class="btn btn-success mb-3">Ajouter un Organisme</button>
+
+
+    
+    <!-- Table -->
+    <table id="tableOrganismes" class="table table-bordered" style="display: none;">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Adresse</th>
+                <th>Email</th>
+                <th>Téléphone</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Les données des organismes seront ajoutées ici -->
+        </tbody>
+    </table>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
 </body>
 </html>
