@@ -30,7 +30,43 @@ $(document).ready(function(){
     });
 
     // Cacher ou montrer la table
-    $("#btnToggleTable").click(function(){
+    $("#btnToggleTableOrga").click(function(){
         $("#tableOrganismes").toggle();
+    });
+
+    $("#btnAfficherFormations").click(function(){
+        $.ajax({
+            url: "/formations/all",  // Route vers l'API qui renvoie les données des formations
+            method: "GET",
+            success: function(response) {
+                let tableBody = $("#tableFormations tbody");
+                tableBody.empty();  // Vide la table avant de remplir les nouvelles données
+                
+                // Remplir la table avec les données des formations
+                response.forEach(function(formation) {
+                    let row = `<tr>
+                        <td>${formation.id}</td>
+                        <td>${formation.nom}</td>
+                        <td>${formation.type}</td>
+                        <td>${formation.description}</td>
+                        <td>${formation.duree}</td>
+                        <td>${formation.lieu}</td>
+                        <td>${formation.prix}</td>
+                    </tr>`;
+                    tableBody.append(row);  // Ajouter chaque ligne à la table
+                });
+                
+                // Afficher la table après avoir ajouté les données
+                $("#tableFormations").show();
+            },
+            error: function() {
+                alert("Erreur lors de la récupération des données.");
+            }
+        });
+    });
+
+    // Cacher ou montrer la table
+    $("#btnToggleTableForma").click(function(){
+        $("#tableFormations").toggle();
     });
 });

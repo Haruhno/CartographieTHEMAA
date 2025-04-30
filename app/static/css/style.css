@@ -3,34 +3,39 @@ body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
     color: #333;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6; /* Augmenter l'espacement entre les lignes pour plus de confort */
 }
 
 /* Style du container */
 .container {
-    max-width: 900px;
+    max-width: 1100px; /* Augmenter la largeur du container pour plus d'espace */
     margin: 0 auto;
-    padding: 20px;
+    padding: 40px; /* Augmenter le padding pour espacer mieux les éléments */
     background-color: #fff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Ombre plus marquée */
+    border-radius: 12px;
+    margin-top: 50px;
 }
 
 /* Style des titres */
 h1 {
-    font-size: 2rem;
+    font-size: 2.5rem; /* Augmenter la taille du titre */
     color: #333;
-    margin-bottom: 20px;
+    text-align: center;
+    margin-bottom: 30px;
 }
 
 /* Style des boutons */
 button {
-    font-size: 1rem;
-    padding: 10px 20px;
-    margin-right: 10px;
+    font-size: 1.2rem; /* Augmenter la taille des boutons */
+    padding: 10px 20px; /* Augmenter l'espace autour du texte dans les boutons */
+    margin-right: 15px;
     border: none;
     cursor: pointer;
-    border-radius: 5px;
-
+    border-radius: 8px;
+    transition: 0.5s ease; /* Transition pour les effets de hover */
 }
 
 button:focus {
@@ -40,23 +45,49 @@ button:focus {
 button:hover {
     background-color: #007bff;
     color: white;
+    transform: scale(1.04); /* Ajouter un effet de zoom pour le hover */
+}
+
+/* Style des boutons success et secondary */
+.btn-success {
+    background-color: #28a745;
+    border: none;
+    color: white;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border: none;
+    color: white;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
 }
 
 /* Style de la table */
 table {
     width: 100%;
-    margin-top: 20px;
+    margin-top: 30px;
     border-collapse: collapse;
 }
 
 table th, table td {
-    padding: 12px;
+    padding: 18px 12px; /* Augmenter le padding dans les cellules */
     text-align: left;
     border: 1px solid #ddd;
+    font-size: 1.1rem; /* Augmenter la taille de la police */
 }
 
 table th {
     background-color: #f8f8f8;
+    font-size: 1.2rem; /* Augmenter la taille des titres des colonnes */
 }
 
 table tr:nth-child(even) {
@@ -67,7 +98,87 @@ table tr:hover {
     background-color: #f1f1f1;
 }
 
-#tableOrganismes td {
-    pointer-events: none;
-    user-select: none;
+/* Style des formulaires et des champs de saisie */
+.form-control {
+    font-size: 1.1rem; /* Augmenter la taille de la police des champs de saisie */
+    padding: 15px; /* Augmenter le padding pour rendre les champs plus grands */
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    transition: border 0.3s ease;
+}
+
+/* Style des nouveaux champs de formulaire */
+.form-group {
+    margin-bottom: 20px; /* Espacement entre chaque groupe de formulaire */
+}
+
+.form-group .form-control {
+    font-size: 1.1rem; /* Ajuster la taille de la police des nouveaux champs */
+    padding: 15px; /* Garder le padding ajusté pour les nouveaux champs */
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    transition: border 0.3s ease;
+}
+
+.form-group label {
+    font-weight: 600; /* Rendre les labels plus visibles */
+    color: #333; /* Couleur des labels */
+}
+
+
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Style des cards */
+.card {
+    border: none;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    padding: 30px; /* Augmenter le padding pour espacer les éléments internes */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+    font-size: 1.5rem; /* Augmenter la taille du titre des cards */
+    font-weight: 600;
+    color: #007bff;
+    margin-bottom: 20px;
+}
+
+/* Style des zones de texte (textarea) */
+textarea.form-control {
+    height: 200px; /* Augmenter la hauteur des zones de texte */
+    resize: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 30px; /* Espacer davantage les éléments sur les petits écrans */
+    }
+
+    .form-row {
+        flex-direction: column;
+    }
+
+    .form-group {
+        width: 100%;
+    }
+
+    h1 {
+        font-size: 2rem; /* Adapter la taille du titre sur les petits écrans */
+    }
+
+    .card {
+        padding: 20px;
+    }
+
+    button {
+        width: 100%; /* Les boutons prennent toute la largeur sur petits écrans */
+        margin-right: 0;
+        margin-top: 10px;
+    }
 }

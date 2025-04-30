@@ -14,7 +14,7 @@
     
     <!-- Boutons -->
     <button id="btnAfficherOrganismes" class="btn btn-primary mb-3">Afficher les Organismes</button>
-    <button id="btnToggleTable" class="btn btn-secondary mb-3">Cacher/Montrer la Table</button>
+    <button id="btnToggleTableOrga" class="btn btn-secondary mb-3">Cacher/Montrer la Table</button>
     <button onclick="window.location.href='/organismes/edit'" class="btn btn-warning mb-3">Modifier les Organismes</button>
     <button onclick="window.location.href='/organismes/new'" class="btn btn-success mb-3">Ajouter un Organisme</button>
 
@@ -33,6 +33,34 @@
         </thead>
         <tbody>
             <!-- Les données des organismes seront ajoutées ici -->
+        </tbody>
+    </table>
+</div>
+
+<div class="container mt-5">
+    <h1 class="text-center">Liste des Formations</h1>
+    
+    <!-- Boutons -->
+    <button id="btnAfficherFormations" class="btn btn-primary mb-3">Afficher les Formations</button>
+    <button id="btnToggleTableForma" class="btn btn-secondary mb-3">Cacher/Montrer la Table</button>
+    <button onclick="window.location.href='/formations/edit'" class="btn btn-warning mb-3">Modifier les Formations</button>
+    <button onclick="window.location.href='/formations/new'" class="btn btn-success mb-3">Ajouter une Formation</button>
+    
+    <!-- Table -->
+    <table id="tableFormations" class="table table-bordered" style="display: none;">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Durée</th>
+                <th>Lieu</th>
+                <th>Prix</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Les données des formations seront ajoutées ici -->
         </tbody>
     </table>
 </div>

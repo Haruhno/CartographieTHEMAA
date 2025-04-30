@@ -1,0 +1,19 @@
+from database import db
+
+class Formation(db.Model):
+    __tablename__ = "Formation"
+
+    id_formation = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(100), nullable=False)
+    type = db.Column(db.Enum('initiale', 'continue'), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    duree = db.Column(db.String(50), nullable=False)
+    dates = db.Column(db.String(100), nullable=False)
+    lieu = db.Column(db.String(100), nullable=False)
+    prix = db.Column(db.Numeric(10, 2))
+    conditions_acces = db.Column(db.Text)
+    financement = db.Column(db.String(100))
+    presentation_intervenants = db.Column(db.Text)
+    lien_inscription = db.Column(db.String(200))
+    label = db.Column(db.String(50))
+    id_organisme = db.Column(db.Integer, db.ForeignKey('Organisme.id_organisme'), nullable=False)
