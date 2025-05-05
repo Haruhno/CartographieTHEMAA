@@ -16,5 +16,10 @@ app.register_blueprint(formation_bp)
 def home():
     return render_template("index.html")
 
+@app.route('/carte')
+def carte():
+    return render_template('carte.html')
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
