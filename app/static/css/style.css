@@ -127,7 +127,6 @@ table tr:hover {
 
 .form-group .form-control {
     font-size: 1.1rem; /* Ajuster la taille de la police des nouveaux champs */
-    padding: 15px; /* Garder le padding ajusté pour les nouveaux champs */
     border-radius: 8px;
     border: 1px solid #ddd;
     transition: border 0.3s ease;

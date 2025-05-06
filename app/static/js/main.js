@@ -1,26 +1,56 @@
+function supprimerFormation(id) {
+    if (confirm("Voulez-vous vraiment supprimer cette formation ?")) {
+        $.post(`/formations/delete/${id}`, function(response) {
+            if (response.success) {
+                $(`#formation-row-${id}`).remove();
+            } else {
+                alert("Erreur lors de la suppression de la formation.");
+            }
+        }).fail(function() {
+            alert("Erreur serveur lors de la suppression.");
+        });
+    }
+}
+
+function supprimerOrganisme(id) {
+    if (confirm("Voulez-vous vraiment supprimer cet organisme ?")) {
+        $.post(`/organismes/delete/${id}`, function(response) {
+            if (response.success) {
+                $(`#organisme-row-${id}`).remove();
+            } else {
+                alert("Erreur lors de la suppression de l'organisme.");
+            }
+        }).fail(function() {
+            alert("Erreur serveur lors de la suppression.");
+        });
+    }
+}
+
 $(document).ready(function(){
     // Afficher les organismes
     $("#btnAfficherOrganismes").click(function(){
         $.ajax({
-            url: "/organismes/all",  // Route vers l'API qui renvoie les données des organismes
+            url: "/organismes/all",
             method: "GET",
             success: function(response) {
                 let tableBody = $("#tableOrganismes tbody");
-                tableBody.empty();  // Vide la table avant de remplir les nouvelles données
+                tableBody.empty();
                 
-                // Remplir la table avec les données des organismes
                 response.forEach(function(organisme) {
-                    let row = `<tr>
+                    let row = `<tr id="organisme-row-${organisme.id}">
                         <td>${organisme.id}</td>
                         <td>${organisme.nom}</td>
                         <td>${organisme.adresse}</td>
                         <td>${organisme.email}</td>
                         <td>${organisme.telephone}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="supprimerOrganisme(${organisme.id})">
+                                🗑
+                            </button>
+                        </td>
                     </tr>`;
-                    tableBody.append(row);  // Ajouter chaque ligne à la table
+                    tableBody.append(row);
                 });
-                
-                // Afficher la table après avoir ajouté les données
                 $("#tableOrganismes").show();
             },
             error: function() {
@@ -29,22 +59,21 @@ $(document).ready(function(){
         });
     });
 
-    // Cacher ou montrer la table
     $("#btnToggleTableOrga").click(function(){
         $("#tableOrganismes").toggle();
     });
 
+    // Afficher les formations
     $("#btnAfficherFormations").click(function(){
         $.ajax({
-            url: "/formations/all",  // Route vers l'API qui renvoie les données des formations
+            url: "/formations/all",
             method: "GET",
             success: function(response) {
                 let tableBody = $("#tableFormations tbody");
-                tableBody.empty();  // Vide la table avant de remplir les nouvelles données
-                
-                // Remplir la table avec les données des formations
+                tableBody.empty();
+
                 response.forEach(function(formation) {
-                    let row = `<tr>
+                    let row = `<tr id="formation-row-${formation.id}">
                         <td>${formation.id}</td>
                         <td>${formation.nom}</td>
                         <td>${formation.type}</td>
@@ -52,11 +81,14 @@ $(document).ready(function(){
                         <td>${formation.duree}</td>
                         <td>${formation.lieu}</td>
                         <td>${formation.prix}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="supprimerFormation(${formation.id})">
+                                🗑
+                            </button>
+                        </td>
                     </tr>`;
-                    tableBody.append(row);  // Ajouter chaque ligne à la table
+                    tableBody.append(row);
                 });
-                
-                // Afficher la table après avoir ajouté les données
                 $("#tableFormations").show();
             },
             error: function() {
@@ -65,7 +97,6 @@ $(document).ready(function(){
         });
     });
 
-    // Cacher ou montrer la table
     $("#btnToggleTableForma").click(function(){
         $("#tableFormations").toggle();
     });

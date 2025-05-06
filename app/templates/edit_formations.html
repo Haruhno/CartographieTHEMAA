@@ -69,18 +69,31 @@
                 <label>Lien d'inscription</label>
                 <input type="text" class="form-control" name="lien_inscription_{{ f.id_formation }}" value="{{ f.lien_inscription }}">
             </div>
+            <div class="form-group">
+                <label>Organisme</label>
+                <select class="form-control" name="id_organisme_{{ f.id_formation }}">
+                    {% for o in organismes %}
+                        <option value="{{ o.id_organisme }}" {% if o.id_organisme == f.id_organisme %}selected{% endif %}>
+                            {{ o.nom }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
         </div>
         <div class="text-center mb-3">
             <button type="submit" class="btn btn-success">Enregistrer les modifications</button>
         </div>
+        
+        <div class="text-center">
+            <a href="/" class="btn btn-secondary">Retour à l'accueil</a>
+        </div>
+        
         {% endfor %}
         
 
     </form>
 
-    <div class="text-center">
-        <a href="/" class="btn btn-secondary">Retour à l'accueil</a>
-    </div>
 </div>
     
 </body>

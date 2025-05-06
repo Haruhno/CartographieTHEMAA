@@ -71,7 +71,9 @@ def create_organisme():
     db.session.commit()
     return redirect(url_for("organisme.edit_organismes"))
 
-@organisme_bp.route('/delete', methods=['GET'])
-def delete_organismes():  # <- ici aussi
-    organismes = Organisme.query.all()
-    return render_template('delete_organisme.html', organismes=organismes)
+@organisme_bp.route("/delete/<int:id>", methods=["POST"])
+def delete_organisme(id):
+    organisme = Organisme.query.get_or_404(id)
+    db.session.delete(organisme)
+    db.session.commit()
+    return jsonify({"success": True})

@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, render_template, request, redirect, url_for
 from models.ModelFormation import Formation
+from models.ModelOrganisme import Organisme
 from database import db
 
 formation_bp = Blueprint("formation", __name__, url_prefix="/formations")
@@ -32,7 +33,8 @@ def get_all_formations():
 @formation_bp.route("/edit", methods=["GET"])
 def edit_formations():
     formations = Formation.query.all()
-    return render_template("edit_formations.html", formations=formations)
+    organismes = Organisme.query.all()
+    return render_template("edit_formations.html", formations=formations, organismes=organismes)
 
 @formation_bp.route("/update", methods=["POST"])
 def update_formations():
@@ -58,7 +60,9 @@ def update_formations():
 
 @formation_bp.route("/new", methods=["GET"])
 def new_formation():
-    return render_template("new_formation.html")
+    organismes = Organisme.query.all()
+    return render_template("new_formation.html", organismes=organismes)
+
 
 @formation_bp.route("/create", methods=["POST"])
 def create_formation():
@@ -95,7 +99,9 @@ def create_formation():
     db.session.commit()
     return redirect(url_for("formation.edit_formations"))
     
-@formation_bp.route('/delete', methods=['GET'])
-def delete_formations():  # <- ici : nom différent
-    formations = Formation.query.all()
-    return render_template('delete_formation.html', formations=formations)
+@formation_bp.route("/delete/<int:id>", methods=["POST"])
+def delete_formation(id):
+    formation = Formation.query.get_or_404(id)
+    db.session.delete(formation)
+    db.session.commit()
+    return jsonify({"success": True})
