@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Supprimer une Formation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Supprimer une Formation</h1>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for f in formations %}
+            <tr>
+                <td>{{ f.id_formation }}</td>
+                <td>{{ f.nom }}</td>
+                <td>
+                    <form method="post" action="{{ url_for('formation.delete_formation', id=f.id_formation) }}" onsubmit="return confirm('Supprimer cette formation ?');">
+                        <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="text-center">
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Retour à l'accueil</a>
+    </div>
+</div>
+</body>
+</html>

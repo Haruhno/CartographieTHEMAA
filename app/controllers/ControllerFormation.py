@@ -94,3 +94,8 @@ def create_formation():
     db.session.add(nouvelle_formation)
     db.session.commit()
     return redirect(url_for("formation.edit_formations"))
+    
+@formation_bp.route('/delete', methods=['GET'])
+def delete_formations():  # <- ici : nom différent
+    formations = Formation.query.all()
+    return render_template('delete_formation.html', formations=formations)
