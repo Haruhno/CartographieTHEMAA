@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Supprimer un Organisme</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Supprimer un Organisme</h1>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for o in organismes %}
+            <tr>
+                <td>{{ o.id_organisme }}</td>
+                <td>{{ o.nom }}</td>
+                <td>
+                    <form method="post" action="{{ url_for('organisme.delete_organisme', id=o.id_organisme) }}" onsubmit="return confirm('Supprimer cet organisme ?');">
+                        <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="text-center">
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Retour à l'accueil</a>
+    </div>
+</div>
+</body>
+</html>

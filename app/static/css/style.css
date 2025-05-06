@@ -48,7 +48,7 @@ button:hover {
     transform: scale(1.04); /* Ajouter un effet de zoom pour le hover */
 }
 
-/* Style des boutons success et secondary */
+/* Style des boutons */
 .btn-success {
     background-color: #28a745;
     border: none;
@@ -70,6 +70,19 @@ button:hover {
 .btn-secondary:hover {
     background-color: #5a6268;
 }
+
+.btn-danger {
+    background-color: #dc3545;
+    border: none;
+    color: white;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    transform: scale(1.04);
+}
+
 
 /* Style de la table */
 table {
