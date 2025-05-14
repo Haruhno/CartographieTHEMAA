@@ -153,6 +153,23 @@
     </style>
 </head>
 <body>
+<!-- Header -->
+<div style="position: absolute; top: 20px; right: 20px; z-index: 1000;">
+    {% if current_user.is_authenticated %}
+        <a href="{{ url_for('dashboard') }}" style="background-color: #1e90a2; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none;">
+            {{ current_user.nom }}
+        </a>
+        <a href="{{ url_for('utilisateur.deconnexion') }}" style="background-color: #dc3545; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none; margin-left: 10px;">
+            Déconnexion
+        </a>
+    {% else %}
+        <a href="{{ url_for('utilisateur.connexion') }}" style="background-color: #1e90a2; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none;">
+            Connexion
+        </a>
+    {% endif %}
+</div>
+
+<!-- Sidebar -->
 
 <div id="container">
     <div id="formations-list">
