@@ -12,6 +12,7 @@ class Utilisateur(db.Model, UserMixin):
     role = db.Column(db.Enum('visiteur', 'user', 'admin'), nullable=False, default='visiteur')
     num_adherent = db.Column(db.String(50))
     id_organisme = db.Column(db.Integer, db.ForeignKey('Organisme.id_organisme'))
+    photo_profil = db.Column(db.String(255))  # Chemin vers l'image
 
     def set_password(self, password):
         self.mot_de_passe = generate_password_hash(password)

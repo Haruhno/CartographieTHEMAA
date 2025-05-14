@@ -11,8 +11,9 @@
     <h1 class="text-center mb-4">Modifier les Organismes</h1>
 
     <form method="post" action="{{ url_for('organisme.update_organismes') }}">
+        {% for o in organismes %}
         <div class="form-card">
-            {% for o in organismes %}
+            
             <div class="form-row">
                 <h3>Organisme n°{{ o.id_organisme }}</h3>
                 <div class="form-group">
@@ -34,14 +35,13 @@
                         title="Le numéro doit contenir uniquement des chiffres, avec éventuellement un + en début." required>
                 </div>
             </div>
-            <hr>
-            {% endfor %}
+            <div class="text-center">
+                <button type="submit" class="btn btn-success">Enregistrer les modifications</button>
+                <a href="/" class="btn btn-secondary">Retour à l'accueil</a>
+            </div>
+            
         </div>
-
-        <div class="text-center">
-            <button type="submit" class="btn btn-success">Enregistrer les modifications</button>
-            <a href="/" class="btn btn-secondary">Retour à l'accueil</a>
-        </div>
+        {% endfor %}
     </form>
 </div>
 </body>

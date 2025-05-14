@@ -20,8 +20,12 @@
             </div>
             <div class="form-group">
                 <label>Type</label>
-                <input type="text" name="type_{{ f.id_formation }}" value="{{ f.type }}" required>
+                <select name="type_{{ f.id_formation }}" required>
+                    <option value="initiale" {% if f.type == "initiale" %}selected{% endif %}>Initiale</option>
+                    <option value="continue" {% if f.type == "continue" %}selected{% endif %}>Continue</option>
+                </select>
             </div>
+
             <div class="form-group">
                 <label>Description</label>
                 <textarea name="description_{{ f.id_formation }}" required>{{ f.description }}</textarea>
@@ -63,13 +67,6 @@
                 <input type="url" name="lien_inscription_{{ f.id_formation }}" value="{{ f.lien_inscription }}">
             </div>
             <div class="form-group">
-                <label>État</label>
-                <select name="etat_{{ f.id_formation }}" required>
-                    <option value="valide" {% if f.etat == "valide" %}selected{% endif %}>Validé</option>
-                    <option value="en_attente" {% if f.etat == "en_attente" %}selected{% endif %}>En attente</option>
-                </select>
-            </div>
-            <div class="form-group">
                 <label>Organisme</label>
                 <select name="id_organisme_{{ f.id_formation }}" required>
                     {% for o in organismes %}
@@ -79,13 +76,35 @@
                     {% endfor %}
                 </select>
             </div>
+            <div class="form-group">
+                <label>État</label>
+                <button type="button" class="etat-btn" 
+                        data-id="{{ f.id_formation }}" 
+                        data-state="{{ f.etat }}">
+                    {{ "✅ Validé" if f.etat == "valide" else "🕓 En attente" }}
+                </button>
+                <input type="hidden" name="etat_{{ f.id_formation }}" id="etat_input_{{ f.id_formation }}" value="{{ f.etat }}">
+            </div>
         </div>
-        {% endfor %}
         <div class="text-center">
             <button type="submit" class="btn btn-success">Enregistrer les modifications</button>
             <a href="/" class="btn btn-secondary">Retour à l'accueil</a>
         </div>
+        {% endfor %}
     </form>
 </div>
+
+<script>
+document.querySelectorAll('.etat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const currentState = btn.getAttribute('data-state');
+        const newState = currentState === 'valide' ? 'en_attente' : 'valide';
+        btn.setAttribute('data-state', newState);
+        btn.textContent = newState === 'valide' ? '✅ Validé' : '🕓 En attente';
+        document.getElementById('etat_input_' + btn.dataset.id).value = newState;
+    });
+});
+</script>
+
 </body>
 </html>

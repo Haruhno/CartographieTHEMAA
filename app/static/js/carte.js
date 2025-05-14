@@ -213,15 +213,16 @@ Promise.all([
 .catch(error => console.error('Erreur:', error));
 
 // Gestion du bouton de basculement du panneau
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const toggleBtn = document.getElementById('toggleBtn');
     const formationsList = document.getElementById('formations-list');
-    
-    toggleBtn.addEventListener('click', function() {
-        formationsList.classList.toggle('hidden');
-        
-        const icon = toggleBtn.querySelector('i');
-        if (formationsList.classList.contains('hidden')) {
+    const container = document.getElementById('container');
+    const icon = toggleBtn.querySelector('i');
+
+    toggleBtn.addEventListener('click', function () {
+        container.classList.toggle('collapsed');
+
+        if (container.classList.contains('collapsed')) {
             icon.classList.remove('fa-chevron-left');
             icon.classList.add('fa-chevron-right');
         } else {
@@ -230,3 +231,4 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
