@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ajouter une Formation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="container">
+    <h1 class="text-center mb-4">Formulaire</h1>
+
+    <form method="POST" action="{{ url_for('formation.submit_formation') }}">
+        <div class="form-card">
+            <div class="form-group"><label>Nom *</label><input type="text" name="nom" required></div>
+            <div class="form-group">
+                <label>Type *</label>
+                <select name="type" required>
+                    <option value="initiale">Initiale</option>
+                    <option value="continue">Continue</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Description *</label><textarea name="description" required></textarea></div>
+            <div class="form-group"><label>Durée *</label><input type="text" name="duree" required></div>
+            <div class="form-group"><label>Dates *</label><input type="text" name="dates" required></div>
+            <div class="form-group"><label>Lieu *</label><input type="text" name="lieu" required></div>
+            <div class="form-group"><label>Prix</label><input type="number" name="prix" step="0.01"></div>
+            <div class="form-group"><label>Conditions d'accès</label><textarea name="conditions_acces"></textarea></div>
+            <div class="form-group"><label>Financement</label><input type="text" name="financement"></div>
+            <div class="form-group"><label>Présentation des intervenants</label><textarea name="presentation_intervenants"></textarea></div>
+            <div class="form-group"><label>Lien d'inscription</label><input type="url" name="lien_inscription"></div>
+            <div class="form-group"><label>Label</label><input type="text" name="label"></div>
+
+            <div class="form-group">
+                <label>Organisme</label>
+                <select name="id_organisme">
+                    {% for organisme in organismes %}
+                        <option value="{{ organisme.id_organisme }}">{{ organisme.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Soumettre la formation</button>
+        </div>
+    </form>
+</div>
+</body>
+</html>

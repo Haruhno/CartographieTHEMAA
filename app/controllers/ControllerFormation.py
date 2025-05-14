@@ -54,6 +54,7 @@ def update_formations():
             formation.presentation_intervenants = request.form.get(f"presentation_intervenants_{id_}")
             formation.lien_inscription = request.form.get(f"lien_inscription_{id_}")
             formation.label = request.form.get(f"label_{id_}")
+            formation.etat = request.form.get(f"etat_{id_}")  # Ajout de l'état
     
     db.session.commit()
     return redirect(url_for("formation.edit_formations"))
@@ -98,6 +99,8 @@ def create_formation():
     db.session.add(nouvelle_formation)
     db.session.commit()
     return redirect(url_for("formation.edit_formations"))
+
+
     
 @formation_bp.route("/delete/<int:id>", methods=["POST"])
 def delete_formation(id):
@@ -105,3 +108,47 @@ def delete_formation(id):
     db.session.delete(formation)
     db.session.commit()
     return jsonify({"success": True})
+
+@formation_bp.route("/formulaire", methods=["GET"])
+def formulaire():
+    organismes = Organisme.query.all()
+    return render_template("formulaire.html", organismes=organismes)
+
+@formation_bp.route("/submit", methods=["POST"])
+def submit_formation():
+    nom = request.form["nom"]
+    type_ = request.form["type"]
+    description = request.form["description"]
+    duree = request.form["duree"]
+    dates = request.form["dates"]
+    lieu = request.form["lieu"]
+    prix = request.form.get("prix")
+    conditions_acces = request.form.get("conditions_acces")
+    financement = request.form.get("financement")
+    presentation_intervenants = request.form.get("presentation_intervenants")
+    lien_inscription = request.form.get("lien_inscription")
+    label = request.form.get("label")
+    id_organisme = request.form["id_organisme"]
+
+    formation_en_attente = Formation(
+        nom=nom,
+        type=type_,
+        description=description,
+        duree=duree,
+        dates=dates,
+        lieu=lieu,
+        prix=prix,
+        conditions_acces=conditions_acces,
+        financement=financement,
+        presentation_intervenants=presentation_intervenants,
+        lien_inscription=lien_inscription,
+        label=label,
+        id_organisme=id_organisme
+    )
+    db.session.add(formation_en_attente)
+    db.session.commit()
+
+    print("Formation ajoutée avec succès.")  # Debugging print
+    return redirect(url_for("dashboard"))  # Vous pouvez rediriger vers la page de confirmation
+
+
