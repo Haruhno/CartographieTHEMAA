@@ -1,6 +1,8 @@
-from flask import Blueprint, jsonify, render_template, request, redirect, url_for
+from flask import Blueprint, jsonify, render_template, request, redirect, url_for, flash
 from models.ModelOrganisme import Organisme
+from models.ModelUtilisateur import Utilisateur
 from database import db
+from flask_login import current_user, login_required
 
 organisme_bp = Blueprint("organisme", __name__, url_prefix="/organismes")
 
@@ -77,3 +79,63 @@ def delete_organisme(id):
     db.session.delete(organisme)
     db.session.commit()
     return jsonify({"success": True})
+
+@organisme_bp.route("/choose", methods=["GET", "POST"])
+@login_required
+def choose_organisme():
+    if request.method == "POST":
+        # Si l'utilisateur a choisi un organisme existant
+        if "id_organisme" in request.form:
+            organisme_id = request.form["id_organisme"]
+            current_user.id_organisme = organisme_id
+            db.session.commit()
+            flash("Organisme associé avec succès!", "success")
+            return redirect(url_for("utilisateur.profil"))
+        
+        # Si l'utilisateur veut créer un nouvel organisme
+        elif "create_new" in request.form:
+            return redirect(url_for("organisme.new_organisme_user"))
+    
+    # GET: Afficher la liste des organismes
+    organismes = Organisme.query.all()
+    return render_template("choose_organisme.html", organismes=organismes)
+
+@organisme_bp.route("/new/user", methods=["GET"])
+@login_required
+def new_organisme_user():
+    return render_template("formulaire_organisme.html")
+
+@organisme_bp.route("/create/user", methods=["POST"])
+@login_required
+def create_organisme_user():
+    nom = request.form["nom"]
+    adresse = request.form["adresse"]
+    email = request.form["email"]
+    telephone = request.form["telephone"]
+    site_web = request.form.get("site_web")
+    presentation = request.form["presentation"]
+    num_adherent = request.form.get("num_adherent")
+    statut = request.form["statut"]
+    label = request.form.get("label")
+
+    nouvel_organisme = Organisme(
+        nom=nom,
+        adresse=adresse,
+        email=email,
+        telephone=telephone,
+        site_web=site_web,
+        presentation=presentation,
+        num_adherent=num_adherent,
+        statut=statut,
+        label=label
+    )
+    
+    db.session.add(nouvel_organisme)
+    db.session.flush()  # Pour obtenir l'ID
+    
+    # Associer l'organisme à l'utilisateur
+    current_user.id_organisme = nouvel_organisme.id_organisme
+    db.session.commit()
+    
+    flash("Organisme créé et associé avec succès!", "success")
+    return redirect(url_for("utilisateur.profil"))

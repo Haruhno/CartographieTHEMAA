@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Choisir un Organisme</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="container">
+    <h1 class="text-center mb-4">Choisir votre organisme</h1>
+
+    <form method="POST">
+        <div class="form-card">
+            <h3>Sélectionnez votre organisme</h3>
+            
+            {% if organismes %}
+                <div class="organismes-list">
+                    {% for organisme in organismes %}
+                        <div class="organisme-item">
+                            <input type="radio" id="org_{{ organisme.id_organisme }}" 
+                                   name="id_organisme" value="{{ organisme.id_organisme }}">
+                            <label for="org_{{ organisme.id_organisme }}">
+                                <strong>{{ organisme.nom }}</strong><br>
+                                {{ organisme.adresse }}<br>
+                                {{ organisme.email }} - {{ organisme.telephone }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>Aucun organisme disponible dans la base de données.</p>
+            {% endif %}
+
+            <div class="form-actions">
+                <button type="submit" name="choose_existing" class="btn btn-primary">
+                    Valider la sélection
+                </button>
+                
+                <p class="separator">OU</p>
+                
+                <button type="submit" name="create_new" class="btn btn-secondary">
+                    Créer un nouvel organisme
+                </button>
+                
+                <a href="{{ url_for('utilisateur.profil') }}" class="btn btn-link">
+                    Annuler
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+</html> 

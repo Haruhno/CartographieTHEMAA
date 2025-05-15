@@ -499,17 +499,6 @@ textarea.form-control {
     background-color: #167e8c;
 }
 
-.profile-picture {
-    width: 120px;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 3px solid #1e90a2;
-    box-shadow: 0 0 5px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease;
-}
-
-
 .password-toggle {
     cursor: pointer;
     color: #1e90a2;
@@ -521,6 +510,143 @@ textarea.form-control {
 
 .password-toggle:hover {
     color: #167e8c;
+}
+
+/* Styles pour la photo de profil dans le formulaire */
+.profile-picture {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    border: 2px solid #1e90a2;
+    object-fit: cover;
+}
+
+
+.default-picture {
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.default-picture i {
+    font-size: 3em;
+    color: #888;
+}
+
+.file-actions {
+    display: flex;
+    align-items: center;
+    gap: 25px; /* augmente le gap pour aérer */
+    flex-wrap: wrap;
+}
+
+
+.custom-file-upload,
+.btn-reset-photo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-file-upload {
+    background-color: #f0f0f0;
+    padding: 8px 14px; /* plus petit */
+    font-size: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    transition: background-color 0.3s;
+}
+
+.custom-file-upload:hover {
+    background-color: #e0e0e0;
+}
+
+.custom-file-upload {
+    margin: 0 !important;
+}
+
+.form-group small {
+    margin-top: 1.2em;
+}
+
+
+.photo-upload-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    flex-wrap: wrap;
+}
+
+
+input[type="file"] {
+    display: none;
+}
+.btn-reset-photo {
+    background-color: #1e90a2;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.btn-reset-photo:hover {
+    background-color: #167e8c;
+}
+
+/* Styles pour la sélection d'organisme */
+.organismes-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 20px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.organisme-item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+}
+
+.organisme-item:last-child {
+    border-bottom: none;
+}
+
+.organisme-item input[type="radio"] {
+    margin-right: 15px;
+}
+
+.organisme-item label {
+    flex: 1;
+    margin-bottom: 0;
+    cursor: pointer;
+}
+
+.form-actions {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.separator {
+    margin: 15px 0;
+    font-weight: bold;
+    text-align: center;
+}
+
+.organisme-info {
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+.btn-small {
+    padding: 5px 10px;
+    font-size: 0.9em;
 }
 
 /* =========================
@@ -558,7 +684,7 @@ textarea.form-control {
 /* Flash Popup */
 .flash-popup-container {
     position: fixed;
-    top: 20px;
+    bottom: 20px;
     right: 20px;
     z-index: 9999;
     display: flex;
@@ -582,13 +708,13 @@ textarea.form-control {
 
 /* Animation keyframes */
 @keyframes fadein {
-    from { opacity: 0; transform: translateY(-20px); }
+    from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeout {
     from { opacity: 1; transform: translateY(0); }
-    to { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 0; transform: translateY(20px); }
 }
 
 /* Close button */
@@ -776,6 +902,52 @@ textarea.form-control {
 .toggle-btn i {
     transition: transform 0.3s ease;
 }
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 20px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: var(--dark-color);
+    font-weight: 500;
+}
+
+.user-info i {
+    font-size: 20px;
+    color: var(--primary-color);
+}
+
+.header-links {
+    display: flex;
+    gap: 10px;
+}
+
+.header-btn {
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.header-btn.logout {
+    background-color: var(--danger-color);
+}
+
+.header-btn:hover {
+    opacity: 0.9;
+}
+
 
 
 

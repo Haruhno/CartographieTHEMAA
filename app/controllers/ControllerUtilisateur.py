@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from models.ModelUtilisateur import Utilisateur
+from models.ModelOrganisme import Organisme
 from werkzeug.utils import secure_filename
 from database import db
 import os
@@ -71,32 +72,55 @@ def allowed_file(filename):
 @login_required
 def profil():
     if request.method == 'POST':
-        # Gestion de la photo de profil
+        # Réinitialisation de la photo de profil
+        if 'reset_photo' in request.form:
+            if current_user.photo_profil:
+                try:
+                    os.remove(os.path.join(current_app.root_path, current_user.photo_profil))
+                except Exception as e:
+                    print(f"Erreur lors de la suppression de la photo : {e}")
+                current_user.photo_profil = None
+                db.session.commit()
+                flash("Photo de profil réinitialisée.", "success")
+                return redirect(url_for('utilisateur.profil'))
+
+        # Gestion de l'upload de la photo de profil
         if 'photo_profil' in request.files:
             file = request.files['photo_profil']
             if file and allowed_file(file.filename):
-                filename = secure_filename(f"user_{current_user.id_utilisateur}.{file.filename.rsplit('.', 1)[1].lower()}")
-                if not os.path.exists(os.path.join(current_app.root_path, UPLOAD_FOLDER)):
-                    os.makedirs(os.path.join(current_app.root_path, UPLOAD_FOLDER))
-                filepath = os.path.join(current_app.root_path, UPLOAD_FOLDER, filename)
+                extension = file.filename.rsplit('.', 1)[1].lower()
+                filename = secure_filename(f"user_{current_user.id_utilisateur}.{extension}")
+
+                upload_dir = os.path.join(current_app.root_path, UPLOAD_FOLDER)
+                if not os.path.exists(upload_dir):
+                    os.makedirs(upload_dir)
+
+                filepath = os.path.join(upload_dir, filename)
                 file.save(filepath)
+
                 current_user.photo_profil = os.path.join(UPLOAD_FOLDER, filename)
-        
-        # Mise à jour des informations
+
+        # Mise à jour des champs texte
         current_user.nom = request.form.get('nom', current_user.nom)
+        current_user.num_adherent = request.form.get('num_adherent', current_user.num_adherent)
+
+        # Mise à jour de l'organisme
+        if 'id_organisme' in request.form:
+            current_user.id_organisme = request.form['id_organisme']
+
+        # Mise à jour de l'email avec vérification
         new_email = request.form.get('email', current_user.email)
-        
-        # Vérification si l'email est déjà utilisé par un autre utilisateur
         if new_email != current_user.email:
-            if Utilisateur.query.filter(Utilisateur.email == new_email, Utilisateur.id_utilisateur != current_user.id_utilisateur).first():
+            email_exists = Utilisateur.query.filter(
+                Utilisateur.email == new_email,
+                Utilisateur.id_utilisateur != current_user.id_utilisateur
+            ).first()
+            if email_exists:
                 flash("Cet email est déjà utilisé par un autre compte", "danger")
                 return redirect(url_for('utilisateur.profil'))
             current_user.email = new_email
-        
-        # Mise à jour du numéro d'adhérent
-        current_user.num_adherent = request.form.get('num_adherent', current_user.num_adherent)
-        
-        # Mise à jour du mot de passe si fourni
+
+        # Mise à jour du mot de passe
         new_password = request.form.get('new_password')
         if new_password:
             old_password = request.form.get('old_password')
@@ -105,9 +129,10 @@ def profil():
                 return redirect(url_for('utilisateur.profil'))
             current_user.set_password(new_password)
             flash("Mot de passe mis à jour avec succès", "success")
-        
+
         db.session.commit()
         flash("Profil mis à jour avec succès", "success")
         return redirect(url_for('utilisateur.profil'))
-    
-    return render_template('profil.html', user=current_user)
+
+    organismes = Organisme.query.all()
+    return render_template('profil.html', user=current_user, organismes=organismes)

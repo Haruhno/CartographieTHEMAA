@@ -24,36 +24,43 @@
     {% endwith %}
 </div>
 
-<!-- Header -->
-<div style="position: absolute; top: 20px; right: 20px; z-index: 1000;">
-    {% if current_user.is_authenticated %}
-        <a href="{{ url_for('dashboard') }}" style="background-color: #1e90a2; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none;">
-            {{ current_user.nom }}
-        </a>
-        <a href="{{ url_for('utilisateur.deconnexion') }}" style="background-color: #dc3545; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none; margin-left: 10px;">
-            Déconnexion
-        </a>
-    {% else %}
-        <a href="{{ url_for('utilisateur.connexion') }}" style="background-color: #1e90a2; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none;">
-            Connexion
-        </a>
-    {% endif %}
-</div>
-
-<!-- Sidebar -->
-
+<!-- Sidebar avec Header intégré -->
 <div id="container">
     <div id="formations-list">
+        <div class="sidebar-header">
+            <div class="user-info">
+                {% if current_user.is_authenticated %}
+                    <i class="fas fa-user-circle"></i>
+                    <span class="user-name">{{ current_user.nom }}</span>
+                {% else %}
+                    <a href="{{ url_for('utilisateur.connexion') }}" class="header-btn" style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-right-to-bracket"></i>
+                        <span>Se connecter</span>
+                    </a>
+                {% endif %}
+            </div>
+            <div class="header-links">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('dashboard') }}" class="header-btn"><i class="fas fa-tachometer-alt"></i></a>
+                    <a href="{{ url_for('utilisateur.deconnexion') }}" class="header-btn logout"><i class="fas fa-sign-out-alt"></i></a>
+                {% endif %}
+            </div>
+        </div>
+
+
+
         <div class="list-header">Formations disponibles</div>
         <div id="formations-container"></div>
     </div>
+
     <button class="toggle-btn" id="toggleBtn">
         <i class="fas fa-chevron-left"></i>
     </button>
+
     <div id="map"></div>
 </div>
 
-<!-- Leaflet JS -->
+<!-- Scripts -->
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
 <script src="{{ url_for('static', filename='js/carte.js') }}"></script>

@@ -14,6 +14,9 @@ class Utilisateur(db.Model, UserMixin):
     id_organisme = db.Column(db.Integer, db.ForeignKey('Organisme.id_organisme'))
     photo_profil = db.Column(db.String(255))  # Chemin vers l'image
 
+    # Relation avec Organisme
+    organisme = db.relationship('Organisme', backref='utilisateurs')
+
     def set_password(self, password):
         self.mot_de_passe = generate_password_hash(password)
 
