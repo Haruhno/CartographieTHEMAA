@@ -136,3 +136,16 @@ $(document).ready(function(){
         }
     });
 });
+
+
+
+// Supprime les flashs automatiquement après 5 secondes
+document.addEventListener("DOMContentLoaded", () => {
+    const flashMessages = document.querySelectorAll(".flash-popup");
+    flashMessages.forEach((msg) => {
+        setTimeout(() => {
+            msg.style.display = "none";
+        }, 4000);
+    });
+});
+

@@ -151,4 +151,29 @@ def submit_formation():
     print("Formation ajoutée avec succès.")  # Debugging print
     return redirect(url_for("dashboard"))  # Vous pouvez rediriger vers la page de confirmation
 
+@formation_bp.route("/valides", methods=["GET"])
+def get_formations_valides():
+    formations = Formation.query.filter_by(etat="valide").all()
+    resultats = []
+
+    for f in formations:
+        resultats.append({
+            "id": f.id_formation,
+            "nom": f.nom,
+            "type": f.type,
+            "description": f.description,
+            "duree": f.duree,
+            "dates": f.dates,
+            "lieu": f.lieu,
+            "prix": f.prix,
+            "conditions_acces": f.conditions_acces,
+            "financement": f.financement,
+            "presentation_intervenants": f.presentation_intervenants,
+            "lien_inscription": f.lien_inscription,
+            "label": f.label,
+            "id_organisme": f.id_organisme
+        })
+
+    return jsonify(resultats)
+
 

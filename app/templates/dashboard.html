@@ -12,6 +12,21 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
+
+    <div class="flash-popup-container" id="flashPopupContainer">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-popup flash-{{ category }}">
+                        {{ message }}
+                        <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+
     <div class="admin-container">
         <!-- Sidebar -->
         <div class="sidebar">

@@ -85,7 +85,7 @@ function geocodeAddress(address, callback) {
 // Récupérer les organismes et formations depuis l'API Flask
 Promise.all([
     fetch('/organismes/all').then(res => res.json()),
-    fetch('/formations/all').then(res => res.json())
+    fetch('/formations/valides').then(res => res.json())  // Changé ici
 ])
 .then(([organismes, formations]) => {
     // Créer un dictionnaire des organismes par ID pour un accès rapide
