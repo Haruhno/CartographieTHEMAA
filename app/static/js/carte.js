@@ -1,4 +1,6 @@
-// Initialisation de la carte
+// =====================
+// INITIALISATION DE LA CARTE
+// =====================
 var map = L.map('map', {
     center: [46.603354, 1.888334],
     zoom: 6,
@@ -10,48 +12,59 @@ var map = L.map('map', {
     zoomControl: false
 });
 
-// Tuiles de type Google Maps
+// Tuiles Google Maps
 L.tileLayer('https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}', {
     attribution: '© Google',
     maxZoom: 20,
     keepBuffer: 20,
 }).addTo(map);
 
-// Ajouter un contrôle de zoom personnalisé
-var zoomControl = L.control.zoom({
-    position: 'topright'
-}).addTo(map);
+// Contrôle de zoom
+L.control.zoom({ position: 'topright' }).addTo(map);
 
-// Dictionnaires pour stocker les associations
-var markersDict = {}; // Marqueurs par organisme ID
-var formationItemsDict = {}; // Éléments de formation par organisme ID
-var currentlyHighlighted = null; // Garde en mémoire l'élément actuellement mis en avant
+// =====================
+// VARIABLES GLOBALES
+// =====================
+var markersDict = {};             // Marqueurs par organisme ID
+var formationItemsDict = {};      // Éléments HTML de formation par organisme ID
+var currentlyHighlighted = null;  // Organisme actuellement en surbrillance
 
-// Fonction pour appliquer l'effet de survol à un élément de formation
-function highlightFormationItem(organismeId) {
-    // Retirer l'effet de tous les éléments d'abord
-    resetAllFormationItems();
-    
-    if (organismeId) {
-        // Appliquer l'effet à l'élément correspondant
-        const formationItem = formationItemsDict[organismeId];
-        if (formationItem) {
-            formationItem.style.transform = 'scale(1.02)';
-            formationItem.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
-            formationItem.style.borderColor = '#1e90a2';
-            formationItem.style.borderWidth = '1px';
-            
-            // Faire défiler jusqu'à l'élément si nécessaire
-            formationItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            
-            currentlyHighlighted = organismeId;
-        }
-    } else {
+// =====================
+// HIGHLIGHT D'UNE FORMATION
+// =====================
+function highlightFormationItem(organismeId, isClick = false) {
+    resetAllFormationItems(); // Nettoie tous les effets
+
+    if (!organismeId) {
         currentlyHighlighted = null;
+        return;
     }
+
+    const item = formationItemsDict[organismeId];
+    if (!item) return;
+
+    // Applique le style de surbrillance
+    item.style.transform = 'scale(1.02)';
+    item.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+    item.style.borderColor = '#1e90a2';
+    item.style.borderWidth = '1px';
+
+    // Si c'est un clic (et non un hover), on déplace l'élément en haut
+    if (isClick) {
+        const container = document.getElementById('formations-container');
+        if (container.firstChild !== item) {
+            container.removeChild(item);
+            container.insertBefore(item, container.firstChild);
+        }
+        container.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    currentlyHighlighted = organismeId;
 }
 
-// Fonction pour réinitialiser tous les éléments de formation
+// =====================
+// RÉINITIALISE TOUS LES ÉLÉMENTS FORMATION
+// =====================
 function resetAllFormationItems() {
     document.querySelectorAll('.formation-item').forEach(item => {
         item.style.transform = '';
@@ -61,7 +74,9 @@ function resetAllFormationItems() {
     });
 }
 
-// Fonction pour géocoder une adresse
+// =====================
+// GÉOCODAGE D'ADRESSE
+// =====================
 function geocodeAddress(address, callback) {
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
         .then(response => response.json())
@@ -82,153 +97,120 @@ function geocodeAddress(address, callback) {
         });
 }
 
-// Récupérer les organismes et formations depuis l'API Flask
+// =====================
+// CHARGEMENT DES DONNÉES
+// =====================
 Promise.all([
     fetch('/organismes/all').then(res => res.json()),
-    fetch('/formations/valides').then(res => res.json())  // Changé ici
+    fetch('/formations/valides').then(res => res.json())
 ])
 .then(([organismes, formations]) => {
-    // Créer un dictionnaire des organismes par ID pour un accès rapide
     const organismesDict = {};
-    organismes.forEach(organisme => {
-        organismesDict[organisme.id] = organisme;
-    });
-    
-    // Afficher les formations dans la liste
-    const formationsContainer = document.getElementById('formations-container');
-    
-    formations.forEach(formation => {
-        const organisme = organismesDict[formation.id_organisme];
-        
-        if (organisme) {
-            const formationItem = document.createElement('div');
-            formationItem.className = 'formation-item';
-            formationItem.dataset.organismeId = organisme.id;
-            
-            const typeClass = formation.type === 'initiale' ? 'type-initiale' : 'type-continue';
-            
-            formationItem.innerHTML = `
-                <div class="organisme-name">${organisme.nom}</div>
-                <div class="formation-name">${formation.nom}</div>
-                <div class="formation-details">
-                    <strong>Lieu:</strong> ${formation.lieu}<br>
-                    <strong>Dates:</strong> ${formation.dates}<br>
-                    <strong>Durée:</strong> ${formation.duree}
-                </div>
-                <span class="formation-type ${typeClass}">${formation.type}</span>
-            `;
-            
-            // Ajouter un effet de survol pour la formation
-            formationItem.addEventListener('mouseenter', function() {
-                highlightFormationItem(organisme.id);
-            });
-            
-            formationItem.addEventListener('mouseleave', function() {
-                this.style.transform = '';
-                this.style.boxShadow = '';
-                this.style.borderColor = '#b6c6c4';
-                this.style.borderWidth = '1px';
-            });
-            
-            // Gestion du clic sur une formation
-            formationItem.addEventListener('click', function() {
-                const organismeId = this.dataset.organismeId;
-                const marker = markersDict[organismeId];
-                
-                if (marker) {
-                    map.setView(marker.getLatLng(), 14);
-                    marker.openPopup();
-                    highlightFormationItem(organismeId);
-                }
-            });
-            
-            formationsContainer.appendChild(formationItem);
-            
-            // Stocker l'élément dans le dictionnaire
-            if (!formationItemsDict[organisme.id]) {
-                formationItemsDict[organisme.id] = formationItem;
+    organismes.forEach(org => { organismesDict[org.id] = org; });
+
+    const container = document.getElementById('formations-container');
+
+    formations.forEach(f => {
+        const org = organismesDict[f.id_organisme];
+        if (!org) return;
+
+        // Création de l’élément HTML pour chaque formation
+        const item = document.createElement('div');
+        item.className = 'formation-item';
+        item.dataset.organismeId = org.id;
+
+        const typeClass = f.type === 'initiale' ? 'type-initiale' : 'type-continue';
+        item.innerHTML = `
+            <div class="organisme-name">${org.nom}</div>
+            <div class="formation-name">${f.nom}</div>
+            <div class="formation-details">
+                <strong>Lieu:</strong> ${f.lieu}<br>
+                <strong>Dates:</strong> ${f.dates}<br>
+                <strong>Durée:</strong> ${f.duree}
+            </div>
+            <span class="formation-type ${typeClass}">${f.type}</span>
+        `;
+
+        // Hover : juste effet visuel
+        item.addEventListener('mouseenter', () => highlightFormationItem(org.id));
+        item.addEventListener('mouseleave', () => resetAllFormationItems());
+
+        // Clic : zoom, popup, scroll et déplacer
+        item.addEventListener('click', () => {
+            const marker = markersDict[org.id];
+            if (marker) {
+                map.setView(marker.getLatLng(), 14);
+                marker.openPopup();
+                highlightFormationItem(org.id, true);
             }
-        }
-        
-        // Géocodage et ajout des marqueurs pour les organismes
-        if (organisme && organisme.adresse && !markersDict[organisme.id]) {
-            geocodeAddress(organisme.adresse, (coords) => {
-                if (coords) {
-                    const marker = L.marker([coords.lat, coords.lng]).addTo(map);
-                    
-                    // Stocker le marqueur dans le dictionnaire
-                    markersDict[organisme.id] = marker;
-                    
-                    // Créer le contenu du popup
-                    let popupContent = `
-                        <b>${organisme.nom}</b><br>
-                        ${organisme.adresse}<br>
-                        Tél: ${organisme.telephone}<br>
-                        Email: <a href="mailto:${organisme.email}">${organisme.email}</a>
-                        <hr>
-                        <b>Formations proposées:</b><br>
-                    `;
-                    
-                    const organismeFormations = formations.filter(f => f.id_organisme === organisme.id);
-                    organismeFormations.forEach(f => {
-                        popupContent += `- ${f.nom} (${f.type})<br>`;
-                    });
-                    
-                    marker.bindPopup(popupContent);
-                    
-                    // Gestion du clic sur le marqueur
-                    marker.on('click', function() {
-                        highlightFormationItem(organisme.id);
-                    });
-                    
-                    // Gestion de l'ouverture du popup
-                    marker.on('popupopen', function() {
-                        highlightFormationItem(organisme.id);
-                    });
-                    
-                    // Gestion de la fermeture du popup
-                    marker.on('popupclose', function() {
-                        if (currentlyHighlighted === organisme.id) {
-                            highlightFormationItem(null);
+        });
+
+        container.appendChild(item);
+        formationItemsDict[org.id] = item;
+
+        // Ajout du marqueur si pas déjà géolocalisé
+        if (!markersDict[org.id] && org.adresse) {
+            geocodeAddress(org.adresse, coords => {
+                if (!coords) return;
+
+                const marker = L.marker([coords.lat, coords.lng]).addTo(map);
+                markersDict[org.id] = marker;
+
+                let popupContent = `
+                    <b>${org.nom}</b><br>
+                    ${org.adresse}<br>
+                    Tél: ${org.telephone}<br>
+                    Email: <a href="mailto:${org.email}">${org.email}</a>
+                    <hr><b>Formations proposées:</b><br>
+                `;
+                formations.filter(ff => ff.id_organisme === org.id).forEach(ff => {
+                    popupContent += `- ${ff.nom} (${ff.type})<br>`;
+                });
+
+                marker.bindPopup(popupContent);
+
+                // Clic sur le marqueur = même effet qu’un clic sur la formation
+                marker.on('click', () => {
+                    highlightFormationItem(org.id, true);
+                    const item = formationItemsDict[org.id];
+                    if (item) {
+                        if (container.firstChild !== item) {
+                            container.removeChild(item);
+                            container.insertBefore(item, container.firstChild);
                         }
-                    });
-                }
+                        container.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                });
+
+                marker.on('popupopen', () => highlightFormationItem(org.id));
+                marker.on('popupclose', () => {
+                    if (currentlyHighlighted === org.id) highlightFormationItem(null);
+                });
             });
         }
     });
-    
-    // Désélectionner quand on clique sur la carte
-    map.on('click', function() {
-        if (currentlyHighlighted) {
-            highlightFormationItem(null);
-            // Fermer tous les popups
-            Object.values(markersDict).forEach(marker => {
-                if (marker.isPopupOpen()) {
-                    marker.closePopup();
-                }
-            });
-        }
+
+    // Clic vide sur la carte = reset
+    map.on('click', () => {
+        highlightFormationItem(null);
+        Object.values(markersDict).forEach(marker => {
+            if (marker.isPopupOpen()) marker.closePopup();
+        });
     });
 })
 .catch(error => console.error('Erreur:', error));
 
-// Gestion du bouton de basculement du panneau
+// =====================
+// GESTION DU PANNEAU LATERAL (Toggle)
+// =====================
 document.addEventListener('DOMContentLoaded', function () {
     const toggleBtn = document.getElementById('toggleBtn');
-    const formationsList = document.getElementById('formations-list');
     const container = document.getElementById('container');
     const icon = toggleBtn.querySelector('i');
 
     toggleBtn.addEventListener('click', function () {
         container.classList.toggle('collapsed');
-
-        if (container.classList.contains('collapsed')) {
-            icon.classList.remove('fa-chevron-left');
-            icon.classList.add('fa-chevron-right');
-        } else {
-            icon.classList.remove('fa-chevron-right');
-            icon.classList.add('fa-chevron-left');
-        }
+        icon.classList.toggle('fa-chevron-left');
+        icon.classList.toggle('fa-chevron-right');
     });
 });
-
