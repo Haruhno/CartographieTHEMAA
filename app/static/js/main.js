@@ -259,3 +259,20 @@ window.addEventListener('click', function(event) {
         modal.style.display = 'none';
     }
 });
+
+// Ferme le modal si on clique à l'extérieur
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('deleteModal');
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+});
+
+
+function openDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'flex';
+}
+function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+}
+

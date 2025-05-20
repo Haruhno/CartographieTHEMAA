@@ -146,20 +146,31 @@
                         <button type="submit" class="btn btn-success">
                             <i class="fas fa-save"></i> Enregistrer les modifications
                         </button>
-
-                        <form method="POST" action="{{ url_for('formation.delete_formation', id=formation.id_formation) }}"
-                              style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette formation ?');">
-                            <button type="submit" class="btn btn-danger">
-                                <i class="fas fa-trash-alt"></i> Supprimer cette formation
-                            </button>
-                        </form>
+                        <button type="button" class="btn btn-danger" onclick="openDeleteModal()">
+                            <i class="fas fa-trash-alt"></i> Supprimer cette formation
+                        </button>
                     </div>
+                    
+
                 </section>
             </form>
+            <!-- Modal de confirmation personnalisé -->
+            <div id="deleteModal" class="modal-overlay">
+                <div class="modal-box">
+                    <p>Êtes-vous sûr de vouloir supprimer cette formation ?</p>
+                    <div class="modal-buttons">
+                        <button class="btn btn-secondary" onclick="closeDeleteModal()">Annuler</button>
+                        <form method="post" action="{{ url_for('formation.delete_formation', id=formation.id_formation) }}" style="display:inline;">
+                            <button type="submit" class="btn btn-danger">Confirmer</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script>
     // Mise à jour du bouton d'état

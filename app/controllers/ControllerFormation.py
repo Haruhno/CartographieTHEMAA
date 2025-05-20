@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, render_template, request, redirect, url_for
+from flask import Blueprint, jsonify, render_template, request, redirect, url_for, flash
 from models.ModelFormation import Formation
 from models.ModelOrganisme import Organisme
 from database import db
@@ -49,6 +49,7 @@ def update_formations():
             formation.dates = request.form.get(f"dates_{id_}")
             formation.lieu = request.form.get(f"lieu_{id_}")
             formation.prix = request.form.get(f"prix_{id_}")
+            formation.prix = float(formation.prix) if  formation.prix else None
             formation.conditions_acces = request.form.get(f"conditions_acces_{id_}")
             formation.financement = request.form.get(f"financement_{id_}")
             formation.presentation_intervenants = request.form.get(f"presentation_intervenants_{id_}")
@@ -74,6 +75,7 @@ def create_formation():
     dates = request.form["dates"]
     lieu = request.form["lieu"]
     prix = request.form.get("prix")
+    prix = float(prix) if prix else None
     conditions_acces = request.form.get("conditions_acces")
     financement = request.form.get("financement")
     presentation_intervenants = request.form.get("presentation_intervenants")
@@ -98,6 +100,7 @@ def create_formation():
     )
     db.session.add(nouvelle_formation)
     db.session.commit()
+    flash("Formation créée avec succès.", "success")
     return redirect(url_for("formation.edit_formations"))
 
 
@@ -107,7 +110,8 @@ def delete_formation(id):
     formation = Formation.query.get_or_404(id)
     db.session.delete(formation)
     db.session.commit()
-    return jsonify({"success": True})
+    flash("Formation supprimée avec succès.", "success")
+    return redirect(url_for("formation.edit_formations"))  # Modifié pour un redirect classique
 
 @formation_bp.route("/formulaire", methods=["GET"])
 def formulaire():
@@ -123,6 +127,7 @@ def submit_formation():
     dates = request.form["dates"]
     lieu = request.form["lieu"]
     prix = request.form.get("prix")
+    prix = float(prix) if prix else None
     conditions_acces = request.form.get("conditions_acces")
     financement = request.form.get("financement")
     presentation_intervenants = request.form.get("presentation_intervenants")
@@ -176,40 +181,60 @@ def get_formations_valides():
 
     return jsonify(resultats)
 
-@formation_bp.route("/edit/<int:id>", methods=["POST"])
+
+@formation_bp.route('/edit/<int:id>', methods=["GET", "POST"],  endpoint="preview_formation")
+def handle_formation(id):
+    if request.method == "POST":
+        # Code de update_formation_by_id
+        formation = Formation.query.get_or_404(id)
+        formation.nom = request.form.get("nom")
+        formation.type = request.form.get("type")
+        formation.description = request.form.get("description")
+        formation.duree = request.form.get("duree")
+        formation.dates = request.form.get("dates")
+        formation.lieu = request.form.get("lieu")
+        formation.prix = request.form.get("prix")
+        formation.prix = float(formation.prix) if formation.prix else None
+        formation.conditions_acces = request.form.get("conditions_acces")
+        formation.financement = request.form.get("financement")
+        formation.presentation_intervenants = request.form.get("presentation_intervenants")
+        formation.lien_inscription = request.form.get("lien_inscription")
+        formation.label = request.form.get("label")
+        formation.id_organisme = request.form.get("id_organisme")
+        formation.etat = request.form.get("etat")
+        db.session.commit()
+        return redirect(url_for("formation.edit_formations"))
+    else:
+        # Code de preview_formation
+        formation = Formation.query.get(id)
+        if not formation:
+            flash("Formation non trouvée", "error")
+            return redirect(url_for("formation.edit_formations"))
+        organismes = Organisme.query.all()
+        return render_template('preview_formation.html', formation=formation, organismes=organismes)
+
+
+
+@formation_bp.route("/update/<int:id>", methods=["POST"])
 def update_formation_by_id(id):
     formation = Formation.query.get_or_404(id)
 
-    # Mettre à jour les champs de la formation avec les données du formulaire
-    formation.nom = request.form.get("nom")
-    formation.type = request.form.get("type")
-    formation.description = request.form.get("description")
-    formation.duree = request.form.get("duree")
-    formation.dates = request.form.get("dates")
-    formation.lieu = request.form.get("lieu")
+    formation.nom = request.form["nom"]
+    formation.type = request.form["type"]
+    formation.description = request.form["description"]
+    formation.duree = request.form["duree"]
+    formation.dates = request.form["dates"]
+    formation.lieu = request.form["lieu"]
     formation.prix = request.form.get("prix")
+    formation.prix = float(formation.prix) if formation.prix else None
     formation.conditions_acces = request.form.get("conditions_acces")
     formation.financement = request.form.get("financement")
     formation.presentation_intervenants = request.form.get("presentation_intervenants")
     formation.lien_inscription = request.form.get("lien_inscription")
     formation.label = request.form.get("label")
-    formation.id_organisme = request.form.get("id_organisme")
+    formation.id_organisme = request.form["id_organisme"]
     formation.etat = request.form.get("etat")
 
-    # Enregistrer les modifications dans la base de données
     db.session.commit()
+    flash("Formation mise à jour avec succès.", "success")
     return redirect(url_for("formation.edit_formations"))
-
-
-@formation_bp.route('/edit/<int:id>', methods=["GET"])
-def preview_formation(id):
-    formation = Formation.query.get(id)
-    if not formation:
-        abort(404)
-
-    organismes = Organisme.query.all()
-    return render_template('preview_formation.html', formation=formation, organismes=organismes)
-
-
-
-

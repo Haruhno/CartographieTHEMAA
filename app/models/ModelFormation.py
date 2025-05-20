@@ -10,7 +10,7 @@ class Formation(db.Model):
     duree = db.Column(db.String(50), nullable=False)
     dates = db.Column(db.String(100), nullable=False)
     lieu = db.Column(db.String(100), nullable=False)
-    prix = db.Column(db.Numeric(10, 2))
+    prix = db.Column(db.Numeric(10, 2), nullable=True)
     conditions_acces = db.Column(db.Text)
     financement = db.Column(db.String(100))
     presentation_intervenants = db.Column(db.Text)
