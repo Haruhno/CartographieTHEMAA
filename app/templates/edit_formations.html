@@ -2,109 +2,321 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Modifier les Formations</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Formations</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-<div class="container">
-    <h1 class="text-center mb-4">Modifier les Formations</h1>
-    <form method="post" action="{{ url_for('formation.update_formations') }}">
-        {% for f in formations %}
-        <div class="form-card">
-            <h2 class="card-title">Formation n°{{ f.id_formation }}</h2>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">THEMAA</div>
+            <nav>
+                <ul>
+                    <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li class="active"><a href="{{ url_for('formation.edit_formations') }}"><i class="fas fa-graduation-cap"></i> Formations</a></li>
+                    <li><a href="{{ url_for('organisme.edit_organismes') }}"><i class="fas fa-building"></i> Organismes</a></li>
+                    <li><a href="{{ url_for('utilisateur.profil') }}"><i class="fas fa-user"></i> Mon Profil</a></li>
+                </ul>
+            </nav>
+        </div>
 
-            <div class="form-group">
-                <label>Nom</label>
-                <input type="text" name="nom_{{ f.id_formation }}" value="{{ f.nom }}" required>
-            </div>
-            <div class="form-group">
-                <label>Type</label>
-                <select name="type_{{ f.id_formation }}" required>
-                    <option value="initiale" {% if f.type == "initiale" %}selected{% endif %}>Initiale</option>
-                    <option value="continue" {% if f.type == "continue" %}selected{% endif %}>Continue</option>
-                </select>
-            </div>
+        <!-- Main Content -->
+        <div class="main-content">
+            <header>
+                <h1>Gestion des Formations</h1>
+                <div class="user-info">
+                    <span>{{ current_user.nom }}</span>
+                    <a href="{{ url_for('utilisateur.deconnexion') }}" style="margin-left: 10px; color: #dc3545;">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </header>
 
-            <div class="form-group">
-                <label>Description</label>
-                <textarea name="description_{{ f.id_formation }}" required>{{ f.description }}</textarea>
-            </div>
-            <div class="form-group">
-                <label>Durée</label>
-                <input type="text" name="duree_{{ f.id_formation }}" value="{{ f.duree }}">
-            </div>
-            <div class="form-group">
-                <label>Dates</label>
-                <input type="text" name="dates_{{ f.id_formation }}" value="{{ f.dates }}">
-            </div>
-            <div class="form-group">
-                <label>Lieu</label>
-                <input type="text" name="lieu_{{ f.id_formation }}" value="{{ f.lieu }}">
-            </div>
-            <div class="form-group">
-                <label>Prix</label>
-                <input type="number" name="prix_{{ f.id_formation }}" value="{{ f.prix }}">
-            </div>
-            <div class="form-group">
-                <label>Financement</label>
-                <input type="text" name="financement_{{ f.id_formation }}" value="{{ f.financement }}">
-            </div>
-            <div class="form-group">
-                <label>Label</label>
-                <input type="text" name="label_{{ f.id_formation }}" value="{{ f.label }}">
-            </div>
-            <div class="form-group">
-                <label>Conditions d'accès</label>
-                <textarea name="conditions_acces_{{ f.id_formation }}">{{ f.conditions_acces }}</textarea>
-            </div>
-            <div class="form-group">
-                <label>Présentation des intervenants</label>
-                <textarea name="presentation_intervenants_{{ f.id_formation }}">{{ f.presentation_intervenants }}</textarea>
-            </div>
-            <div class="form-group">
-                <label>Lien d'inscription</label>
-                <input type="url" name="lien_inscription_{{ f.id_formation }}" value="{{ f.lien_inscription }}">
-            </div>
-            <div class="form-group">
-                <label>Organisme</label>
-                <select name="id_organisme_{{ f.id_formation }}" required>
-                    {% for o in organismes %}
-                    <option value="{{ o.id_organisme }}" {% if o.id_organisme == f.id_organisme %}selected{% endif %}>
-                        {{ o.nom }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="form-group">
-                <label>État</label>
-                <button type="button" class="etat-btn" 
-                        data-id="{{ f.id_formation }}" 
-                        data-state="{{ f.etat }}">
-                    {{ "✅ Validé" if f.etat == "valide" else "🕓 En attente" }}
-                </button>
-                <input type="hidden" name="etat_{{ f.id_formation }}" id="etat_input_{{ f.id_formation }}" value="{{ f.etat }}">
+            <div class="content">
+                <section class="card">
+                    <div class="table-header">
+                        <h2><i class="fas fa-graduation-cap icon"></i> Liste des Formations</h2>
+                        <div class="table-actions">
+                            <a href="{{ url_for('formation.new_formation') }}" class="btn btn-add">
+                                <i class="fas fa-plus"></i> Ajouter une formation
+                            </a>
+                            <div class="search-box">
+                                <input type="text" id="searchInput" placeholder="Rechercher...">
+                                <i class="fas fa-search"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pagination en haut -->
+                    <div class="pagination-controls">
+                        <span id="itemCount">Affichage de {{ formations|length }} formations</span>
+                        <div class="pagination-buttons">
+                            <button class="btn" id="prevPage"><i class="fas fa-chevron-left"></i> Précédent</button>
+                            <span id="pageInfo">Page 1</span>
+                            <button class="btn" id="nextPage">Suivant <i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <select id="itemsPerPage">
+                            <option value="10">10 par page</option>
+                            <option value="25">25 par page</option>
+                            <option value="50">50 par page</option>
+                            <option value="100">100 par page</option>
+                        </select>
+                    </div>
+
+                    <div class="table-responsive">
+                        <form method="post" action="{{ url_for('formation.update_formations') }}">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nom</th>
+                                        <th>Type</th>
+                                        <th>Organisme</th>
+                                        <th>État</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for f in formations %}
+                                    <tr class="formation-row" data-id="{{ f.id_formation }}">
+                                        <td>{{ f.id_formation }}</td>
+                                        <td>
+                                            <input type="text" name="nom_{{ f.id_formation }}" value="{{ f.nom }}" class="table-input" required>
+                                        </td>
+                                        <td>
+                                            <select name="type_{{ f.id_formation }}" class="table-select" required>
+                                                <option value="initiale" {% if f.type == "initiale" %}selected{% endif %}>Initiale</option>
+                                                <option value="continue" {% if f.type == "continue" %}selected{% endif %}>Continue</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select name="id_organisme_{{ f.id_formation }}" class="table-select" required>
+                                                {% for o in organismes %}
+                                                <option value="{{ o.id_organisme }}" {% if o.id_organisme == f.id_organisme %}selected{% endif %}>
+                                                    {{ o.nom }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <button type="button" class="etat-btn" 
+                                                    data-id="{{ f.id_formation }}" 
+                                                    data-state="{{ f.etat }}">
+                                                {{ "Validé" if f.etat == "valide" else "En attente" }}
+                                            </button>
+                                            <input type="hidden" name="etat_{{ f.id_formation }}" id="etat_input_{{ f.id_formation }}" value="{{ f.etat }}">
+                                        </td>
+                                        <td class="action-buttons">
+                                            <a href="{{ url_for('formation.preview_formation', id=f.id_formation) }}" class="btn-details" title="Modifier">
+                                                <i class="fas fa-pen"></i>
+                                            </a>
+                                            <form method="post" action="{{ url_for('formation.delete_formation', id=f.id_formation) }}" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette formation ?');">
+                                                <button type="submit" class="btn-danger btn" title="Supprimer">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+
+                                            <button type="submit" class="btn-save" name="save_{{ f.id_formation }}">
+                                                <i class="fas fa-save"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <!-- Row details (caché par défaut) -->
+                                    <tr class="details-row" id="details_{{ f.id_formation }}" style="display: none;">
+                                        <td colspan="6">
+                                            <div class="details-container">
+                                                <div class="form-group">
+                                                    <label>Description</label>
+                                                    <textarea name="description_{{ f.id_formation }}" class="table-textarea">{{ f.description }}</textarea>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Durée</label>
+                                                    <input type="text" name="duree_{{ f.id_formation }}" value="{{ f.duree }}" class="table-input">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Dates</label>
+                                                    <input type="text" name="dates_{{ f.id_formation }}" value="{{ f.dates }}" class="table-input">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Lieu</label>
+                                                    <input type="text" name="lieu_{{ f.id_formation }}" value="{{ f.lieu }}" class="table-input">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Prix</label>
+                                                    <input type="number" name="prix_{{ f.id_formation }}" value="{{ f.prix }}" class="table-input">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Financement</label>
+                                                    <input type="text" name="financement_{{ f.id_formation }}" value="{{ f.financement }}" class="table-input">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Label</label>
+                                                    <input type="text" name="label_{{ f.id_formation }}" value="{{ f.label }}" class="table-input">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Conditions d'accès</label>
+                                                    <textarea name="conditions_acces_{{ f.id_formation }}" class="table-textarea">{{ f.conditions_acces }}</textarea>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Présentation des intervenants</label>
+                                                    <textarea name="presentation_intervenants_{{ f.id_formation }}" class="table-textarea">{{ f.presentation_intervenants }}</textarea>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label>Lien d'inscription</label>
+                                                    <input type="url" name="lien_inscription_{{ f.id_formation }}" value="{{ f.lien_inscription }}" class="table-input">
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save"></i> Enregistrer toutes les modifications
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Pagination en bas -->
+                    <div class="pagination-controls">
+                        <span id="itemCountBottom">Affichage de {{ formations|length }} formations</span>
+                        <div class="pagination-buttons">
+                            <button class="btn" id="prevPageBottom"><i class="fas fa-chevron-left"></i> Précédent</button>
+                            <span id="pageInfoBottom">Page 1</span>
+                            <button class="btn" id="nextPageBottom">Suivant <i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                </section>
             </div>
         </div>
-        <div class="text-center">
-            <button type="submit" class="btn btn-success">Enregistrer les modifications</button>
-            <a href="/" class="btn btn-secondary">Retour à l'accueil</a>
-        </div>
-        {% endfor %}
-    </form>
-</div>
+    </div>
 
-<script>
-document.querySelectorAll('.etat-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const currentState = btn.getAttribute('data-state');
-        const newState = currentState === 'valide' ? 'en_attente' : 'valide';
-        btn.setAttribute('data-state', newState);
-        btn.textContent = newState === 'valide' ? '✅ Validé' : '🕓 En attente';
-        document.getElementById('etat_input_' + btn.dataset.id).value = newState;
+    <script>
+    // Gestion de l'état des formations
+    document.querySelectorAll('.etat-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const currentState = btn.getAttribute('data-state');
+            const newState = currentState === 'valide' ? 'en_attente' : 'valide';
+            btn.setAttribute('data-state', newState);
+            btn.textContent = newState === 'valide' ? 'Validé' : 'En attente';
+            document.getElementById('etat_input_' + btn.dataset.id).value = newState;
+        });
     });
-});
-</script>
 
+    // Gestion des détails
+    document.querySelectorAll('.btn-details').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const detailsRow = document.getElementById('details_' + btn.dataset.id);
+            detailsRow.style.display = detailsRow.style.display === 'none' ? 'table-row' : 'none';
+            btn.innerHTML = detailsRow.style.display === 'none' 
+                ? '<i class="fas fa-ellipsis-h"></i> Détails' 
+                : '<i class="fas fa-times"></i> Fermer';
+        });
+    });
+
+    // Pagination et recherche
+    document.addEventListener('DOMContentLoaded', function() {
+        const rows = document.querySelectorAll('.formation-row');
+        const itemsPerPageSelect = document.getElementById('itemsPerPage');
+        const searchInput = document.getElementById('searchInput');
+        let currentPage = 1;
+        let itemsPerPage = parseInt(itemsPerPageSelect.value);
+
+        function updatePagination() {
+            const filteredRows = Array.from(rows).filter(row => {
+                return row.textContent.toLowerCase().includes(searchInput.value.toLowerCase());
+            });
+
+            const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
+            
+            // Masquer toutes les lignes
+            rows.forEach(row => row.style.display = 'none');
+            
+            // Afficher les lignes de la page courante
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            
+            filteredRows.slice(startIndex, endIndex).forEach(row => {
+                row.style.display = '';
+                // Afficher aussi la ligne de détails si elle était visible
+                const detailsRow = document.getElementById('details_' + row.dataset.id);
+                if (detailsRow && detailsRow.style.display === 'table-row') {
+                    detailsRow.style.display = 'table-row';
+                }
+            });
+
+            // Mettre à jour les infos de pagination
+            document.getElementById('pageInfo').textContent = `Page ${currentPage} sur ${totalPages}`;
+            document.getElementById('pageInfoBottom').textContent = `Page ${currentPage} sur ${totalPages}`;
+            document.getElementById('itemCount').textContent = `Affichage de ${filteredRows.length} formations`;
+            document.getElementById('itemCountBottom').textContent = `Affichage de ${filteredRows.length} formations`;
+
+            // Désactiver les boutons si nécessaire
+            document.getElementById('prevPage').disabled = currentPage === 1;
+            document.getElementById('prevPageBottom').disabled = currentPage === 1;
+            document.getElementById('nextPage').disabled = currentPage === totalPages || totalPages === 0;
+            document.getElementById('nextPageBottom').disabled = currentPage === totalPages || totalPages === 0;
+        }
+
+        // Événements
+        itemsPerPageSelect.addEventListener('change', function() {
+            itemsPerPage = parseInt(this.value);
+            currentPage = 1;
+            updatePagination();
+        });
+
+        searchInput.addEventListener('input', function() {
+            currentPage = 1;
+            updatePagination();
+        });
+
+        document.getElementById('prevPage').addEventListener('click', function() {
+            if (currentPage > 1) {
+                currentPage--;
+                updatePagination();
+            }
+        });
+
+        document.getElementById('nextPage').addEventListener('click', function() {
+            const filteredRows = Array.from(rows).filter(row => {
+                return row.textContent.toLowerCase().includes(searchInput.value.toLowerCase());
+            });
+            const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
+            
+            if (currentPage < totalPages) {
+                currentPage++;
+                updatePagination();
+            }
+        });
+
+        document.getElementById('prevPageBottom').addEventListener('click', function() {
+            if (currentPage > 1) {
+                currentPage--;
+                updatePagination();
+            }
+        });
+
+        document.getElementById('nextPageBottom').addEventListener('click', function() {
+            const filteredRows = Array.from(rows).filter(row => {
+                return row.textContent.toLowerCase().includes(searchInput.value.toLowerCase());
+            });
+            const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
+            
+            if (currentPage < totalPages) {
+                currentPage++;
+                updatePagination();
+            }
+        });
+
+        // Initialisation
+        updatePagination();
+    });
+    </script>
 </body>
 </html>

@@ -137,8 +137,6 @@ $(document).ready(function(){
     });
 });
 
-
-
 // Supprime les flashs automatiquement après 5 secondes
 document.addEventListener("DOMContentLoaded", () => {
     const flashMessages = document.querySelectorAll(".flash-popup");
@@ -149,3 +147,107 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+// Supprimer une formation
+function supprimerFormation(id) {
+    if (confirm("Voulez-vous vraiment supprimer cette formation ?")) {
+        $.post(`/formations/delete/${id}`, function () {
+            $(`#formation-row-${id}`).remove();
+            $("#countFormations").text($("#tableFormations tbody tr").length);
+        }).fail(() => alert("Erreur serveur lors de la suppression."));
+    }
+}
+
+// Filtrage des formations
+function filtrerFormations() {
+    const search = $("#searchInput").val().toLowerCase();
+    const type = $("#filterType").val();
+
+    $("#tableFormations tbody tr").each(function () {
+        const nom = $(this).find(".col-nom").text().toLowerCase();
+        const organisme = $(this).find(".col-organisme").text().toLowerCase();
+        const typeRow = $(this).find(".col-type").text().toLowerCase();
+
+        const matchRecherche = nom.includes(search) || organisme.includes(search);
+        const matchType = type === "" || typeRow === type;
+
+        $(this).toggle(matchRecherche && matchType);
+    });
+
+    // Mise à jour du compteur
+    const visibleRows = $("#tableFormations tbody tr:visible").length;
+    $("#countFormations").text(`Total : ${visibleRows}`);
+}
+
+// Autocomplétion depuis API data.gouv
+function activerAutoCompletion() {
+    const $input = $("#searchInput");
+    $input.on("input", function () {
+        const query = $(this).val();
+        if (query.length < 3) return;
+
+        fetch(`https://recherche-entreprises.api.gouv.fr/search?q=${encodeURIComponent(query)}`)
+            .then(res => res.json())
+            .then(data => {
+                const suggestions = data.results.slice(0, 5).map(r => r.nom_entreprise);
+                // À toi d'intégrer un affichage de suggestions sous l'input
+                console.log("Suggestions :", suggestions);
+            });
+    });
+}
+
+$(document).ready(() => {
+    $("#searchInput, #filterType").on("input change", filtrerFormations);
+    activerAutoCompletion();
+});
+
+// Gestion du bouton d'état
+document.getElementById('etatBtn')?.addEventListener('click', function() {
+    const currentState = this.getAttribute('data-state');
+    const newState = currentState === 'valide' ? 'en_attente' : 'valide';
+    this.setAttribute('data-state', newState);
+    this.textContent = newState === 'valide' ? 'Validé' : 'En attente';
+    document.getElementById('etatInput').value = newState;
+});
+
+// Gestion de la suppression
+document.getElementById('deleteBtn')?.addEventListener('click', function() {
+    document.getElementById('deleteModal').style.display = 'flex';
+});
+
+document.getElementById('cancelDelete')?.addEventListener('click', function() {
+    document.getElementById('deleteModal').style.display = 'none';
+});
+
+// Fermer la modal si on clique en dehors
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('deleteModal');
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+});
+
+// === PAGE : preview_formation.html ===
+
+// Gestion de l'état (bouton switch)
+document.getElementById('etatBtn')?.addEventListener('click', function() {
+    const newState = this.getAttribute('data-state') === 'valide' ? 'en_attente' : 'valide';
+    this.setAttribute('data-state', newState);
+    this.textContent = newState === 'valide' ? 'Validé' : 'En attente';
+    document.getElementById('etatInput').value = newState;
+});
+
+// Gestion modal suppression
+document.getElementById('deleteBtn')?.addEventListener('click', () => {
+    document.getElementById('deleteModal').style.display = 'flex';
+});
+
+document.getElementById('cancelDelete')?.addEventListener('click', () => {
+    document.getElementById('deleteModal').style.display = 'none';
+});
+
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('deleteModal');
+    if (event.target === modal) {
+        modal.style.display = 'none';
+    }
+});

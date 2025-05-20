@@ -54,7 +54,7 @@ def update_formations():
             formation.presentation_intervenants = request.form.get(f"presentation_intervenants_{id_}")
             formation.lien_inscription = request.form.get(f"lien_inscription_{id_}")
             formation.label = request.form.get(f"label_{id_}")
-            formation.etat = request.form.get(f"etat_{id_}")  # Ajout de l'état
+            formation.etat = request.form.get(f"etat_{id_}")
     
     db.session.commit()
     return redirect(url_for("formation.edit_formations"))
@@ -149,7 +149,7 @@ def submit_formation():
     db.session.commit()
 
     print("Formation ajoutée avec succès.")  # Debugging print
-    return redirect(url_for("dashboard"))  # Vous pouvez rediriger vers la page de confirmation
+    return redirect(url_for("dashboard")) 
 
 @formation_bp.route("/valides", methods=["GET"])
 def get_formations_valides():
@@ -175,5 +175,41 @@ def get_formations_valides():
         })
 
     return jsonify(resultats)
+
+@formation_bp.route("/edit/<int:id>", methods=["POST"])
+def update_formation_by_id(id):
+    formation = Formation.query.get_or_404(id)
+
+    # Mettre à jour les champs de la formation avec les données du formulaire
+    formation.nom = request.form.get("nom")
+    formation.type = request.form.get("type")
+    formation.description = request.form.get("description")
+    formation.duree = request.form.get("duree")
+    formation.dates = request.form.get("dates")
+    formation.lieu = request.form.get("lieu")
+    formation.prix = request.form.get("prix")
+    formation.conditions_acces = request.form.get("conditions_acces")
+    formation.financement = request.form.get("financement")
+    formation.presentation_intervenants = request.form.get("presentation_intervenants")
+    formation.lien_inscription = request.form.get("lien_inscription")
+    formation.label = request.form.get("label")
+    formation.id_organisme = request.form.get("id_organisme")
+    formation.etat = request.form.get("etat")
+
+    # Enregistrer les modifications dans la base de données
+    db.session.commit()
+    return redirect(url_for("formation.edit_formations"))
+
+
+@formation_bp.route('/edit/<int:id>', methods=["GET"])
+def preview_formation(id):
+    formation = Formation.query.get(id)
+    if not formation:
+        abort(404)
+
+    organismes = Organisme.query.all()
+    return render_template('preview_formation.html', formation=formation, organismes=organismes)
+
+
 
 
