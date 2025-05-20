@@ -125,9 +125,11 @@
                                             <a href="{{ url_for('formation.preview_formation', id=f.id_formation) }}" class="btn-details" title="Modifier">
                                                 <i class="fas fa-pen"></i>
                                             </a>
-                                            <button type="button" class="btn btn-danger" onclick="openDeleteModal()">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
+                                            <form method="post" action="{{ url_for('formation.delete_formation', id=f.id_formation) }}" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette formation ?');">
+                                                <button type="submit" class="btn-danger btn" title="Supprimer">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
 
                                             <button type="submit" class="btn-save" name="save_{{ f.id_formation }}">
                                                 <i class="fas fa-save"></i>
