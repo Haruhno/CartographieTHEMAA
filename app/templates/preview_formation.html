@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Modifier la Formation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="admin-container">
+    <div class="sidebar">
+        <div class="logo">THEMAA</div>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li class="active"><a href="{{ url_for('formation.edit_formations') }}"><i class="fas fa-graduation-cap"></i> Formations</a></li>
+                <li><a href="{{ url_for('organisme.edit_organismes') }}"><i class="fas fa-building"></i> Organismes</a></li>
+                <li><a href="{{ url_for('utilisateur.profil') }}"><i class="fas fa-user"></i> Mon Profil</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <h1>Prévisualisation Formation</h1>
+            <div class="user-info">
+                <span>{{ current_user.nom }}</span>
+                <a href="{{ url_for('utilisateur.deconnexion') }}" style="margin-left: 10px; color: #dc3545;">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </header>
+
+        <div class="content">
+            <form method="POST" action="{{ url_for('formation.update_formation_by_id', id=formation.id_formation) }}">
+                <section class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-graduation-cap icon"></i> Fiche Formation</h2>
+                        <div class="header-actions">
+                            <a href="{{ url_for('formation.edit_formations') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Retour
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-section">
+                            <h3 class="section-title">Informations générales</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Nom</label>
+                                    <input type="text" name="nom" value="{{ formation.nom }}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Type</label>
+                                    <select name="type" required>
+                                        <option value="initiale" {% if formation.type == 'initiale' %}selected{% endif %}>Initiale</option>
+                                        <option value="continue" {% if formation.type == 'continue' %}selected{% endif %}>Continue</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Organisme</label>
+                                    <select name="id_organisme" required>
+                                        {% for o in organismes %}
+                                        <option value="{{ o.id_organisme }}" {% if o.id_organisme == formation.id_organisme %}selected{% endif %}>{{ o.nom }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>État</label>
+                                    <div class="etat-toggle">
+                                        <button type="button" class="etat-btn" data-state="{{ formation.etat }}" id="etatBtn">
+                                            {{ "Validé" if formation.etat == "valide" else "En attente" }}
+                                        </button>
+                                        <input type="hidden" name="etat" id="etatInput" value="{{ formation.etat }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3 class="section-title">Détails pratiques</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Dates</label>
+                                    <input type="text" name="dates" value="{{ formation.dates }}">
+                                </div>
+                                <div class="form-group">
+                                    <label>Durée</label>
+                                    <input type="text" name="duree" value="{{ formation.duree }}">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Lieu</label>
+                                    <input type="text" name="lieu" value="{{ formation.lieu }}">
+                                </div>
+                                <div class="form-group">
+                                    <label>Prix</label>
+                                    <input type="number" name="prix" value="{{ formation.prix }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section full-width">
+                            <h3 class="section-title">Description</h3>
+                            <div class="form-group">
+                                <textarea name="description" rows="4">{{ formation.description }}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3 class="section-title">Informations complémentaires</h3>
+                            <div class="form-group">
+                                <label>Financement</label>
+                                <input type="text" name="financement" value="{{ formation.financement }}">
+                            </div>
+                            <div class="form-group">
+                                <label>Label</label>
+                                <input type="text" name="label" value="{{ formation.label }}">
+                            </div>
+                            <div class="form-group">
+                                <label>Lien d'inscription</label>
+                                <input type="url" name="lien_inscription" value="{{ formation.lien_inscription }}">
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3 class="section-title">Contenu pédagogique</h3>
+                            <div class="form-group">
+                                <label>Conditions d'accès</label>
+                                <textarea name="conditions_acces" rows="3">{{ formation.conditions_acces }}</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Présentation des intervenants</label>
+                                <textarea name="presentation_intervenants" rows="3">{{ formation.presentation_intervenants }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Enregistrer les modifications
+                        </button>
+
+                        <form method="POST" action="{{ url_for('formation.delete_formation', id=formation.id_formation) }}"
+                              style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette formation ?');">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash-alt"></i> Supprimer cette formation
+                            </button>
+                        </form>
+                    </div>
+                </section>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+    // Mise à jour du bouton d'état
+    document.getElementById('etatBtn')?.addEventListener('click', function () {
+        const newState = this.getAttribute('data-state') === 'valide' ? 'en_attente' : 'valide';
+        this.setAttribute('data-state', newState);
+        this.textContent = newState === 'valide' ? 'Validé' : 'En attente';
+        document.getElementById('etatInput').value = newState;
+    });
+</script>
+</body>
+</html>
