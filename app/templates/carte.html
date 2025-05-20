@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -22,6 +23,97 @@
             {% endfor %}
         {% endif %}
     {% endwith %}
+</div>
+
+<!-- Barre de recherche et filtres -->
+<div class="search-container">
+    <div class="search-bar">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="searchInput" placeholder="Rechercher une formation, un lieu..." autocomplete="off">
+        <div class="search-actions">
+            <button id="clearSearch" class="search-action-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="search-suggestions" id="searchSuggestions"></div>
+    </div>
+    
+    <button class="filter-toggle-btn" id="filterToggleBtn">
+        <i class="fas fa-sliders-h"></i>
+        <span>Filtres</span>
+    </button>
+</div>
+
+<!-- Panneau des filtres -->
+<div class="filters-panel" id="filtersPanel">
+    <div class="filters-header">
+        <h3>Filtrer les formations</h3>
+        <button class="close-filters-btn" id="closeFiltersBtn">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    
+    <div class="filter-group">
+        <h4 class="filter-title">Type de formation</h4>
+        <div class="filter-options">
+            <label class="filter-checkbox">
+                <input type="checkbox" name="type" value="initiale" checked>
+                <span class="checkmark"></span>
+                <span class="filter-label">Initiale</span>
+                <span class="type-badge initiale">I</span>
+            </label>
+            <label class="filter-checkbox">
+                <input type="checkbox" name="type" value="continue" checked>
+                <span class="checkmark"></span>
+                <span class="filter-label">Continue</span>
+                <span class="type-badge continue">C</span>
+            </label>
+        </div>
+    </div>
+    
+    <div class="filter-group">
+        <h4 class="filter-title">Labels</h4>
+        <div class="filter-options">
+            <label class="filter-checkbox">
+                <input type="checkbox" name="label" value="Qualiopi">
+                <span class="checkmark"></span>
+                <span class="filter-label">Qualiopi</span>
+            </label>
+            <label class="filter-checkbox">
+                <input type="checkbox" name="label" value="RNCP">
+                <span class="checkmark"></span>
+                <span class="filter-label">RNCP</span>
+            </label>
+        </div>
+    </div>
+    
+    <div class="filter-group">
+        <h4 class="filter-title">Région</h4>
+        <select id="regionFilter" class="filter-select">
+            <option value="">Toutes les régions</option>
+            <!-- Les options seront ajoutées dynamiquement -->
+        </select>
+    </div>
+    
+    <div class="filter-group">
+        <h4 class="filter-title">Financement</h4>
+        <select id="financementFilter" class="filter-select">
+            <option value="">Tous les financements</option>
+            <option value="CPF">CPF</option>
+            <option value="OPCO">OPCO</option>
+            <option value="Pôle Emploi">Pôle Emploi</option>
+            <option value="Autofinancement">Autofinancement</option>
+        </select>
+    </div>
+    
+    <div class="filter-actions">
+        <button id="applyFiltersBtn" class="btn btn-primary">
+            <i class="fas fa-check"></i> Appliquer
+        </button>
+        <button id="resetFiltersBtn" class="btn btn-outline">
+            <i class="fas fa-undo"></i> Réinitialiser
+        </button>
+    </div>
 </div>
 
 <!-- Sidebar avec Header intégré -->
@@ -47,8 +139,6 @@
             </div>
         </div>
 
-
-
         <div class="list-header">Formations disponibles</div>
         <div id="formations-container"></div>
     </div>
@@ -63,6 +153,7 @@
 <!-- Scripts -->
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js" charset="utf-8"></script>
 <script src="{{ url_for('static', filename='js/carte.js') }}"></script>
 
 </body>

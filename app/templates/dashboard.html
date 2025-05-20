@@ -75,7 +75,7 @@
                 {% if user.role == 'admin' %}
                     <!-- Organismes Section -->
                     <section class="card">
-                        <h2><i class="fas fa-building icon"></i> Organismes enregistrés (<span id="countOrganismes">0</span>)</h2>
+                        <h2><i class="fas fa-building icon"></i> Organismes enregistrés (<span id="countOrganismes">{{ nb_organismes }}</span>)</h2>
                         <div class="actions">
                             <button id="btnToggleOrganismes" class="btn">
                                 <i class="fas fa-eye"></i> Voir les organismes
@@ -105,7 +105,7 @@
 
                     <!-- Formations Section -->
                     <section class="card">
-                        <h2><i class="fas fa-graduation-cap icon"></i> Formations enregistrées (<span id="countFormations">0</span>)</h2>
+                        <h2><i class="fas fa-graduation-cap icon"></i> Formations enregistrées (<span id="countFormations">{{ nb_formations }}</span>)</h2>
                         <div class="actions">
                             <button id="btnToggleFormations" class="btn">
                                 <i class="fas fa-eye"></i> Voir les formations

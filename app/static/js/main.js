@@ -83,22 +83,26 @@ $(document).ready(function(){
                     `);
                 });
                 $("#countOrganismes").text(response.length);
-                table.slideDown();
-                exportBtn.slideDown();
+                table.show();
+                exportBtn.show();
                 btn.html('<i class="fas fa-eye-slash"></i> Cacher les organismes');
                 organismesLoaded = true;
             });
         } else {
-            table.slideToggle();
-            exportBtn.slideToggle();
             const isVisible = table.is(":visible");
-            btn.html(isVisible
-                ? '<i class="fas fa-eye-slash"></i> Cacher les organismes'
-                : '<i class="fas fa-eye"></i> Voir les organismes');
+            if (isVisible) {
+                table.hide();
+                exportBtn.hide();
+                btn.html('<i class="fas fa-eye"></i> Voir les organismes');
+            } else {
+                table.show();
+                exportBtn.show();
+                btn.html('<i class="fas fa-eye-slash"></i> Cacher les organismes');
+            }
         }
     });
 
-    $("#btnToggleFormations").click(function(){
+   $("#btnToggleFormations").click(function(){
         const table = $("#tableFormations");
         const btn = $("#btnToggleFormations");
         const exportBtn = $("#exportFormations");
@@ -121,18 +125,22 @@ $(document).ready(function(){
                     `);
                 });
                 $("#countFormations").text(response.length);
-                table.slideDown();
-                exportBtn.slideDown();
+                table.show();
+                exportBtn.show();
                 btn.html('<i class="fas fa-eye-slash"></i> Cacher les formations');
                 formationsLoaded = true;
             });
         } else {
-            table.slideToggle();
-            exportBtn.slideToggle();
             const isVisible = table.is(":visible");
-            btn.html(isVisible
-                ? '<i class="fas fa-eye-slash"></i> Cacher les formations'
-                : '<i class="fas fa-eye"></i> Voir les formations');
+            if (isVisible) {
+                table.hide();
+                exportBtn.hide();
+                btn.html('<i class="fas fa-eye"></i> Voir les formations');
+            } else {
+                table.show();
+                exportBtn.show();
+                btn.html('<i class="fas fa-eye-slash"></i> Cacher les formations');
+            }
         }
     });
 });

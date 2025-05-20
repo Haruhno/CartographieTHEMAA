@@ -4,6 +4,8 @@ from controllers.ControllerOrganisme import *
 from controllers.ControllerFormation import *
 from controllers.ControllerUtilisateur import *
 from models.ModelUtilisateur import Utilisateur
+from models.ModelFormation import Formation
+from models.ModelOrganisme import Organisme
 from database import *
 import os
 from dotenv import load_dotenv
@@ -36,7 +38,11 @@ def carte():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html', user=current_user)
+    nb_formations = Formation.query.count()
+    nb_organismes = Organisme.query.count()
+    return render_template('dashboard.html', user=current_user,
+                           nb_formations=nb_formations,
+                           nb_organismes=nb_organismes)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
