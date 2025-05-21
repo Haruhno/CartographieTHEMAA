@@ -9,6 +9,7 @@ from models.ModelOrganisme import Organisme
 from database import *
 import os
 from dotenv import load_dotenv
+from datetime import datetime
 
 load_dotenv()  # Charge les variables d'environnement depuis .env
 
@@ -43,6 +44,31 @@ def dashboard():
     return render_template('dashboard.html', user=current_user,
                            nb_formations=nb_formations,
                            nb_organismes=nb_organismes)
+
+@app.context_processor
+def inject_now():
+    return {'now': datetime.utcnow()}
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return render_template('404.html'), 500
+
+@app.errorhandler(403)
+def forbidden(e):
+    return render_template('404.html'), 403
+
+@app.errorhandler(400)
+def bad_request(e):
+    return render_template('404.html'), 400
+
+# Catch-all for any other exceptions
+@app.errorhandler(Exception)
+def handle_unexpected_error(e):
+    return render_template('404.html'), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

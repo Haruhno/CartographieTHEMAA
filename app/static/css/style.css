@@ -278,6 +278,16 @@ header h1 {
     background: #c82333;
 }
 
+.btn-delete {
+    background: var(--danger-color);
+    color: white;
+}
+
+.btn-delete:hover {
+    background: #c82333;
+}
+
+
 .btn-outline {
     background: transparent;
     border: 1px solid var(--primary-color);
@@ -296,6 +306,10 @@ header h1 {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
+    table-layout: auto; /* Plus flexible */
+    overflow-x: auto;
+    display: block; /* Permet scroll horizontal si nécessaire */
+    max-width: 100%;
 }
 
 .table th, .table td {
@@ -303,6 +317,11 @@ header h1 {
     padding: 12px 15px;
     text-align: left;
     border-bottom: 1px solid #ddd;
+    /* overflow caché supprimé pour permettre retour à la ligne */
+    white-space: normal; /* Permet le wrap */
+    word-wrap: break-word; /* Casse les mots longs */
+    text-overflow: clip; /* Pas d’ellipse ici */
+    vertical-align: top;
 }
 
 .table th {
@@ -324,6 +343,44 @@ header h1 {
     gap: 10px;
     margin-top: 15px;
     justify-content: center;
+}
+
+/* Suppression des largeurs fixes pour laisser la table s’adapter */
+
+
+/* Colonnes petites */
+
+.table th:nth-child(1),
+.table td:nth-child(1) {
+    width: 6%;
+}  /* ID */
+
+.table th:nth-child(7),
+.table td:nth-child(7), /* État */
+.table th:nth-child(3),
+.table td:nth-child(3) { /* Type */
+    width: 17%;
+}
+
+.table th:nth-child(5),
+.table td:nth-child(5),  /* Prix */
+.table th:nth-child(6),
+.table td:nth-child(6) { /* Label */
+    width: 12%;
+}
+
+/* Colonne Nom large */
+.table th:nth-child(2),
+.table td:nth-child(2) {
+    width: 33%;
+}
+
+/* Colonnes restantes (Type, Organisme, État, Actions) partagent le reste */
+ /* Type */
+.table th:nth-child(4),
+.table td:nth-child(4), /* Organisme */
+.table th:nth-child(8){ /* Actions */
+    width: 20%; /* 46% divisé par 4 */
 }
 
 /* =========================
@@ -465,15 +522,6 @@ textarea.form-control {
     display: flex;
     gap: 10px;
     margin-top: 10px;
-}
-
-.btn-danger {
-    background-color: #dc3545;
-    color: white;
-}
-
-.btn-danger:hover {
-    background-color: #c82333;
 }
 
 .profile-form .form-group input[type="text"],
@@ -1363,7 +1411,7 @@ input[type="file"] {
 }
 
 /* =========================
-   TABLE STYLES
+   TABLE STYLES (edit_formations, edit_organismes)
 ========================= */
 .table-header {
     display: flex;
@@ -1436,8 +1484,8 @@ input[type="file"] {
     gap: 8px;
 }
 
-.btn-details, .btn-save {
-    padding: 6px 10px;
+.btn-details, .btn-save, .btn-delete{
+    padding: 10px 10px;
     border-radius: 4px;
     font-size: 13px;
     cursor: pointer;
@@ -1548,24 +1596,8 @@ input[type="file"] {
 
 .modal-buttons .btn-secondary {
     background: #ddd;
-    color: #333;
-    border: none;
-}
 
-.modal-buttons .btn-secondary:hover {
-    background: #ccc;
 }
-
-.modal-buttons .btn-danger {
-    background: #dc3545;
-    color: white;
-    border: none;
-}
-
-.modal-buttons .btn-danger:hover {
-    background: #c82333;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
     .search-container {
@@ -1632,7 +1664,7 @@ input[type="file"] {
 
 .form-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(35%, 1fr));
     gap: 25px;
     margin-bottom: 30px;
 }
@@ -1701,6 +1733,7 @@ input[type="file"] {
 .modal-actions .btn-secondary:hover {
     background-color: #d6d8db;
 }
+
 
 
 @media (max-width: 768px) {

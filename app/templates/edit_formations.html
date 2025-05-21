@@ -7,6 +7,57 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .filter-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-group label {
+            margin-bottom: 0;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .filter-select {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+            background-color: white;
+        }
+        .price-filter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .price-input {
+            width: 80px;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+        }
+        .reset-filters {
+            margin-left: auto;
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .reset-filters:hover {
+            background: #5a6268;
+        }
+    </style>
 </head>
 <body>
     <div class="flash-popup-container" id="flashPopupContainer">
@@ -28,8 +79,10 @@
             <nav>
                 <ul>
                     <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a></li>
-                    <li class="active"><a href="{{ url_for('formation.edit_formations') }}"><i class="fas fa-graduation-cap"></i> Formations</a></li>
                     <li><a href="{{ url_for('organisme.edit_organismes') }}"><i class="fas fa-building"></i> Organismes</a></li>
+                    <li class="active"><a href="{{ url_for('formation.edit_formations') }}"><i class="fas fa-graduation-cap"></i> Formations</a></li>
+                    <li><a href="{{ url_for('formation.formulaire') }}"><i class="fas fa-file-alt"></i> Formulaire</a></li>
+                    <li><a href="{{ url_for('carte') }}"><i class="fas fa-map-marked-alt"></i> Carte</a></li>
                     <li><a href="{{ url_for('utilisateur.profil') }}"><i class="fas fa-user"></i> Mon Profil</a></li>
                 </ul>
             </nav>
@@ -38,9 +91,18 @@
         <!-- Main Content -->
         <div class="main-content">
             <header>
-                <h1>Gestion des Formations</h1>
+                <h1>Tableau de bord</h1>
                 <div class="user-info">
-                    <span>{{ current_user.nom }}</span>
+                    <a href="{{ url_for('utilisateur.profil') }}" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 10px;">
+                        <span>{{ current_user.nom }}</span>
+                        {% if current_user.photo_profil %}
+                            <img src="/{{ current_user.photo_profil }}"
+                                alt="Photo de profil" 
+                                style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                        {% else %}
+                            <i class="fas fa-user-circle" style="font-size: 1.5em;"></i>
+                        {% endif %}
+                    </a>
                     <a href="{{ url_for('utilisateur.deconnexion') }}" style="margin-left: 10px; color: #dc3545;">
                         <i class="fas fa-sign-out-alt"></i>
                     </a>
@@ -55,11 +117,63 @@
                             <a href="{{ url_for('formation.new_formation') }}" class="btn btn-add">
                                 <i class="fas fa-plus"></i> Ajouter une formation
                             </a>
+                            
+                            <!-- Barre recherche formations par ID ou Nom -->
+                            <div class="search-box" style="margin-right: 10px;">
+                                <input type="text" id="searchFormation" placeholder="Rechercher formation (ID, Nom)...">
+                                <i class="fas fa-search"></i>
+                            </div>
+
+                            <!-- Barre recherche organisme -->
                             <div class="search-box">
-                                <input type="text" id="searchInput" placeholder="Rechercher...">
+                                <input type="text" id="searchOrganisme" placeholder="Rechercher organisme...">
                                 <i class="fas fa-search"></i>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Section Filtres -->
+                    <div class="filter-section">
+                        <div class="filter-group">
+                            <label for="etatFilter">État :</label>
+                            <select id="etatFilter" class="filter-select">
+                                <option value="tous">Tous</option>
+                                <option value="valide">Validé</option>
+                                <option value="en_attente">En attente</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="typeFilter">Type :</label>
+                            <select id="typeFilter" class="filter-select">
+                                <option value="tous">Tous</option>
+                                <option value="initiale">Initiale</option>
+                                <option value="continue">Continue</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="labelFilter">Label :</label>
+                            <select id="labelFilter" class="filter-select">
+                                <option value="tous">Tous</option>
+                                <option value="Qualiopi">Qualiopi</option>
+                                <option value="RNCP">RNCP</option>   <!-- Ajouté ici -->
+                                <option value="Autre">Autre</option>
+                            </select>
+                        </div>
+
+
+                        <div class="filter-group price-filter">
+                            <label>Prix :</label>
+                            <input type="number" id="minPrice" class="price-input" placeholder="Min">
+                            <span>-</span>
+                            <input type="number" id="maxPrice" class="price-input" placeholder="Max">
+                            <span>€</span>
+                        </div>
+
+                        <button id="resetFilters" class="reset-filters">
+                            <i class="fas fa-times"></i> Réinitialiser
+                        </button>
                     </div>
 
                     <!-- Pagination en haut -->
@@ -87,13 +201,19 @@
                                         <th>Nom</th>
                                         <th>Type</th>
                                         <th>Organisme</th>
+                                        <th>Prix</th>
+                                        <th>Label</th>
                                         <th>État</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for f in formations %}
-                                    <tr class="formation-row" data-id="{{ f.id_formation }}">
+                                    <tr class="formation-row" data-id="{{ f.id_formation }}" 
+                                        data-type="{{ f.type }}" 
+                                        data-etat="{{ f.etat }}"
+                                        data-label="{{ f.label }}"
+                                        data-prix="{{ f.prix or 0 }}">
                                         <td>{{ f.id_formation }}</td>
                                         <td>
                                             <input type="text" name="nom_{{ f.id_formation }}" value="{{ f.nom }}" class="table-input" required>
@@ -114,6 +234,12 @@
                                             </select>
                                         </td>
                                         <td>
+                                            <input type="number" name="prix_{{ f.id_formation }}" value="{{ f.prix }}" class="table-input" step="0.01">
+                                        </td>
+                                        <td>
+                                            <input type="text" name="label_{{ f.id_formation }}" value="{{ f.label }}" class="table-input">
+                                        </td>
+                                        <td>
                                             <button type="button" class="etat-btn" 
                                                     data-id="{{ f.id_formation }}" 
                                                     data-state="{{ f.etat }}">
@@ -122,23 +248,30 @@
                                             <input type="hidden" name="etat_{{ f.id_formation }}" id="etat_input_{{ f.id_formation }}" value="{{ f.etat }}">
                                         </td>
                                         <td class="action-buttons">
+                                            <!-- Bouton de modification qui redirige vers une page dédiée -->
                                             <a href="{{ url_for('formation.preview_formation', id=f.id_formation) }}" class="btn-details" title="Modifier">
                                                 <i class="fas fa-pen"></i>
                                             </a>
-                                            <form method="post" action="{{ url_for('formation.delete_formation', id=f.id_formation) }}" style="display:inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette formation ?');">
-                                                <button type="submit" class="btn-danger btn" title="Supprimer">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
 
-                                            <button type="submit" class="btn-save" name="save_{{ f.id_formation }}">
-                                                <i class="fas fa-save"></i>
+                                            <!-- Bouton supprimer -->
+                                            <button type="submit" name="delete" value="{{ f.id_formation }}" 
+                                                    class="btn-delete btn" 
+                                                    title="Supprimer"
+                                                    onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette formation ?');">
+                                                <i class="fas fa-trash"></i>
                                             </button>
+
+                                            <!-- Nouveau bouton enregistrer qui utilise une route spécifique -->
+                                            <a href="#" class="btn-save save-single" 
+                                            data-id="{{ f.id_formation }}" 
+                                            title="Enregistrer">
+                                                <i class="fas fa-save"></i>
+                                            </a>
                                         </td>
                                     </tr>
                                     <!-- Row details (caché par défaut) -->
                                     <tr class="details-row" id="details_{{ f.id_formation }}" style="display: none;">
-                                        <td colspan="6">
+                                        <td colspan="8">
                                             <div class="details-container">
                                                 <div class="form-group">
                                                     <label>Description</label>
@@ -157,16 +290,8 @@
                                                     <input type="text" name="lieu_{{ f.id_formation }}" value="{{ f.lieu }}" class="table-input">
                                                 </div>
                                                 <div class="form-group">
-                                                    <label>Prix</label>
-                                                    <input type="number" name="prix_{{ f.id_formation }}" value="{{ f.prix }}" class="table-input">
-                                                </div>
-                                                <div class="form-group">
                                                     <label>Financement</label>
                                                     <input type="text" name="financement_{{ f.id_formation }}" value="{{ f.financement }}" class="table-input">
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>Label</label>
-                                                    <input type="text" name="label_{{ f.id_formation }}" value="{{ f.label }}" class="table-input">
                                                 </div>
                                                 <div class="form-group">
                                                     <label>Conditions d'accès</label>
@@ -178,7 +303,7 @@
                                                 </div>
                                                 <div class="form-group">
                                                     <label>Lien d'inscription</label>
-                                                    <input type="url" name="lien_inscription_{{ f.id_formation }}" value="{{ f.lien_inscription }}" class="table-input">
+                                                    <input type="text" name="lien_inscription_{{ f.id_formation }}" value="{{ f.lien_inscription }}" class="table-input">
                                                 </div>
                                             </div>
                                         </td>
@@ -218,35 +343,123 @@
             btn.setAttribute('data-state', newState);
             btn.textContent = newState === 'valide' ? 'Validé' : 'En attente';
             document.getElementById('etat_input_' + btn.dataset.id).value = newState;
+            
+            // Mettre à jour l'attribut data-etat de la ligne
+            const row = btn.closest('.formation-row');
+            row.setAttribute('data-etat', newState);
         });
     });
 
-    // Gestion des détails
-    document.querySelectorAll('.btn-details').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const detailsRow = document.getElementById('details_' + btn.dataset.id);
-            detailsRow.style.display = detailsRow.style.display === 'none' ? 'table-row' : 'none';
-            btn.innerHTML = detailsRow.style.display === 'none' 
-                ? '<i class="fas fa-ellipsis-h"></i> Détails' 
-                : '<i class="fas fa-times"></i> Fermer';
-        });
-    });
+    // Fonction pour normaliser les chaînes (supprimer les accents)
+    function normalizeString(str) {
+        return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    }
 
-    // Pagination et recherche
+    // Fonction pour détecter si une chaîne contient un accent
+    function containsAccent(str) {
+        return /[àáâãäåçèéêëìíîïòóôõöùúûüÿ]/i.test(str);
+    }
+
+    // Nouvelle fonction de comparaison
+    function compareStrings(text, filter) {
+        if (containsAccent(filter)) {
+            // Si la recherche contient un accent, comparer directement en minuscules (avec accents)
+            return text.toLowerCase().includes(filter.toLowerCase());
+        } else {
+            // Sinon, comparer en supprimant les accents
+            return normalizeString(text).includes(normalizeString(filter));
+        }
+    }
+
+
+    // Pagination, recherche et filtres
     document.addEventListener('DOMContentLoaded', function() {
         const rows = document.querySelectorAll('.formation-row');
         const itemsPerPageSelect = document.getElementById('itemsPerPage');
-        const searchInput = document.getElementById('searchInput');
+        const searchFormationInput = document.getElementById('searchFormation');
+        const searchOrganismeInput = document.getElementById('searchOrganisme');
+        const etatFilter = document.getElementById('etatFilter');
+        const typeFilter = document.getElementById('typeFilter');
+        const labelFilter = document.getElementById('labelFilter');
+        const minPriceInput = document.getElementById('minPrice');
+        const maxPriceInput = document.getElementById('maxPrice');
+        const resetFiltersBtn = document.getElementById('resetFilters');
+
         let currentPage = 1;
         let itemsPerPage = parseInt(itemsPerPageSelect.value);
 
-        function updatePagination() {
+        function applyFilters() {
+            const formationFilter = searchFormationInput.value.trim();
+            const organismeFilter = searchOrganismeInput.value.trim();
+
+            const selectedEtat = etatFilter.value;
+            const selectedType = typeFilter.value;
+            const selectedLabel = labelFilter.value;
+            const minPrice = parseFloat(minPriceInput.value) || 0;
+            const maxPrice = parseFloat(maxPriceInput.value) || Infinity;
+
+            // Filtrage
             const filteredRows = Array.from(rows).filter(row => {
-                return row.textContent.toLowerCase().includes(searchInput.value.toLowerCase());
+                // Filtre par recherche formation (ID ou Nom)
+                const idCell = row.querySelector('td:first-child');
+                const idText = idCell ? idCell.textContent : '';
+
+                const nameInput = row.querySelector('td:nth-child(2) input');
+                const nameText = nameInput ? nameInput.value : '';
+
+                const formationMatch = compareStrings(idText, formationFilter) || compareStrings(nameText, formationFilter);
+
+                if (!formationMatch) return false;
+
+                // Filtre par recherche organisme
+                const organismeSelect = row.querySelector('td:nth-child(4) select');
+                const selectedOption = organismeSelect ? organismeSelect.options[organismeSelect.selectedIndex].text : '';
+                const organismeMatch = compareStrings(selectedOption, organismeFilter);
+
+                if (!organismeMatch) return false;
+
+                // Filtre par état
+                if (selectedEtat !== 'tous' && row.getAttribute('data-etat') !== selectedEtat) {
+                    return false;
+                }
+
+                // Filtre par type
+                if (selectedType !== 'tous' && row.getAttribute('data-type') !== selectedType) {
+                    return false;
+                }
+
+                // Filtre par label
+                const labelInput = row.querySelector('td:nth-child(6) input');
+                const labelValue = labelInput ? labelInput.value : '';
+                if (selectedLabel !== 'tous') {
+                    if (selectedLabel === 'Qualiopi' && !labelValue.includes('Qualiopi')) {
+                        return false;
+                    }
+                    if (selectedLabel === 'RNCP' && !labelValue.includes('RNCP')) {
+                        return false;
+                    }
+                    if (selectedLabel === 'Autre' && (labelValue.includes('Qualiopi') || labelValue.includes('RNCP') || labelValue === '')) {
+                        return false;
+                    }
+                }
+
+
+                // Filtre par prix
+                const prix = parseFloat(row.getAttribute('data-prix')) || 0;
+                if (prix < minPrice || prix > maxPrice) {
+                    return false;
+                }
+
+                return true;
             });
 
-            const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
-            
+            return filteredRows;
+        }
+
+        function updatePagination() {
+            const filteredRows = applyFilters();
+            const totalPages = Math.ceil(filteredRows.length / itemsPerPage) || 1;
+
             // Masquer toutes les lignes
             rows.forEach(row => row.style.display = 'none');
             
@@ -276,14 +489,58 @@
             document.getElementById('nextPageBottom').disabled = currentPage === totalPages || totalPages === 0;
         }
 
-        // Événements
+        // Événements pour les filtres
+        etatFilter.addEventListener('change', function() {
+            currentPage = 1;
+            updatePagination();
+        });
+
+        typeFilter.addEventListener('change', function() {
+            currentPage = 1;
+            updatePagination();
+        });
+
+        labelFilter.addEventListener('change', function() {
+            currentPage = 1;
+            updatePagination();
+        });
+
+        minPriceInput.addEventListener('input', function() {
+            currentPage = 1;
+            updatePagination();
+        });
+
+        maxPriceInput.addEventListener('input', function() {
+            currentPage = 1;
+            updatePagination();
+        });
+
+        // Réinitialiser les filtres
+        resetFiltersBtn.addEventListener('click', function() {
+            searchFormationInput.value = '';
+            searchOrganismeInput.value = '';
+            etatFilter.value = 'tous';
+            typeFilter.value = 'tous';
+            labelFilter.value = 'tous';
+            minPriceInput.value = '';
+            maxPriceInput.value = '';
+            currentPage = 1;
+            updatePagination();
+        });
+
+        // Événements pour la pagination et recherche
         itemsPerPageSelect.addEventListener('change', function() {
             itemsPerPage = parseInt(this.value);
             currentPage = 1;
             updatePagination();
         });
 
-        searchInput.addEventListener('input', function() {
+        searchFormationInput.addEventListener('input', function() {
+            currentPage = 1;
+            updatePagination();
+        });
+
+        searchOrganismeInput.addEventListener('input', function() {
             currentPage = 1;
             updatePagination();
         });
@@ -296,9 +553,7 @@
         });
 
         document.getElementById('nextPage').addEventListener('click', function() {
-            const filteredRows = Array.from(rows).filter(row => {
-                return row.textContent.toLowerCase().includes(searchInput.value.toLowerCase());
-            });
+            const filteredRows = applyFilters();
             const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
             
             if (currentPage < totalPages) {
@@ -315,14 +570,75 @@
         });
 
         document.getElementById('nextPageBottom').addEventListener('click', function() {
-            const filteredRows = Array.from(rows).filter(row => {
-                return row.textContent.toLowerCase().includes(searchInput.value.toLowerCase());
-            });
+            const filteredRows = applyFilters();
             const totalPages = Math.ceil(filteredRows.length / itemsPerPage);
             
             if (currentPage < totalPages) {
                 currentPage++;
                 updatePagination();
+            }
+        });
+
+        // Gestion de la sauvegarde individuelle
+        document.querySelectorAll('.save-single').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const id = this.getAttribute('data-id');
+                
+                // Récupérer toutes les données du formulaire pour cette formation
+                const data = {
+                    nom: document.querySelector(`input[name="nom_${id}"]`).value,
+                    type: document.querySelector(`select[name="type_${id}"]`).value,
+                    id_organisme: document.querySelector(`select[name="id_organisme_${id}"]`).value,
+                    etat: document.querySelector(`input[name="etat_${id}"]`).value,
+                    description: document.querySelector(`textarea[name="description_${id}"]`)?.value || '',
+                    duree: document.querySelector(`input[name="duree_${id}"]`)?.value || '',
+                    dates: document.querySelector(`input[name="dates_${id}"]`)?.value || '',
+                    lieu: document.querySelector(`input[name="lieu_${id}"]`)?.value || '',
+                    prix: document.querySelector(`input[name="prix_${id}"]`)?.value || '',
+                    conditions_acces: document.querySelector(`textarea[name="conditions_acces_${id}"]`)?.value || '',
+                    financement: document.querySelector(`input[name="financement_${id}"]`)?.value || '',
+                    presentation_intervenants: document.querySelector(`textarea[name="presentation_intervenants_${id}"]`)?.value || '',
+                    lien_inscription: document.querySelector(`input[name="lien_inscription_${id}"]`)?.value || '',
+                    label: document.querySelector(`input[name="label_${id}"]`)?.value || ''
+                };
+
+                // Mettre à jour l'attribut data-prix pour le filtre
+                const row = document.querySelector(`.formation-row[data-id="${id}"]`);
+                if (row) {
+                    row.setAttribute('data-prix', data.prix || 0);
+                }
+
+                // Envoyer les données via fetch
+                fetch(`/formations/update/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Afficher un message de succès
+                        const flashContainer = document.getElementById('flashPopupContainer');
+                        const flashMsg = document.createElement('div');
+                        flashMsg.className = 'flash-popup flash-success';
+                        flashMsg.innerHTML = data.message + '<span class="close-btn">&times;</span>';
+                        flashContainer.appendChild(flashMsg);
+                        
+                        // Fermer le message après 5s
+                        setTimeout(() => flashMsg.remove(), 5000);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        });
+
+        // Gestion de la fermeture des messages flash
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('close-btn')) {
+                e.target.parentElement.remove();
             }
         });
 

@@ -7,6 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from database import db
 import os
 import re
+from functools import wraps
 
 utilisateur_bp = Blueprint("utilisateur", __name__, url_prefix="/utilisateur")
 
@@ -17,6 +18,17 @@ UPLOAD_FOLDER = 'static/uploads/profils'
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+# Ajoutez ce décorateur si vous n'avez pas créé le fichier de décorateurs séparé
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.role != 'admin':
+            flash("Accès refusé : vous n'avez pas les permissions nécessaires", "error")
+            return redirect(url_for('dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 @utilisateur_bp.route("/connexion", methods=["GET", "POST"])
 def connexion():
