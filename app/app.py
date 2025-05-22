@@ -41,9 +41,18 @@ def carte():
 def dashboard():
     nb_formations = Formation.query.count()
     nb_organismes = Organisme.query.count()
-    return render_template('dashboard.html', user=current_user,
+
+    formations = []
+    if current_user.id_organisme:
+        # Récupérer toutes les formations liées à l'organisme de l'utilisateur
+        formations = Formation.query.filter_by(id_organisme=current_user.id_organisme).all()
+
+    return render_template('dashboard.html',
+                           user=current_user,
                            nb_formations=nb_formations,
-                           nb_organismes=nb_organismes)
+                           nb_organismes=nb_organismes,
+                           formations=formations)
+
 
 @app.context_processor
 def inject_now():
