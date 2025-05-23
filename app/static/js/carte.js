@@ -91,16 +91,27 @@ function resetAllFormationItems() {
 // GÉOCODAGE D'ADRESSE
 // =====================
 function geocodeAddress(address, callback) {
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
-        .then(response => response.json())
+    // enlever la virgule qui peut poser problème
+    const cleanedAddress = address.replace(/,/g, '');
+    // suppression du paramètre type=address
+    const url = `https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(cleanedAddress)}&limit=1`;
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
-            if (data && data.length > 0) {
+            if (data && data.features && data.features.length > 0) {
+                const coords = data.features[0].geometry.coordinates; // [lon, lat]
                 callback({
-                    lat: parseFloat(data[0].lat),
-                    lng: parseFloat(data[0].lon)
+                    lat: coords[1],
+                    lng: coords[0]
                 });
             } else {
-                console.error('Adresse non trouvée:', address);
+                console.error('Adresse non trouvée:', cleanedAddress);
                 callback(null);
             }
         })
@@ -109,6 +120,8 @@ function geocodeAddress(address, callback) {
             callback(null);
         });
 }
+
+
 
 // =====================
 // GESTION DE LA RECHERCHE
@@ -281,16 +294,26 @@ function zoomToFormation(formationId) {
     if (marker) {
         map.setView(marker.getLatLng(), 14);
         
+        const orgFormations = allFormations.filter(f => f.id_organisme === organisme.id);
         // Mettre à jour le contenu du popup
         let popupContent = `
-            <b>${organisme.nom}</b><br>
-            ${organisme.adresse}<br>
-            Tél: ${organisme.telephone}<br>
-            Email: <a href="mailto:${organisme.email}">${organisme.email}</a>
-            <hr><b>Formations proposées:</b><br>
+            <div class="popup-container">
+                <h3 class="popup-title">${organisme.nom}</h3>
+                <div class="popup-info">
+                    <p><i class="fas fa-map-marker-alt"></i> ${organisme.adresse}</p>
+                    <p><i class="fas fa-phone"></i> ${organisme.telephone}</p>
+                    <p><i class="fas fa-envelope"></i> <a href="mailto:${organisme.email}">${organisme.email}</a></p>
+                </div>
+                <div class="popup-formations-count">
+                    ${orgFormations.length} formation(s) disponible(s)
+                </div>
+                <a href="/formations/informations/${organisme.id}" class="popup-button">
+                    <i class="fas fa-graduation-cap"></i> Découvrir
+                </a>
+            </div>
         `;
         
-        const orgFormations = allFormations.filter(f => f.id_organisme === organisme.id);
+        
         orgFormations.forEach(ff => {
             popupContent += `- ${ff.nom} (${ff.type})<br>`;
         });
@@ -328,17 +351,28 @@ function searchOrganisme(organismeId) {
     const marker = markersDict[organisme.id];
     if (marker) {
         map.setView(marker.getLatLng(), 14);
+        const orgFormations = allFormations.filter(f => f.id_organisme === organisme.id);
         
         // Mettre à jour le contenu du popup
         let popupContent = `
-            <b>${organisme.nom}</b><br>
-            ${organisme.adresse}<br>
-            Tél: ${organisme.telephone}<br>
-            Email: <a href="mailto:${organisme.email}">${organisme.email}</a>
-            <hr><b>Formations proposées:</b><br>
+            <div class="popup-container">
+                <h3 class="popup-title">${organisme.nom}</h3>
+                <div class="popup-info">
+                    <p><i class="fas fa-map-marker-alt"></i> ${organisme.adresse}</p>
+                    <p><i class="fas fa-phone"></i> ${organisme.telephone}</p>
+                    <p><i class="fas fa-envelope"></i> <a href="mailto:${organisme.email}">${organisme.email}</a></p>
+                </div>
+                <div class="popup-formations-count">
+                    ${orgFormations.length} formation(s) disponible(s)
+                </div>
+                <a href="/formations/informations/${organisme.id}" class="popup-button">
+                    <i class="fas fa-graduation-cap"></i> Découvrir
+                </a>
+            </div>
         `;
         
-        const orgFormations = allFormations.filter(f => f.id_organisme === organisme.id);
+        
+        
         orgFormations.forEach(ff => {
             popupContent += `- ${ff.nom} (${ff.type})<br>`;
         });
@@ -608,16 +642,27 @@ Promise.all([
 
             const marker = L.marker([coords.lat, coords.lng]).addTo(map);
             markersDict[org.id] = marker;
-
-            let popupContent = `
-                <b>${org.nom}</b><br>
-                ${org.adresse}<br>
-                Tél: ${org.telephone}<br>
-                Email: <a href="mailto:${org.email}">${org.email}</a>
-                <hr><b>Formations proposées:</b><br>
-            `;
             
             const orgFormations = allFormations.filter(f => f.id_organisme === org.id);
+
+            let popupContent = `
+                <div class="popup-container">
+                    <h3 class="popup-title">${org.nom}</h3>
+                    <div class="popup-info">
+                        <p><i class="fas fa-map-marker-alt"></i> ${org.adresse}</p>
+                        <p><i class="fas fa-phone"></i> ${org.telephone}</p>
+                        <p><i class="fas fa-envelope"></i> <a href="mailto:${org.email}">${org.email}</a></p>
+                    </div>
+                    <div class="popup-formations-count">
+                        ${orgFormations.length} formation(s) disponible(s)
+                    </div>
+                    <a href="/formations/informations/${org.id}" class="popup-button">
+                        <i class="fas fa-graduation-cap"></i> Découvrir
+                    </a>
+                </div>
+            `;
+
+
             orgFormations.forEach(ff => {
                 popupContent += `- ${ff.nom} (${ff.type})<br>`;
             });

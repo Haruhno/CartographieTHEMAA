@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Informations Organisme - {{ organisme.nom }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+</head>
+<body>
+
+<div class="formation-details-container">
+    <button onclick="window.history.back();" class="btn-retour">
+        <i class="fas fa-arrow-left"></i> Retour
+    </button>
+
+    <div class="formation-header">
+        <h1>{{ organisme.nom }}</h1>
+        <div class="organisme-info">
+            <p><i class="fas fa-map-marker-alt"></i> {{ organisme.adresse }}</p>
+            <p><i class="fas fa-phone"></i> {{ organisme.telephone }}</p>
+            <p><i class="fas fa-envelope"></i> <a href="mailto:{{ organisme.email }}">{{ organisme.email }}</a></p>
+            {% if organisme.site_web %}
+            <p><i class="fas fa-globe"></i> <a href="{{ organisme.site_web }}" target="_blank" rel="noopener noreferrer">{{ organisme.site_web }}</a></p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="formations-list">
+        <h2>Formations proposées</h2>
+        
+        {% for formation in formations %}
+        <div class="formation-card">
+            <div class="formation-card-header">
+                <h3>{{ formation.nom }}</h3>
+                <span class="formation-type {{ 'type-initiale' if formation.type == 'initiale' else 'type-continue' }}">
+                    {{ 'Initiale' if formation.type == 'initiale' else 'Continue' }}
+                </span>
+            </div>
+            
+            <div class="formation-card-body">
+                <div class="formation-details">
+                    <p><strong>Description :</strong> {{ formation.description }}</p>
+                    <p><strong>Durée :</strong> {{ formation.duree }}</p>
+                    <p><strong>Dates :</strong> {{ formation.dates }}</p>
+                    <p><strong>Lieu :</strong> {{ formation.lieu }}</p>
+                    
+                    {% if formation.prix %}
+                    <p><strong>Prix :</strong> {{ "%.2f"|format(formation.prix) }} €</p>
+                    {% endif %}
+                    
+                    {% if formation.conditions_acces %}
+                    <p><strong>Conditions d'accès :</strong> {{ formation.conditions_acces }}</p>
+                    {% endif %}
+                    
+                    {% if formation.financement %}
+                    <p><strong>Financement :</strong> {{ formation.financement }}</p>
+                    {% endif %}
+                    
+                    {% if formation.presentation_intervenants %}
+                    <p><strong>Intervenants :</strong> {{ formation.presentation_intervenants }}</p>
+                    {% endif %}
+                </div>
+                
+                {% if formation.lien_inscription %}
+                <a href="{{ formation.lien_inscription if formation.lien_inscription.startswith('http') else 'http://' + formation.lien_inscription }}" 
+                class="inscription-button" target="_blank" rel="noopener noreferrer">
+                <i class="fas fa-pencil-alt"></i> S'inscrire
+                </a>
+
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <p>Aucune formation disponible pour cet organisme.</p>
+        {% endfor %}
+    </div>
+</div>
+
+</body>
+</html>

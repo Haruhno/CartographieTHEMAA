@@ -237,7 +237,9 @@
                                             <input type="number" name="prix_{{ f.id_formation }}" value="{{ f.prix }}" class="table-input" step="0.01">
                                         </td>
                                         <td>
-                                            <input type="text" name="label_{{ f.id_formation }}" value="{{ f.label }}" class="table-input">
+                                            <input type="text" name="label_{{ f.id_formation }}" 
+                                                value="{{ f.label if f.label and f.label != 'None' else '' }}" 
+                                                class="table-input">
                                         </td>
                                         <td>
                                             <button type="button" class="etat-btn" 
@@ -438,7 +440,7 @@
                     if (selectedLabel === 'RNCP' && !labelValue.includes('RNCP')) {
                         return false;
                     }
-                    if (selectedLabel === 'Autre' && (labelValue.includes('Qualiopi') || labelValue.includes('RNCP') || labelValue === '')) {
+                    if (selectedLabel === 'Autre' && (labelValue.includes('Qualiopi') || labelValue.includes('RNCP') || labelValue === 'null')) {
                         return false;
                     }
                 }
