@@ -1946,14 +1946,14 @@ input[type="file"] {
     margin-bottom: 20px;
 }
 
-.filter-group {
+.filter-group-organisme {
     display: flex;
     align-items: center;
     gap: 8px;
     flex: 1 0 auto;
 }
 
-.filter-group label {
+.filter-group-organisme label {
     margin-bottom: 0;
     font-weight: 500;
     white-space: nowrap;
@@ -1967,8 +1967,8 @@ input[type="file"] {
 
 .filter-title {
     font-size: 15px;
+    margin:5% 0 2% 0;
     color: #333;
-    margin-bottom: 12px;
     font-weight: 600;
 }
 
