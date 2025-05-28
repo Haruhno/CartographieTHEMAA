@@ -80,8 +80,8 @@
                             <button id="btnToggleOrganismes" class="btn">
                                 <i class="fas fa-eye"></i> Voir les organismes
                             </button>
-                            <a href="{{ url_for('organisme.new_organisme') }}" class="btn btn-add">
-                                <i class="fas fa-plus"></i> Ajouter un organisme
+                            <a href="{{ url_for('organisme.edit_organismes') }}" class="btn btn-manage">
+                                <i class="fas fa-cog"></i> Gérer les organismes
                             </a>
                         </div>
                         <table id="tableOrganismes" class="table" style="display: none;">
@@ -110,8 +110,8 @@
                             <button id="btnToggleFormations" class="btn">
                                 <i class="fas fa-eye"></i> Voir les formations
                             </button>
-                            <a href="{{ url_for('formation.new_formation') }}" class="btn btn-add">
-                                <i class="fas fa-plus"></i> Ajouter une formation
+                            <a href="{{ url_for('formation.edit_formations') }}" class="btn btn-manage">
+                                <i class="fas fa-cog"></i> Gérer les formations
                             </a>
                         </div>
                         <table id="tableFormations" class="table" style="display: none;">

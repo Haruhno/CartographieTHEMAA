@@ -3,8 +3,23 @@ from models.ModelOrganisme import Organisme
 from models.ModelUtilisateur import Utilisateur
 from database import db
 from flask_login import current_user, login_required
+from .ControllerUtilisateur import admin_required
 
 organisme_bp = Blueprint("organisme", __name__, url_prefix="/organismes")
+
+def normalize_website_url(site_web):
+    """
+    Normalise l'URL d'un site web en ajoutant https:// si nécessaire.
+    
+    Args:
+        site_web (str): L'URL du site web
+        
+    Returns:
+        str: L'URL normalisée ou None si l'entrée est vide
+    """
+    if site_web and not site_web.startswith("http://") and not site_web.startswith("https://"):
+        return "https://" + site_web
+    return site_web
 
 @organisme_bp.route("/all", methods=["GET"])
 def get_all_organismes():
@@ -17,12 +32,18 @@ def get_all_organismes():
             "nom": o.nom,
             "adresse": o.adresse,
             "email": o.email,
-            "telephone": o.telephone
+            "telephone": o.telephone,
+            "site_web": o.site_web,
+            "presentation": o.presentation,
+            "num_adherent": o.num_adherent,
+            "statut": o.statut,
+            "label": o.label
         })
 
     return jsonify(resultats)
 
 @organisme_bp.route("/edit", methods=["GET"])
+@admin_required
 def edit_organismes():
     organismes = Organisme.query.all()
     statuts = db.session.query(Organisme.statut).distinct().all()
@@ -31,9 +52,17 @@ def edit_organismes():
                            statuts=[s[0] for s in statuts if s[0]],
                            labels=[l[0] for l in labels if l[0]])
 
-
 @organisme_bp.route("/update", methods=["POST"])
+@admin_required
 def update_organismes():
+    if "delete" in request.form:
+        id_ = request.form["delete"]
+        organisme = Organisme.query.get_or_404(int(id_))
+        db.session.delete(organisme)
+        db.session.commit()
+        flash("Organisme supprimé avec succès.", "success")
+        return redirect(url_for("organisme.edit_organismes"))
+
     for key, value in request.form.items():
         if key.startswith("nom_"):
             id_ = key.split("_")[1]
@@ -41,32 +70,31 @@ def update_organismes():
             organisme.nom = value
             organisme.email = request.form.get(f"email_{id_}")
             organisme.telephone = request.form.get(f"telephone_{id_}")
-            site_web = request.form.get(f"site_web_{id_}")
-            if site_web and not site_web.startswith("http://") and not site_web.startswith("https://"):
-                site_web = "https://" + site_web
-            organisme.site_web = site_web
+            organisme.site_web = normalize_website_url(request.form.get(f"site_web_{id_}"))
             organisme.statut = request.form.get(f"statut_{id_}")
             organisme.label = request.form.get(f"label_{id_}")
-            organisme.adresse = request.form.get(f"adresse_{id_}") or organisme.adresse
+            organisme.adresse = request.form.get(f"adresse_{id_}", organisme.adresse)
+            organisme.presentation = request.form.get(f"presentation_{id_}", organisme.presentation)
+            organisme.num_adherent = request.form.get(f"num_adherent_{id_}", organisme.num_adherent)
 
     db.session.commit()
     flash("Tous les organismes ont été mis à jour avec succès.", "success")
     return redirect(url_for("organisme.edit_organismes"))
 
 @organisme_bp.route("/new", methods=["GET"])
+@admin_required
 def new_organisme():
-    return render_template("new_organisme.html")
-
+    statuts = db.session.query(Organisme.statut).distinct().all()
+    return render_template("new_organisme.html", statuts=[s[0] for s in statuts if s[0]])
 
 @organisme_bp.route("/create", methods=["POST"])
+@admin_required
 def create_organisme():
     nom = request.form["nom"]
     adresse = request.form["adresse"]
     email = request.form["email"]
     telephone = request.form["telephone"]
-    site_web = request.form.get("site_web")
-    if site_web and not site_web.startswith("http://") and not site_web.startswith("https://"): 
-        site_web = "https://" + site_web
+    site_web = normalize_website_url(request.form.get("site_web"))
     presentation = request.form["presentation"]
     num_adherent = request.form.get("num_adherent")
     statut = request.form["statut"]
@@ -85,9 +113,11 @@ def create_organisme():
     )
     db.session.add(nouvel_organisme)
     db.session.commit()
+    flash("Organisme créé avec succès.", "success")
     return redirect(url_for("organisme.edit_organismes"))
 
 @organisme_bp.route("/delete/<int:id>", methods=["POST"])
+@admin_required
 def delete_organisme(id):
     organisme = Organisme.query.get_or_404(id)
     db.session.delete(organisme)
@@ -118,7 +148,8 @@ def choose_organisme():
 @organisme_bp.route("/new/user", methods=["GET"])
 @login_required
 def new_organisme_user():
-    return render_template("formulaire_organisme.html")
+    statuts = db.session.query(Organisme.statut).distinct().all()
+    return render_template("formulaire_organisme.html", statuts=[s[0] for s in statuts if s[0]])
 
 @organisme_bp.route("/create/user", methods=["POST"])
 @login_required
@@ -127,9 +158,7 @@ def create_organisme_user():
     adresse = request.form["adresse"]
     email = request.form["email"]
     telephone = request.form["telephone"]
-    site_web = request.form.get("site_web")
-    if site_web and not site_web.startswith("http://") and not site_web.startswith("https://"):
-        site_web = "https://" + site_web
+    site_web = normalize_website_url(request.form.get("site_web"))
     presentation = request.form["presentation"]
     num_adherent = request.form.get("num_adherent")
     statut = request.form["statut"]
@@ -158,6 +187,7 @@ def create_organisme_user():
     return redirect(url_for("utilisateur.profil"))
 
 @organisme_bp.route("/preview/<int:id>", methods=["GET"])
+@admin_required
 def preview_organisme(id):
     organisme = Organisme.query.get_or_404(id)
     statuts = db.session.query(Organisme.statut).distinct().all()
@@ -168,6 +198,7 @@ def preview_organisme(id):
                             formations=formations)
 
 @organisme_bp.route("/update/<int:id>", methods=["POST"])
+@admin_required
 def update_organisme_by_id(id):
     organisme = Organisme.query.get_or_404(id)
 
@@ -194,9 +225,7 @@ def update_organisme_by_id(id):
         organisme.telephone = request.form.get('telephone')
         organisme.adresse = request.form.get('adresse')
         
-        site_web = request.form.get("site_web")
-        if site_web and not site_web.startswith("http://") and not site_web.startswith("https://"):
-            site_web = "https://" + site_web
+        site_web = normalize_website_url(request.form.get("site_web"))
         organisme.site_web = site_web
 
         organisme.presentation = request.form.get('presentation')

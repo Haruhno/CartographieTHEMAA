@@ -368,3 +368,4 @@ document.querySelectorAll('.delete-organisme').forEach(btn => {
         }
     });
 });
+
