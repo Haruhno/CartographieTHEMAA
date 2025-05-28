@@ -284,3 +284,12 @@ def get_formations_valides():
         })
 
     return jsonify(resultats)
+
+@formation_bp.route("/informations/<int:organisme_id>", methods=["GET"])
+def formation_informations(organisme_id):
+    organisme = Organisme.query.get_or_404(organisme_id)
+    formations = Formation.query.filter_by(id_organisme=organisme_id, etat="valide").all()
+    
+    return render_template("formation_informations.html", 
+                         organisme=organisme, 
+                         formations=formations)
