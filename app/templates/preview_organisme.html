@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Fiche Organisme</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="admin-container">
+    <div class="sidebar">
+        <div class="logo">THEMAA</div>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li class="active"><a href="{{ url_for('organisme.edit_organismes') }}"><i class="fas fa-building"></i> Organismes</a></li>
+                <li><a href="{{ url_for('formation.edit_formations') }}"><i class="fas fa-graduation-cap"></i> Formations</a></li>
+                <li><a href="{{ url_for('formation.formulaire') }}"><i class="fas fa-file-alt"></i> Formulaire</a></li>
+                <li><a href="{{ url_for('carte') }}"><i class="fas fa-map-marked-alt"></i> Carte</a></li>
+                <li><a href="{{ url_for('utilisateur.profil') }}"><i class="fas fa-user"></i> Mon Profil</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <h1>Tableau de bord</h1>
+            <div class="user-info">
+                <a href="{{ url_for('utilisateur.profil') }}" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 10px;">
+                    <span>{{ current_user.nom }}</span>
+                    {% if current_user.photo_profil %}
+                        <img src="/{{ current_user.photo_profil }}"
+                             alt="Photo de profil"
+                             style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                    {% else %}
+                        <i class="fas fa-user-circle" style="font-size: 1.5em;"></i>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('utilisateur.deconnexion') }}" style="margin-left: 10px; color: #dc3545;">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </header>
+
+        <div class="content">
+            <form method="POST" action="{{ url_for('organisme.update_organisme_by_id', id=organisme.id_organisme) }}">
+                <section class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-building icon"></i> Fiche Organisme</h2>
+                        <div class="header-actions">
+                            <a href="{{ url_for('organisme.edit_organismes') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Retour
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <!-- Section Informations générales -->
+                        <div class="form-section">
+                            <h3 class="section-title">Informations générales</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Nom</label>
+                                    <input type="text" name="nom" value="{{ organisme.nom }}" class="table-input" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Statut</label>
+                                    <select name="statut" class="table-select" required>
+                                        {% for s in statuts %}
+                                        <option value="{{ s }}" {% if s == organisme.statut %}selected{% endif %}>{{ s }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section Coordonnées -->
+                        <div class="form-section">
+                            <h3 class="section-title">Coordonnées</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" name="email" value="{{ organisme.email }}" class="table-input" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Téléphone</label>
+                                    <input type="text" name="telephone" value="{{ organisme.telephone }}" class="table-input" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Adresse</label>
+                                <input type="text" name="adresse" value="{{ organisme.adresse }}" class="table-input" required>
+                            </div>
+                        </div>
+
+                        <!-- Section Description -->
+                        <div class="form-section full-width">
+                            <h3 class="section-title">Présentation</h3>
+                            <div class="form-group">
+                                <textarea name="presentation" class="table-textarea" rows="4">{{ organisme.presentation }}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Section Formations -->
+                        <div class="form-section full-width">
+                            <h3 class="section-title">Formations dispensées</h3>
+                            <div class="formations-list">
+                                {% if formations %}
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Nom</th>
+                                                <th>Type</th>
+                                                <th>Prix</th>
+                                                <th>État</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for f in formations %}
+                                            <tr>
+                                                <td>{{ f.id_formation }}</td>
+                                                <td><a href="{{ url_for('formation.preview_formation', id=f.id_formation) }}">{{ f.nom }}</a></td>
+                                                <td>{{ "Initiale" if f.type == "initiale" else "Continue" }}</td>
+                                                <td>{{ f.prix }} €</td>
+                                                <td>{{ "Validé" if f.etat == "valide" else "En attente" }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                {% else %}
+                                    <p>Aucune formation disponible pour cet organisme.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Section Compléments -->
+                        <div class="form-section">
+                            <h3 class="section-title">Informations complémentaires</h3>
+                            <div class="form-row">
+                                {% set site_web_value = organisme.site_web %}
+                                {% if site_web_value and not site_web_value.startswith('http') %}
+                                    {% set site_web_value = 'https://' + site_web_value %}
+                                {% endif %}
+                                    <div class="form-group">
+                                        <label>Site web</label>
+                                        <input type="text" name="site_web" value="{{ site_web_value }}" class="table-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Numéro adhérent</label>
+                                        <input type="text" name="num_adherent" value="{{ organisme.num_adherent }}" class="table-input">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Numéro adhérent</label>
+                                    <input type="text" name="num_adherent" value="{{ organisme.num_adherent }}" class="table-input">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Label</label>
+                                <input type="text" name="label" value="{{ organisme.label }}" class="table-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Enregistrer les modifications
+                        </button>
+                        <form method="POST" action="{{ url_for('organisme.delete_organisme', id=organisme.id_organisme) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet organisme ?');" style="display: inline;">
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet organisme ?');">
+                                <i class="fas fa-trash-alt"></i> Supprimer cet organisme
+                            </button>
+                        </form>
+                    </div>
+                </section>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

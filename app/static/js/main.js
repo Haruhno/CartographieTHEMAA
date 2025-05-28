@@ -276,3 +276,37 @@ function closeDeleteModal() {
     document.getElementById('deleteModal').style.display = 'none';
 }
 
+// Gestion de la suppression
+document.querySelectorAll('.delete-organisme').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
+        if (confirm('Êtes-vous sûr de vouloir supprimer cet organisme ?')) {
+            fetch(`/organismes/delete/${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Supprimer la ligne du tableau
+                    document.querySelector(`.organisme-row[data-id="${id}"]`).remove();
+                    // Afficher un message de succès
+                    const flashContainer = document.getElementById('flashPopupContainer');
+                    const flashMsg = document.createElement('div');
+                    flashMsg.className = 'flash-popup flash-success';
+                    flashMsg.innerHTML = 'Organisme supprimé avec succès!<span class="close-btn">&times;</span>';
+                    flashContainer.appendChild(flashMsg);
+                    
+                    // Fermer le message après 5s
+                    setTimeout(() => flashMsg.remove(), 5000);
+                    
+                    // Mettre à jour la pagination
+                    updatePagination();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    });
+});
