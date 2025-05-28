@@ -135,9 +135,13 @@
                                 <label>Label</label>
                                 <input type="text" name="label" value="{{ formation.label }}">
                             </div>
+                            {% set lien_value = formation.lien_inscription %}
+                            {% if lien_value and not lien_value.startswith('http') %}
+                                {% set lien_value = 'https://' + lien_value %}
+                            {% endif %}
                             <div class="form-group">
                                 <label>Lien d'inscription</label>
-                                <input type="text" name="lien_inscription" value="{{ formation.lien_inscription }}">
+                                <input type="url" name="lien_inscription" value="{{ lien_value }}" class="table-input">
                             </div>
                         </div>
 

@@ -155,15 +155,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-// Supprimer une formation
-function supprimerFormation(id) {
-    if (confirm("Voulez-vous vraiment supprimer cette formation ?")) {
-        $.post(`/formations/delete/${id}`, function () {
-            $(`#formation-row-${id}`).remove();
-            $("#countFormations").text($("#tableFormations tbody tr").length);
-        }).fail(() => alert("Erreur serveur lors de la suppression."));
-    }
-}
 
 // Filtrage des formations
 function filtrerFormations() {
@@ -338,5 +329,42 @@ $(document).ready(function () {
         }
 
         $('#reasonModal').hide();
+    });
+}
+);
+
+// Gestion de la suppression
+document.querySelectorAll('.delete-organisme').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
+        if (confirm('Êtes-vous sûr de vouloir supprimer cet organisme ?')) {
+            fetch(`/organismes/delete/${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Supprimer la ligne du tableau
+                        document.querySelector(`.organisme-row[data-id="${id}"]`).remove();
+                        
+                        // Afficher un message de succès
+                        const flashContainer = document.getElementById('flashPopupContainer');
+                        const flashMsg = document.createElement('div');
+                        flashMsg.className = 'flash-popup flash-success';
+                        flashMsg.innerHTML = 'Organisme supprimé avec succès!<span class="close-btn">&times;</span>';
+                        flashContainer.appendChild(flashMsg);
+                        
+                        // Fermer le message après 5s
+                        setTimeout(() => flashMsg.remove(), 5000);
+                        
+                        // Mettre à jour la pagination
+                        updatePagination();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
     });
 });

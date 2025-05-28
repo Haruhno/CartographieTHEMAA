@@ -70,6 +70,7 @@ def update_formation_by_id(id):
     
     if request.is_json:
         data = request.get_json()
+        
         formation.nom = data.get("nom")
         formation.type = data.get("type")
         formation.description = data.get("description")
@@ -82,6 +83,8 @@ def update_formation_by_id(id):
         formation.financement = data.get("financement")
         formation.presentation_intervenants = data.get("presentation_intervenants")
         formation.lien_inscription = data.get("lien_inscription")
+        if formation.lien_inscription and not formation.lien_inscription.startswith("http://") and not formation.lien_inscription.startswith("https://"):
+            formation.lien_inscription = "https://" + formation.lien_inscription
         formation.label = data.get("label")
         formation.id_organisme = data.get("id_organisme")
         formation.etat = data.get("etat")
@@ -98,19 +101,17 @@ def update_formation_by_id(id):
         formation.conditions_acces = request.form.get("conditions_acces")
         formation.financement = request.form.get("financement")
         formation.presentation_intervenants = request.form.get("presentation_intervenants")
-        formation.lien_inscription = request.form.get("lien_inscription")
+        
+        lien_inscription = request.form.get("lien_inscription")
+        if lien_inscription and not lien_inscription.startswith("http://") and not lien_inscription.startswith("https://"):
+            lien_inscription = "https://" + lien_inscription
+        formation.lien_inscription = lien_inscription
+
         formation.label = request.form.get("label")
         formation.id_organisme = request.form["id_organisme"]
         formation.etat = request.form.get("etat")
 
     db.session.commit()
-    
-    if request.is_json:
-        return jsonify({
-            "success": True,
-            "message": "Formation mise à jour avec succès."
-        })
-    
     flash("Formation mise à jour avec succès.", "success")
     return redirect(url_for("formation.edit_formations"))
 
@@ -178,6 +179,8 @@ def create_formation():
     financement = request.form.get("financement")
     presentation_intervenants = request.form.get("presentation_intervenants")
     lien_inscription = request.form.get("lien_inscription")
+    if lien_inscription and not lien_inscription.startswith("http://") and not lien_inscription.startswith("https://"):
+        lien_inscription = "https://" + lien_inscription
     label = request.form.get("label")
     id_organisme = request.form["id_organisme"]
 
@@ -231,6 +234,8 @@ def submit_formation():
     financement = request.form.get("financement")
     presentation_intervenants = request.form.get("presentation_intervenants")
     lien_inscription = request.form.get("lien_inscription")
+    if lien_inscription and not lien_inscription.startswith("http://") and not lien_inscription.startswith("https://"):
+        lien_inscription = "https://" + lien_inscription
     label = request.form.get("label")
     id_organisme = request.form["id_organisme"]
 

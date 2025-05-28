@@ -2,47 +2,343 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Modifier les Organismes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Organismes</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .filter-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-select {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+            background-color: white;
+        }
+        .reset-filters {
+            margin-left: auto;
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .reset-filters:hover {
+            background: #5a6268;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-    <h1 class="text-center mb-4">Modifier les Organismes</h1>
-
-    <form method="post" action="{{ url_for('organisme.update_organismes') }}">
-        {% for o in organismes %}
-        <div class="form-card">
-            
-            <div class="form-row">
-                <h3>Organisme n°{{ o.id_organisme }}</h3>
-                <div class="form-group">
-                    <label>Nom</label>
-                    <input type="text" name="nom_{{ o.id_organisme }}" value="{{ o.nom }}" required>
+<div class="flash-popup-container" id="flashPopupContainer">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-popup flash-{{ category }}">
+                    {{ message }}
+                    <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>
                 </div>
-                <div class="form-group">
-                    <label>Adresse</label>
-                    <input type="text" name="adresse_{{ o.id_organisme }}" value="{{ o.adresse }}" required>
-                </div>
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" name="email_{{ o.id_organisme }}" value="{{ o.email }}" required>
-                </div>
-                <div class="form-group">
-                    <label>Téléphone</label>
-                    <input type="text" name="telephone_{{ o.id_organisme }}" value="{{ o.telephone }}" 
-                        pattern="^(\+?\d{1,3})?[0-9]{6,14}$" 
-                        title="Le numéro doit contenir uniquement des chiffres, avec éventuellement un + en début." required>
-                </div>
-            </div>
-            <div class="text-center">
-                <button type="submit" class="btn btn-success">Enregistrer les modifications</button>
-                <a href="/" class="btn btn-secondary">Retour à l'accueil</a>
-            </div>
-            
-        </div>
-        {% endfor %}
-    </form>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 </div>
+
+<div class="admin-container">
+    <div class="sidebar">
+        <div class="logo">THEMAA</div>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li class="active"><a href="{{ url_for('organisme.edit_organismes') }}"><i class="fas fa-building"></i> Organismes</a></li>
+                <li><a href="{{ url_for('formation.edit_formations') }}"><i class="fas fa-graduation-cap"></i> Formations</a></li>
+                <li><a href="{{ url_for('formation.formulaire') }}"><i class="fas fa-file-alt"></i> Formulaire</a></li>
+                <li><a href="{{ url_for('carte') }}"><i class="fas fa-map-marked-alt"></i> Carte</a></li>
+                <li><a href="{{ url_for('utilisateur.profil') }}"><i class="fas fa-user"></i> Mon Profil</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <h1>Tableau de bord</h1>
+            <div class="user-info">
+                <a href="{{ url_for('utilisateur.profil') }}" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 10px;">
+                    <span>{{ current_user.nom }}</span>
+                    {% if current_user.photo_profil %}
+                        <img src="/{{ current_user.photo_profil }}" alt="Photo de profil" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                    {% else %}
+                        <i class="fas fa-user-circle" style="font-size: 1.5em;"></i>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('utilisateur.deconnexion') }}" style="margin-left: 10px; color: #dc3545;">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </header>
+
+        <div class="content">
+            <section class="card">
+                <div class="table-header">
+                    <h2><i class="fas fa-building icon"></i> Liste des Organismes</h2>
+                    <div class="table-actions">
+                        <a href="{{ url_for('organisme.new_organisme') }}" class="btn btn-add">
+                            <i class="fas fa-plus"></i> Ajouter un organisme
+                        </a>
+                        <div class="search-box">
+                            <input type="text" id="searchOrganisme" placeholder="Rechercher organisme (ID, Nom)...">
+                            <i class="fas fa-search"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <div class="filter-group">
+                        <label for="statutFilter">Statut :</label>
+                        <select id="statutFilter" class="filter-select">
+                            <option value="tous">Tous</option>
+                            {% for s in statuts %}
+                            <option value="{{ s }}">{{ s }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button id="resetFilters" class="reset-filters">
+                        <i class="fas fa-times"></i> Réinitialiser
+                    </button>
+                </div>
+
+                <div class="pagination-controls">
+                    <span id="itemCount">Affichage de {{ organismes|length }} organismes</span>
+                    <div class="pagination-buttons">
+                        <button class="btn" id="prevPage"><i class="fas fa-chevron-left"></i> Précédent</button>
+                        <span id="pageInfo">Page 1</span>
+                        <button class="btn" id="nextPage">Suivant <i class="fas fa-chevron-right"></i></button>
+                    </div>
+                    <select id="itemsPerPage">
+                        <option value="10">10 par page</option>
+                        <option value="25">25 par page</option>
+                        <option value="50">50 par page</option>
+                        <option value="100">100 par page</option>
+                    </select>
+                </div>
+
+                <div class="table-responsive">
+                    <form method="post" action="{{ url_for('organisme.update_organismes') }}">
+                    <table class="table" id="organismeTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nom</th>
+                                <th>Email</th>
+                                <th>Téléphone</th>
+                                <th>Statut</th>
+                                <th>Label</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for o in organismes %}
+                            <tr class="organisme-row" data-id="{{ o.id_organisme }}" data-statut="{{ o.statut }}" data-label="{{ o.label or '' }}">
+                                <td>{{ o.id_organisme }}</td>
+                                <td><input type="text" name="nom_{{ o.id_organisme }}" value="{{ o.nom }}" class="table-input"></td>
+                                <td><input type="email" name="email_{{ o.id_organisme }}" value="{{ o.email }}" class="table-input"></td>
+                                <td><input type="text" name="telephone_{{ o.id_organisme }}" value="{{ o.telephone }}" class="table-input"></td>
+                                <td>
+                                    <select name="statut_{{ o.id_organisme }}" class="table-select">
+                                        {% for s in statuts %}
+                                        <option value="{{ s }}" {% if s == o.statut %}selected{% endif %}>{{ s }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td><input type="text" name="label_{{ o.id_organisme }}" value="{{ o.label }}" class="table-input"></td>
+                                <td class="action-buttons">
+                                    <a href="{{ url_for('organisme.preview_organisme', id=o.id_organisme) }}" class="btn-details" title="Modifier">
+                                        <i class="fas fa-pen"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('organisme.delete_organisme', id=o.id_organisme) }}" style="display: inline;">
+                                        <button type="submit" class="btn-delete" title="Supprimer" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet organisme ?');">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('organisme.update_organisme_by_id', id=o.id_organisme) }}" style="display:inline;">
+                                        <input type="hidden" name="nom" value="{{ o.nom }}">
+                                        <input type="hidden" name="statut" value="{{ o.statut }}">
+                                        <input type="hidden" name="email" value="{{ o.email }}">
+                                        <input type="hidden" name="telephone" value="{{ o.telephone }}">
+                                        <input type="hidden" name="adresse" value="{{ o.adresse }}">
+                                        <input type="hidden" name="site_web" value="{{ o.site_web }}">
+                                        <input type="hidden" name="presentation" value="{{ o.presentation }}">
+                                        <input type="hidden" name="num_adherent" value="{{ o.num_adherent }}">
+                                        <input type="hidden" name="label" value="{{ o.label }}">
+                                        <button type="submit" class="btn-save" title="Enregistrer">
+                                            <i class="fas fa-save"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <div class="form-actions" style="margin-top: 20px;">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Enregistrer toutes les modifications
+                        </button>
+                    </div>
+                    </form>
+                </div>
+
+                <div class="pagination-controls">
+                    <span id="itemCountBottom">Affichage de {{ organismes|length }} organismes</span>
+                    <div class="pagination-buttons">
+                        <button class="btn" id="prevPageBottom"><i class="fas fa-chevron-left"></i> Précédent</button>
+                        <span id="pageInfoBottom">Page 1</span>
+                        <button class="btn" id="nextPageBottom">Suivant <i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<script>
+function normalizeString(str) {
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+function containsAccent(str) {
+    return /[àáâãäåçèéêëìíîïòóôõöùúûüÿ]/i.test(str);
+}
+function compareStrings(text, filter) {
+    if (containsAccent(filter)) {
+        return text.toLowerCase().includes(filter.toLowerCase());
+    } else {
+        return normalizeString(text).includes(normalizeString(filter));
+    }
+}
+document.addEventListener('DOMContentLoaded', function() {
+    const rows = document.querySelectorAll('.organisme-row');
+    const itemsPerPageSelect = document.getElementById('itemsPerPage');
+    const searchOrganismeInput = document.getElementById('searchOrganisme');
+    const statutFilter = document.getElementById('statutFilter');
+    const resetFiltersBtn = document.getElementById('resetFilters');
+
+    let currentPage = 1;
+    let itemsPerPage = parseInt(itemsPerPageSelect.value);
+
+    function applyFilters() {
+        const searchValue = searchOrganismeInput.value.trim();
+        const selectedStatut = statutFilter.value;
+
+        return Array.from(rows).filter(row => {
+            const idText = row.querySelector('td:first-child')?.textContent || '';
+            const nameText = row.querySelector('td:nth-child(2) input')?.value || '';
+            const statutText = row.querySelector('td:nth-child(5) select')?.value || '';
+
+            if (!compareStrings(idText, searchValue) && !compareStrings(nameText, searchValue)) return false;
+            if (selectedStatut !== 'tous' && statutText !== selectedStatut) return false;
+
+            return true;
+        });
+    }
+
+    function updatePagination() {
+        const filteredRows = applyFilters();
+        const totalPages = Math.ceil(filteredRows.length / itemsPerPage) || 1;
+
+        rows.forEach(row => row.style.display = 'none');
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+
+        filteredRows.slice(startIndex, endIndex).forEach(row => {
+            row.style.display = '';
+        });
+
+        document.getElementById('pageInfo').textContent = `Page ${currentPage} sur ${totalPages}`;
+        document.getElementById('pageInfoBottom').textContent = `Page ${currentPage} sur ${totalPages}`;
+        document.getElementById('itemCount').textContent = `Affichage de ${filteredRows.length} organismes`;
+        document.getElementById('itemCountBottom').textContent = `Affichage de ${filteredRows.length} organismes`;
+
+        document.getElementById('prevPage').disabled = currentPage === 1;
+        document.getElementById('prevPageBottom').disabled = currentPage === 1;
+        document.getElementById('nextPage').disabled = currentPage === totalPages;
+        document.getElementById('nextPageBottom').disabled = currentPage === totalPages;
+    }
+
+    itemsPerPageSelect.addEventListener('change', () => {
+        itemsPerPage = parseInt(itemsPerPageSelect.value);
+        currentPage = 1;
+        updatePagination();
+    });
+
+    [searchOrganismeInput, statutFilter].forEach(input => {
+        input.addEventListener('input', () => {
+            currentPage = 1;
+            updatePagination();
+        });
+        input.addEventListener('change', () => {
+            currentPage = 1;
+            updatePagination();
+        });
+    });
+
+    resetFiltersBtn.addEventListener('click', () => {
+        searchOrganismeInput.value = '';
+        statutFilter.value = 'tous';
+        currentPage = 1;
+        updatePagination();
+    });
+
+    ['prevPage', 'prevPageBottom'].forEach(id => {
+        document.getElementById(id).addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                updatePagination();
+            }
+        });
+    });
+
+    ['nextPage', 'nextPageBottom'].forEach(id => {
+        document.getElementById(id).addEventListener('click', () => {
+            const totalPages = Math.ceil(applyFilters().length / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                updatePagination();
+            }
+        });
+    });
+    
+    document.addEventListener('click', e => {
+        if (e.target.classList.contains('close-btn')) {
+            e.target.parentElement.remove();
+        }
+    });
+
+    updatePagination();
+});
+</script>
 </body>
 </html>
