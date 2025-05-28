@@ -16,13 +16,22 @@
 
     <div class="formation-header">
         <h1>{{ organisme.nom }}</h1>
+        
+        {% if organisme.presentation %}
+        <div class="organisme-presentation">
+            {{ organisme.presentation }}
+        </div>
+        {% endif %}
+        
         <div class="organisme-info">
-            <p><i class="fas fa-map-marker-alt"></i> {{ organisme.adresse }}</p>
-            <p><i class="fas fa-phone"></i> {{ organisme.telephone }}</p>
-            <p><i class="fas fa-envelope"></i> <a href="mailto:{{ organisme.email }}">{{ organisme.email }}</a></p>
-            {% if organisme.site_web %}
-            <p><i class="fas fa-globe"></i> <a href="{{ organisme.site_web }}" target="_blank" rel="noopener noreferrer">{{ organisme.site_web }}</a></p>
-            {% endif %}
+            <div class="info-grid">
+                <p><i class="fas fa-map-marker-alt"></i> {{ organisme.adresse }}</p>
+                <p><i class="fas fa-phone"></i> {{ organisme.telephone }}</p>
+                <p><i class="fas fa-envelope"></i> <a href="mailto:{{ organisme.email }}">{{ organisme.email }}</a></p>
+                {% if organisme.site_web %}
+                <p><i class="fas fa-globe"></i> <a href="{{ organisme.site_web }}" target="_blank" rel="noopener noreferrer">{{ organisme.site_web }}</a></p>
+                {% endif %}
+            </div>
         </div>
     </div>
 

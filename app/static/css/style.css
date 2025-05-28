@@ -37,6 +37,7 @@ img {
     height: auto;
 }
 
+
 /* =========================
    SCROLLBAR STYLES
 ========================= */
@@ -297,6 +298,336 @@ header h1 {
 .btn-outline:hover {
     background: var(--primary-color);
     color: white;
+}
+
+/* === Styles spécifiques à preview_formation === */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(35%, 1fr));
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.form-section {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.form-section.full-width {
+    grid-column: 1 / -1;
+}
+
+.section-title {
+    color: var(--primary-color);
+    font-size: 18px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+/* === Boutons dans la modal === */
+.modal-actions .btn-danger {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.modal-actions .btn-danger:hover {
+    background-color: #bd2130;
+}
+
+.modal-actions .btn-secondary {
+    background-color: #e2e6ea;
+    color: #333;
+}
+
+.modal-actions .btn-secondary:hover {
+    background-color: #d6d8db;
+}
+
+/* =========================
+   USER DASHBOARD STYLES
+========================= */
+.user-dashboard {
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.user-welcome-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border-left: 5px solid #1e90a2;
+}
+
+.user-welcome-card h2 {
+    color: #1e90a2;
+    margin-bottom: 15px;
+    font-size: 1.8rem;
+}
+
+.user-organisme {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.user-organisme i {
+    color: #1e90a2;
+}
+
+.user-organisme.warning {
+    color: #ce5b5b;
+}
+
+.user-organisme.warning i {
+    color: #ce5b5b;
+}
+
+.user-formations-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.user-formations-header h2 {
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-formations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.user-formation-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.user-formation-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.user-formation-header {
+    padding: 20px;
+    height: 40%;
+    background: var(--primary-color);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.user-formation-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    flex: 1;
+}
+
+.user-formation-type {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-left: 15px;
+}
+
+.user-formation-type.initiale {
+    background: #32caf1;
+}
+
+.user-formation-type.continue {
+    background: var(--success-color);
+}
+
+.user-formation-details {
+    padding: 20px;
+    flex-grow: 1;
+}
+
+.user-formation-details p {
+    margin: 0 0 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #555;
+}
+
+.user-formation-details i {
+    width: 20px;
+    color: #1e90a2;
+    text-align: center;
+}
+
+.user-formation-status {
+    padding: 0 20px 15px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-badge.valide {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.en_attente {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.user-formation-actions {
+    display: flex;
+    border-top: 1px solid #eaeaea;
+    padding: 15px;
+    gap: 10px;
+}
+
+.user-formation-actions .btn {
+    flex: 1;
+    padding: 10px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-edit {
+    background: #1e90a2;
+    color: white;
+}
+
+.btn-edit:hover {
+    background: #167d8f;
+}
+
+.user-no-formations {
+    text-align: center;
+    padding: 40px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.user-no-formations img {
+    max-width: 200px;
+    margin-bottom: 20px;
+    opacity: 0.7;
+}
+
+.user-no-formations h3 {
+    color: #1e90a2;
+    margin-bottom: 10px;
+}
+
+.user-no-formations p {
+    color: #666;
+    margin-bottom: 20px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+
+/* Responsive */
+@media (max-width: 768px) {
+    .user-formations-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .user-formations-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .card-header, .form-actions {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .modal-actions {
+        flex-direction: column;
+    }
+
+    .modal-actions button {
+        width: 100%;
+    }
 }
 
 /* =========================
@@ -704,17 +1035,13 @@ input[type="file"] {
     text-align: center;
 }
 
-.organisme-info {
+.organisme-info-profile {
     padding: 15px;
     background-color: #f9f9f9;
     border-radius: 4px;
     margin-top: 10px;
 }
 
-.btn-small {
-    padding: 5px 10px;
-    font-size: 0.9em;
-}
 
 /* =========================
    LOGIN/REGISTER PAGES
@@ -824,6 +1151,87 @@ input[type="file"] {
     color: #721c24;
 }
 
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.modal-box {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    max-width: 500px;
+    width: 90%;
+    position: fixed;          /* IMPORTANT */
+    top: 50%;                 /* Position verticale au centre */
+    left: 50%;                /* Position horizontale au centre */
+    transform: translate(-50%, -50%); /* Décalage pour centrage exact */
+    /* On retire le display flex et flex-direction */
+    /* display: flex; */
+    /* flex-direction: column; */
+    gap: 1.5rem;
+}
+
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-box h3 {
+    margin: 0;
+    color: var(--primary-color);
+    font-size: 1.3rem;
+    text-align: center;
+}
+
+.modal-box textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    resize: vertical;
+    min-height: 120px;
+    transition: border-color 0.3s;
+}
+
+.modal-box textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+/* Pour les petits écrans */
+@media (max-width: 576px) {
+    .modal-box {
+        padding: 1.5rem;
+    }
+    
+    .modal-buttons {
+        flex-direction: column;
+    }
+    
+    .modal-buttons .btn {
+        width: 100%;
+    }
+}
 
 /* =========================
    CARTE PAGE
@@ -899,14 +1307,14 @@ input[type="file"] {
     font-weight: 500;
     color: var(--primary-color);
     margin-bottom: 5px;
-    font-size: 14px;
+    font-size: 15px;
 }
 
 .formation-name {
     font-weight: 600;
     color: var(--dark-color);
     margin-bottom: 8px;
-    font-size: 16px;
+    font-size: 17px;
 }
 
 .formation-details {
@@ -1106,46 +1514,31 @@ input[type="file"] {
 }
 
 /* =========================
-   Formations Map
+   Formations Map - Modern UI
 ========================= */
 
-
-/* Container principal */
+/* Conteneur principal */
 .formation-details-container {
-    max-width: 1000px;
-    margin: 30px auto;
-    padding: 20px;
+    max-width: 1200px;
+    margin: 60px auto;
+    padding: 0 24px;
 }
 
-/* Header de la formation */
-.formation-header {
-    background-color: #f5f7fa;
-    padding: 25px;
-    border-radius: 10px;
-    margin-bottom: 30px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-
-.formation-header h1 {
-    color: var(--primary-color);
-    margin-top: 0;
-}
-
-/* Bouton retour */
+/* Bouton retour modernisé */
 .btn-retour {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    background-color: transparent;
+    gap: 10px;
+    background: transparent;
     color: var(--primary-color);
     font-weight: 500;
-    text-decoration: none;
-    border: 1px solid var(--primary-color);
-    padding: 10px 15px;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-    margin-bottom: 20px;
+    border: 2px solid var(--primary-color);
+    padding: 10px 18px;
+    border-radius: 12px;
+    transition: 0.3s ease all;
+    font-size: 1rem;
     cursor: pointer;
+    margin-bottom: 2%;
 }
 
 .btn-retour:hover {
@@ -1153,56 +1546,107 @@ input[type="file"] {
     color: white;
 }
 
-/* Informations organisme */
+/* En-tête de la formation */
+.formation-header {
+    background-color: #ffffff;
+    border-radius: 28px;
+    padding: 48px;
+    margin-bottom: 50px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+}
+
+.formation-header h1 {
+    color: var(--primary-color);
+    font-size: 2.2rem;
+    font-weight: bold;
+    margin-bottom: 24px;
+}
+
+/* Présentation organisme */
+.organisme-presentation {
+    font-size: 1.125rem;
+    line-height: 1.9;
+    color: #44525c;
+    margin: 30px 0;
+    padding: 30px;
+    background-color: #f9fbfc;
+    border-radius: 20px;
+    border-left: 5px solid var(--primary-color);
+}
+
+/* Grille d'information */
 .organisme-info {
+    margin-top: 35px;
+}
+
+.info-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 15px;
-    margin-top: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
 }
 
 .organisme-info p {
-    margin: 5px 0;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 14px;
+    background: #f1f6f8;
+    padding: 18px;
+    border-radius: 14px;
+    font-size: 1rem;
+    transition: all 0.25s ease;
+}
+
+.organisme-info p:hover {
+    background: #eaf3f6;
+    transform: translateY(-3px);
 }
 
 .organisme-info i {
-    width: 20px;
     color: var(--primary-color);
-    text-align: center;
+    font-size: 1.25rem;
 }
 
-/* Liste des formations */
+/* Liens */
+.organisme-info a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.organisme-info a:hover {
+    text-decoration: underline;
+    color: #167d8f;
+}
+
+/* Section Formations */
 .formations-list h2 {
+    font-size: 1.8rem;
+    margin-bottom: 25px;
+    padding-bottom: 12px;
+    border-bottom: 3px solid var(--secondary-color);
     color: var(--primary-color);
-    font-size: 24px;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid var(--secondary-color);
 }
 
-/* Carte de formation */
+/* Cartes formations */
 .formation-card {
     background: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 10px;
-    margin-bottom: 30px;
-    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    border: none;
+    border-radius: 18px;
     overflow: hidden;
-    padding: 0;
+    margin-bottom: 40px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s ease;
 }
 
 .formation-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
 }
 
+/* En-tête des cartes */
 .formation-card-header {
     background: var(--primary-color);
     color: white;
-    padding: 20px;
+    padding: 24px 28px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1210,62 +1654,16 @@ input[type="file"] {
 
 .formation-card-header h3 {
     margin: 0;
-    font-size: 20px;
+    font-size: 1.3rem;
+    font-weight: 600;
 }
 
-.formation-card-body {
-    padding: 25px;
-}
-
-/* Détails de la formation */
-.formation-details {
-    margin-bottom: 20px;
-}
-
-.formation-details p {
-    font-size: 16px;
-    margin: 10px 0 20px;
-    color: var(--text-dark);
-    line-height: 1.6;
-}
-
-/* Liste des métadonnées */
-.formation-meta {
-    list-style: none;
-    padding: 0;
-    margin: 15px 0;
-}
-
-.formation-meta li {
-    margin-bottom: 10px;
-    color: var(--text-light);
-    font-size: 15px;
-}
-
-/* Bouton inscription */
-.inscription-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background-color: var(--primary-color);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 6px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
-}
-
-.inscription-button:hover {
-    background-color: #167d8f;
-}
-
-/* Type de formation */
+/* Badge type */
 .formation-type {
-    padding: 6px 12px;
-    font-size: 12px;
-    border-radius: 30px;
-    background-color: #ffffff33;
+    padding: 6px 14px;
+    font-size: 0.75rem;
+    border-radius: 50px;
+    background: #ffffff33;
     color: white;
     font-weight: 600;
     text-transform: uppercase;
@@ -1273,28 +1671,70 @@ input[type="file"] {
 
 .type-initiale {
     background-color: #32caf1;
-    color: white;
 }
 
 .type-continue {
     background-color: var(--success-color);
+}
+
+/* Corps de la carte */
+.formation-card-body {
+    padding: 28px;
+}
+
+.formation-details p {
+    font-size: 1rem;
+    color: #333;
+    margin-bottom: 16px;
+    line-height: 1.7;
+}
+
+/* Métadonnées */
+.formation-meta {
+    list-style: none;
+    padding: 0;
+    margin-top: 12px;
+}
+
+.formation-meta li {
+    font-size: 0.9rem;
+    color: #6a6a6a;
+    margin-bottom: 8px;
+}
+
+/* Bouton inscription */
+.inscription-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background-color: var(--primary-color);
     color: white;
+    padding: 14px 28px;
+    font-weight: 600;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+    margin-top: 12px;
+}
+
+.inscription-button:hover {
+    background-color: #167d8f;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-    .formation-details-container {
-        padding: 15px;
+    .formation-header {
+        padding: 30px;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
     }
 
     .formation-card-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
-    }
-
-    .organisme-info {
-        grid-template-columns: 1fr;
+        gap: 12px;
     }
 }
 
@@ -1627,6 +2067,53 @@ input[type="file"] {
     justify-content: flex-end;
 }
 
+/* Dans la section des filtres, ajoutez ou modifiez */
+.price-filters {
+    display: flex;
+    gap: 10px;
+}
+
+.price-input {
+    flex: 1;
+}
+
+.price-input label {
+    display: block;
+    font-size: 14px;
+    color: #333;
+    margin-bottom: 6px;
+}
+
+.price-input input {
+    width: 100%;
+    padding: 10px 15px;
+    border: 2px solid #b6c6c4;
+    border-radius: 6px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    color: #333;
+    background-color: white;
+    transition: all 0.3s ease;
+}
+
+.price-input input:focus {
+    outline: none;
+    border-color: #1e90a2;
+    box-shadow: 0 0 0 3px rgba(30, 144, 162, 0.1);
+}
+
+.price-input input::placeholder {
+    color: #b6c6c4;
+}
+
+/* Pour gérer le spin button des inputs number */
+.price-input input[type="number"]::-webkit-inner-spin-button,
+.price-input input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+
 .btn {
     display: inline-flex;
     align-items: center;
@@ -1867,6 +2354,41 @@ input[type="file"] {
     background: #ddd;
 
 }
+
+.etat-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.reason-link {
+    font-size: 0.8em;
+    margin-top: 5px;
+}
+
+.reason-link a {
+    color: #666;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+/* Tooltip pour la raison */
+.etat-btn[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    white-space: nowrap;
+    z-index: 10;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .search-container {
@@ -1916,334 +2438,128 @@ input[type="file"] {
     }
 }
 
-/* === Styles spécifiques à preview_formation === */
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
-    margin-bottom: 25px;
-}
-
-.header-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(35%, 1fr));
-    gap: 25px;
-    margin-bottom: 30px;
-}
-
-.form-section {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
-
-.form-section.full-width {
-    grid-column: 1 / -1;
-}
-
-.section-title {
-    color: var(--primary-color);
-    font-size: 18px;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.modal {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background-color: rgba(0,0,0,0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: white;
-    padding: 30px;
-    border-radius: 8px;
-    max-width: 500px;
-    width: 90%;
-}
-
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 15px;
-    margin-top: 20px;
-}
-
-/* === Boutons dans la modal === */
-.modal-actions .btn-danger {
-    background-color: var(--danger-color);
-    color: white;
-}
-
-.modal-actions .btn-danger:hover {
-    background-color: #bd2130;
-}
-
-.modal-actions .btn-secondary {
-    background-color: #e2e6ea;
-    color: #333;
-}
-
-.modal-actions .btn-secondary:hover {
-    background-color: #d6d8db;
-}
-
-/* =========================
-   USER DASHBOARD STYLES
-========================= */
-.user-dashboard {
-    padding: 20px;
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-.user-welcome-card {
-    background: white;
-    border-radius: 12px;
-    padding: 25px;
-    margin-bottom: 30px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    border-left: 5px solid #1e90a2;
-}
-
-.user-welcome-card h2 {
-    color: #1e90a2;
-    margin-bottom: 15px;
-    font-size: 1.8rem;
-}
-
-.user-organisme {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 1.1rem;
-    color: #333;
-}
-
-.user-organisme i {
-    color: #1e90a2;
-}
-
-.user-organisme.warning {
-    color: #ce5b5b;
-}
-
-.user-organisme.warning i {
-    color: #ce5b5b;
-}
-
-.user-formations-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-}
-
-.user-formations-header h2 {
-    color: #1e90a2;
-    font-size: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.user-formations-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 25px;
-    margin-top: 20px;
-}
-
-.user-formation-card {
-    background: white;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-
-.user-formation-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-}
-
-.user-formation-header {
-    padding: 20px;
-    background: #f9f9f9;
-    border-bottom: 1px solid #eaeaea;
-}
-
-.user-formation-header h3 {
-    margin: 0;
-    color: #1e90a2;
-    font-size: 1.2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.user-formation-type {
-    font-size: 0.8rem;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-weight: 600;
-}
-
-.user-formation-type.initiale {
-    background: #32caf1;
-    color: white;
-}
-
-.user-formation-type.continue {
-    background: #54d558;
-    color: white;
-}
-
-.user-formation-details {
-    padding: 20px;
-    flex-grow: 1;
-}
-
-.user-formation-details p {
-    margin: 0 0 12px 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #555;
-}
-
-.user-formation-details i {
-    width: 20px;
-    color: #1e90a2;
-    text-align: center;
-}
-
-.user-formation-status {
-    padding: 0 20px 15px;
-}
-
-.status-badge {
-    display: inline-block;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-.status-badge.valide {
-    background: #d4edda;
-    color: #155724;
-}
-
-.status-badge.en_attente {
-    background: #fff3cd;
-    color: #856404;
-}
-
-.user-formation-actions {
-    display: flex;
-    border-top: 1px solid #eaeaea;
-    padding: 15px;
-}
-
-.user-formation-actions .btn {
-    flex: 1;
-    padding: 10px;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.btn-edit {
-    background: #1e90a2;
-    color: white;
-}
-
-.btn-edit:hover {
-    background: #167d8f;
-}
-
-.user-no-formations {
-    text-align: center;
-    padding: 40px 20px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
-.user-no-formations img {
-    max-width: 200px;
-    margin-bottom: 20px;
-    opacity: 0.7;
-}
-
-.user-no-formations h3 {
-    color: #1e90a2;
-    margin-bottom: 10px;
-}
-
-.user-no-formations p {
-    color: #666;
-    margin-bottom: 20px;
-    max-width: 500px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-
-
-/* Responsive */
-@media (max-width: 768px) {
-    .user-formations-header {
+@media (max-width: 576px) {
+    header {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
+        gap: 10px;
+        padding: 10px;
     }
     
-    .user-formations-grid {
-        grid-template-columns: 1fr;
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .profile-picture {
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+    
+    .auth-container {
+        padding: 1.5rem;
     }
 }
 
-@media (max-width: 768px) {
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .card-header, .form-actions {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .modal-actions {
-        flex-direction: column;
-    }
-
-    .modal-actions button {
-        width: 100%;
-    }
+/* Ajouter dans la section des styles du formulaire de profil */
+.danger-zone {
+    margin-top: 2.5rem !important;
+    padding: 1.5rem;
+    border: 2px solid #dc3545;
+    border-radius: 8px;
+    background-color: #fff5f5;
 }
 
+.danger-zone h3 {
+    color: #dc3545;
+    font-size: 1.1rem;
+    margin-bottom: 0.8rem;
+    font-weight: 600;
+}
+
+.danger-description {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 1.2rem;
+    line-height: 1.5;
+}
+
+.btn-danger-outline {
+    color: white;
+    background-color: #dc3545;
+    border: 2px solid #dc3545;
+    padding: 0.8rem 1.2rem;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: auto;
+    display: inline-flex;
+    justify-content: center;
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.btn-danger-outline:hover {
+    background-color: #c82333;
+    color: white;
+}
+
+.btn-danger-outline i {
+    font-size: 0.9rem;
+}
+
+/* Modifier les styles pour organisme-info */
+.organisme-info {
+    width: 100%;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.organisme-info p {
+    margin: 0;
+    line-height: 1.6;
+    width: 100%;
+}
+
+.organisme-info p strong {
+    color: var(--primary-color);
+    font-size: 1.1em;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.organisme-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    width: 100%;
+}
+
+.organisme-buttons .btn {
+    flex: 1;
+    justify-content: center;
+    min-width: 150px;
+    /* Supprimer max-width pour permettre une expansion complète */
+}
+
+/* Style pour les infos de l'organisme */
+.organisme-info p br {
+    display: block;
+    margin: 5px 0;
+}
+
+.organisme-info p span {
+    display: block;
+    margin: 5px 0;
+}
 
 /* =========================
    RESPONSIVE

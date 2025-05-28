@@ -35,15 +35,22 @@ var allOrganismes = {};           // Tous les organismes chargés
 var currentFilters = {
     types: new Set(['initiale', 'continue']),
     labels: new Set(),
-    region: '',
-    financement: ''
+    financement: '',
+    prixMin: null,
+    prixMax: null,
+    duree: '',
+    region: '', // Ajouter la région aux filtres actuels
 };
+
+// Ajouter aux variables globales
+var organismeRegions = {};  // Pour stocker les régions des organismes
+let currentRegionLayer = null; // Pour stocker le layer de la région actuelle
 
 // =====================
 // HIGHLIGHT D'UNE FORMATION
 // =====================
 function highlightFormationItem(formationId, isClick = false) {
-    resetAllFormationItems(); // Nettoie tous les effets
+    resetAllFormationItems();
 
     if (!formationId) {
         currentlyHighlighted = null;
@@ -53,23 +60,21 @@ function highlightFormationItem(formationId, isClick = false) {
     const item = formationItemsDict[formationId];
     if (!item) return;
 
-    // Applique le style de surbrillance
     item.style.transform = 'scale(1.02)';
     item.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
     item.style.borderColor = '#1e90a2';
     item.style.borderWidth = '1px';
 
-    // Si c'est un clic (et non un hover), on déplace l'élément en haut
     if (isClick) {
         const container = document.getElementById('formations-container');
         if (container.firstChild !== item) {
-            // Vérifier que l'élément est bien dans le container avant de le déplacer
             if (container.contains(item)) {
                 container.removeChild(item);
                 container.insertBefore(item, container.firstChild);
             }
         }
-        container.scrollTo({ top: 0, behavior: 'smooth' });
+        item.scrollIntoViewIfNeeded({ behavior: 'smooth', block: 'start' });    
+        
     }
 
     currentlyHighlighted = formationId;
@@ -91,9 +96,7 @@ function resetAllFormationItems() {
 // GÉOCODAGE D'ADRESSE
 // =====================
 function geocodeAddress(address, callback) {
-    // enlever la virgule qui peut poser problème
     const cleanedAddress = address.replace(/,/g, '');
-    // suppression du paramètre type=address
     const url = `https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(cleanedAddress)}&limit=1`;
 
     fetch(url)
@@ -105,7 +108,7 @@ function geocodeAddress(address, callback) {
         })
         .then(data => {
             if (data && data.features && data.features.length > 0) {
-                const coords = data.features[0].geometry.coordinates; // [lon, lat]
+                const coords = data.features[0].geometry.coordinates;
                 callback({
                     lat: coords[1],
                     lng: coords[0]
@@ -121,7 +124,30 @@ function geocodeAddress(address, callback) {
         });
 }
 
+// Nouvelle fonction pour récupérer la région
+function getRegionFromAddress(address, callback) {
+    const cleanedAddress = address.replace(/,/g, '');
+    const url = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(cleanedAddress)}&limit=1`;
 
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.features && data.features.length > 0) {
+                const context = data.features[0].properties.context;
+                const contextParts = context.split(',');
+                // Prendre le dernier élément qui est la région
+                const region = contextParts[contextParts.length - 1]?.trim();
+                console.log('Région trouvée:', region);
+                callback(region);
+            } else {
+                callback(null);
+            }
+        })
+        .catch(error => {
+            console.error('Erreur lors de la récupération de la région:', error);
+            callback(null);
+        });
+}
 
 // =====================
 // GESTION DE LA RECHERCHE
@@ -133,17 +159,14 @@ function initSearch() {
     searchInput.addEventListener('input', handleSearchInput);
     clearSearchBtn.addEventListener('click', clearSearch);
 
-    // Gestion du clic sur la barre de recherche
     searchInput.addEventListener('click', function(e) {
         const suggestionsContainer = document.getElementById('searchSuggestions');
         if (this.value.trim() === '') {
-            // Si la barre est vide, afficher toutes les suggestions au clic
             const suggestions = getSearchSuggestions('');
             if (suggestions.length > 0) {
                 displaySuggestions(suggestions);
             }
         } else {
-            // Sinon, afficher les suggestions correspondant au texte actuel
             handleSearchInput({target: this});
         }
     });
@@ -152,7 +175,6 @@ function initSearch() {
         const suggestionsContainer = document.getElementById('searchSuggestions');
         const searchInput = document.getElementById('searchInput');
         
-        // Fermer les suggestions si on clique ailleurs que sur la barre de recherche ou les suggestions
         if (e.target !== searchInput && !suggestionsContainer.contains(e.target)) {
             suggestionsContainer.style.display = 'none';
         }
@@ -165,22 +187,19 @@ function handleSearchInput(e) {
     
     if (query.length === 0) {
         suggestionsContainer.style.display = 'none';
-        applyFilters(); // Appliquer juste les filtres quand la recherche est vide
+        applyFilters();
         return;
     }
     
-    // Filtrer les formations qui correspondent à la recherche
     const searchFiltered = allFormations.filter(f => 
         f.nom.toLowerCase().includes(query) || 
         (allOrganismes[f.id_organisme]?.nom.toLowerCase().includes(query)) ||
         (allOrganismes[f.id_organisme]?.adresse.toLowerCase().includes(query))
     );
     
-    // Appliquer les filtres sur les résultats de recherche
     const filteredFormations = applyFiltersToFormations(searchFiltered);
     updateDisplayedFormations(filteredFormations);
     
-    // Afficher les suggestions
     const suggestions = getSearchSuggestions(query);
     if (suggestions.length > 0) {
         displaySuggestions(suggestions);
@@ -192,7 +211,6 @@ function handleSearchInput(e) {
 function getSearchSuggestions(query) {
     const suggestions = [];
     
-    // Suggestions par nom de formation
     allFormations.forEach(formation => {
         if (formation.nom.toLowerCase().includes(query)) {
             suggestions.push({
@@ -205,7 +223,6 @@ function getSearchSuggestions(query) {
         }
     });
     
-    // Suggestions par nom d'organisme et par adresse
     Object.values(allOrganismes).forEach(organisme => {
         const orgNameMatch = organisme.nom.toLowerCase().includes(query);
         const orgAddressMatch = organisme.adresse.toLowerCase().includes(query);
@@ -216,20 +233,18 @@ function getSearchSuggestions(query) {
                 id: organisme.id,
                 text: organisme.nom,
                 adresse: organisme.adresse,
-                isAddressMatch: orgAddressMatch && !orgNameMatch // Flag pour savoir si c'est une correspondance d'adresse
+                isAddressMatch: orgAddressMatch && !orgNameMatch
             });
         }
     });
     
-    // Trier les suggestions pour mettre les correspondances exactes en premier
     return suggestions
         .sort((a, b) => {
-            // Priorité aux noms exacts
             if (a.text.toLowerCase() === query) return -1;
             if (b.text.toLowerCase() === query) return 1;
             return 0;
         })
-        .slice(0, 10); // Limiter à 10 suggestions
+        .slice(0, 10);
 }
 
 function displaySuggestions(suggestions) {
@@ -253,7 +268,7 @@ function displaySuggestions(suggestions) {
             `;
 
             item.addEventListener('click', () => {
-                zoomToFormation(suggestion.id); // Zoom + popup + surbrillance formation
+                zoomToFormation(suggestion.id);
                 document.getElementById('searchInput').value = suggestion.text;
                 container.style.display = 'none';
             });
@@ -270,7 +285,7 @@ function displaySuggestions(suggestions) {
             `;
 
             item.addEventListener('click', () => {
-                searchOrganisme(suggestion.id); // Zoom + popup + surbrillance 1re formation
+                searchOrganisme(suggestion.id);
                 document.getElementById('searchInput').value = suggestion.isAddressMatch ?
                     suggestion.adresse : suggestion.text;
                 container.style.display = 'none';
@@ -292,10 +307,15 @@ function zoomToFormation(formationId) {
     
     const marker = markersDict[organisme.id];
     if (marker) {
-        map.setView(marker.getLatLng(), 14);
+        const originalLatLng = marker.getLatLng();
+
+        // Décalage en latitude (vers le haut sur la carte)
+        const offsetLat = 0.01; // À ajuster selon ton niveau de zoom et le rendu visuel
+        const offsetLatLng = L.latLng(originalLatLng.lat + offsetLat, originalLatLng.lng);
+
+        map.setView(offsetLatLng, 14);
         
         const orgFormations = allFormations.filter(f => f.id_organisme === organisme.id);
-        // Mettre à jour le contenu du popup
         let popupContent = `
             <div class="popup-container">
                 <h3 class="popup-title">${organisme.nom}</h3>
@@ -313,7 +333,6 @@ function zoomToFormation(formationId) {
             </div>
         `;
         
-        
         orgFormations.forEach(ff => {
             popupContent += `- ${ff.nom} (${ff.type})<br>`;
         });
@@ -321,7 +340,6 @@ function zoomToFormation(formationId) {
         marker.setPopupContent(popupContent);
         marker.openPopup();
         
-        // Filtrer les formations de cet organisme
         const container = document.getElementById('formations-container');
         container.innerHTML = '';
         
@@ -331,10 +349,8 @@ function zoomToFormation(formationId) {
             }
         });
         
-        // Mettre en surbrillance la formation sélectionnée
         highlightFormationItem(formationId, true);
         
-        // Déplacer la formation en haut de la liste
         const item = formationItemsDict[formationId];
         if (item && container.firstChild !== item) {
             container.removeChild(item);
@@ -350,10 +366,15 @@ function searchOrganisme(organismeId) {
 
     const marker = markersDict[organisme.id];
     if (marker) {
-        map.setView(marker.getLatLng(), 14);
+        const originalLatLng = marker.getLatLng();
+
+        // Décalage en latitude (vers le haut sur la carte)
+        const offsetLat = 0.01; // À ajuster selon ton niveau de zoom et le rendu visuel
+        const offsetLatLng = L.latLng(originalLatLng.lat + offsetLat, originalLatLng.lng);
+
+        map.setView(offsetLatLng, 14);
         const orgFormations = allFormations.filter(f => f.id_organisme === organisme.id);
         
-        // Mettre à jour le contenu du popup
         let popupContent = `
             <div class="popup-container">
                 <h3 class="popup-title">${organisme.nom}</h3>
@@ -371,8 +392,6 @@ function searchOrganisme(organismeId) {
             </div>
         `;
         
-        
-        
         orgFormations.forEach(ff => {
             popupContent += `- ${ff.nom} (${ff.type})<br>`;
         });
@@ -380,7 +399,6 @@ function searchOrganisme(organismeId) {
         marker.setPopupContent(popupContent);
         marker.openPopup();
         
-        // Filtrer les formations de cet organisme
         const container = document.getElementById('formations-container');
         container.innerHTML = '';
         
@@ -390,12 +408,10 @@ function searchOrganisme(organismeId) {
             }
         });
         
-        // Mettre en surbrillance la première formation
         if (orgFormations.length > 0) {
             const firstFormationId = orgFormations[0].id;
             highlightFormationItem(firstFormationId, true);
             
-            // Déplacer la formation en haut de la liste
             const item = formationItemsDict[firstFormationId];
             if (item && container.firstChild !== item) {
                 container.removeChild(item);
@@ -411,9 +427,8 @@ function clearSearch() {
     const suggestionsContainer = document.getElementById('searchSuggestions');
     
     searchInput.value = '';
-    applyFilters(); // Réappliquer juste les filtres quand on efface la recherche
+    applyFilters();
     
-    // Afficher toutes les suggestions quand on efface la recherche
     const suggestions = getSearchSuggestions('');
     if (suggestions.length > 0) {
         displaySuggestions(suggestions);
@@ -458,32 +473,56 @@ function initFilters() {
     });
     
     // Écouteurs pour les selects
-    document.getElementById('regionFilter').addEventListener('change', function() {
-        currentFilters.region = this.value;
-        applyFilters();
-    });
-    
     document.getElementById('financementFilter').addEventListener('change', function() {
         currentFilters.financement = this.value;
         applyFilters();
     });
+    
+    document.getElementById('dureeFilter').addEventListener('change', function() {
+        currentFilters.duree = this.value;
+        applyFilters();
+    });
+    
+    
+    // Écouteurs pour les filtres de prix
+    document.getElementById('prixMin').addEventListener('change', function() {
+        currentFilters.prixMin = this.value ? parseFloat(this.value) : null;
+        applyFilters();
+    });
+    
+    document.getElementById('prixMax').addEventListener('change', function() {
+        currentFilters.prixMax = this.value ? parseFloat(this.value) : null;
+        applyFilters();
+    });
+    
+    // Écouteurs pour le filtre de région
+    document.getElementById('regionFilter').addEventListener('change', function() {
+        currentFilters.region = this.value;
+        showRegionBoundaries(this.value);
+        applyFilters();
+    });
 }
+
+// Normalisation simple de la durée sélectionnée
+function normalizeDuree(duree) {
+    switch (duree) {
+        case 'jour': return ['jour', 'jours', 'journée', 'journées'];
+        case 'semaine': return ['semaine', 'semaines'];
+        case 'mois': return ['mois']; // mois est invariant
+        case 'an': return ['an', 'ans', 'année', 'années'];
+        default: return [];
+    }
+}
+
 
 function applyFiltersToFormations(formations) {
     return formations.filter(formation => {
         // Filtre par type
         if (!currentFilters.types.has(formation.type)) return false;
         
-        // Filtre par label (seulement si au moins un label est sélectionné)
+        // Filtre par label
         if (formation.label && currentFilters.labels.size > 0) {
             if (!currentFilters.labels.has(formation.label)) return false;
-        }
-        
-        // Filtre par région
-        if (currentFilters.region) {
-            const organisme = allOrganismes[formation.id_organisme];
-            if (!organisme || !organisme.region) return false;
-            if (organisme.region !== currentFilters.region) return false;
         }
         
         // Filtre par financement
@@ -492,16 +531,41 @@ function applyFiltersToFormations(formations) {
             if (!formation.financement.includes(currentFilters.financement)) return false;
         }
         
+        // Filtre par prix
+        if (currentFilters.prixMin !== null && formation.prix !== null) {
+            if (formation.prix < currentFilters.prixMin) return false;
+        }
+        
+        if (currentFilters.prixMax !== null && formation.prix !== null) {
+            if (formation.prix > currentFilters.prixMax) return false;
+        }
+        
+        // Filtre par durée
+        if (currentFilters.duree) {
+            const dureeVariantes = normalizeDuree(currentFilters.duree);
+            if (!formation.duree) return false;
+            const dureeFormation = formation.duree.toLowerCase();
+            if (!dureeVariantes.some(variant => dureeFormation.includes(variant))) return false;
+        }
+
+        // Filtre par région
+        if (currentFilters.region && organismeRegions[formation.id_organisme]) {
+            if (organismeRegions[formation.id_organisme] !== currentFilters.region) {
+                return false;
+            }
+        }
+
+        
         return true;
     });
 }
+
 function applyFilters() {
     const searchInput = document.getElementById('searchInput');
     const query = searchInput.value.trim().toLowerCase();
     
     let filteredFormations = allFormations;
     
-    // Si une recherche est en cours, filtrer d'abord par recherche
     if (query.length > 0) {
         filteredFormations = allFormations.filter(f => 
             f.nom.toLowerCase().includes(query) || 
@@ -510,7 +574,6 @@ function applyFilters() {
         );
     }
     
-    // Puis appliquer les autres filtres
     filteredFormations = applyFiltersToFormations(filteredFormations);
     
     updateDisplayedFormations(filteredFormations);
@@ -520,9 +583,12 @@ function resetFilters() {
     // Réinitialiser les valeurs
     currentFilters = {
         types: new Set(['initiale', 'continue']),
-        labels: new Set(), // Vide lors de la réinitialisation
-        region: '',
-        financement: ''
+        labels: new Set(),
+        financement: '',
+        prixMin: null,
+        prixMax: null,
+        duree: '',
+        region: '', // Réinitialiser le filtre de région
     };
     
     // Mettre à jour l'UI
@@ -531,13 +597,21 @@ function resetFilters() {
     });
     
     document.querySelectorAll('input[name="label"]').forEach(checkbox => {
-        checkbox.checked = false; // Décocher les labels
+        checkbox.checked = false;
     });
     
-    document.getElementById('regionFilter').value = '';
     document.getElementById('financementFilter').value = '';
+    document.getElementById('dureeFilter').value = '';
+    document.getElementById('prixMin').value = '';
+    document.getElementById('prixMax').value = '';
+    document.getElementById('regionFilter').value = ''; // Réinitialiser le select de région
     
-    // Réappliquer les filtres
+    // Supprimer le contour de la région
+    if (currentRegionLayer) {
+        map.removeLayer(currentRegionLayer);
+        currentRegionLayer = null;
+    }
+    
     applyFilters();
 }
 
@@ -553,19 +627,20 @@ function updateDisplayedFormations(filteredFormations) {
     const container = document.getElementById('formations-container');
     container.innerHTML = '';
     
-    formationItemsDict = {}; // Réinitialiser le dictionnaire
+    formationItemsDict = {};
 
     filteredFormations.forEach(f => {
         const org = allOrganismes[f.id_organisme];
         if (!org) return;
 
-        // Créer l'élément si nécessaire
         if (!formationItemsDict[f.id]) {
             const item = document.createElement('div');
             item.className = 'formation-item';
             item.dataset.formationId = f.id;
 
             const typeClass = f.type === 'initiale' ? 'type-initiale' : 'type-continue';
+            const prixDisplay = f.prix !== null ? `${f.prix} €` : 'Non renseigné';
+            
             item.innerHTML = `
                 <div class="organisme-name">${org.nom}</div>
                 <div class="formation-name">${f.nom}</div>
@@ -573,6 +648,7 @@ function updateDisplayedFormations(filteredFormations) {
                     <strong>Lieu:</strong> ${f.lieu}<br>
                     <strong>Dates:</strong> ${f.dates}<br>
                     <strong>Durée:</strong> ${f.duree}<br>
+                    <strong>Prix:</strong> ${prixDisplay}<br>
                     <strong>Adresse:</strong> ${org.adresse}
                 </div>
                 <span class="formation-type ${typeClass}">${f.type}</span>
@@ -583,7 +659,15 @@ function updateDisplayedFormations(filteredFormations) {
             item.addEventListener('click', () => {
                 const marker = markersDict[org.id];
                 if (marker) {
-                    map.setView(marker.getLatLng(), 14);
+                    const originalLatLng = marker.getLatLng();
+
+                    // Décalage en latitude (vers le haut sur la carte)
+                    const offsetLat = 0.01; // À ajuster selon ton niveau de zoom et le rendu visuel
+                    const offsetLatLng = L.latLng(originalLatLng.lat + offsetLat, originalLatLng.lng);
+
+                    map.setView(offsetLatLng, 14);
+                
+
                     marker.openPopup();
                     highlightFormationItem(f.id, true);
                 }
@@ -599,12 +683,10 @@ function updateDisplayedFormations(filteredFormations) {
 }
 
 function updateMapMarkers(filteredFormations) {
-    // D'abord cacher tous les marqueurs
     Object.values(markersDict).forEach(marker => {
         map.removeLayer(marker);
     });
     
-    // Puis afficher seulement ceux qui correspondent aux filtres
     const organismesWithFormations = new Set();
     filteredFormations.forEach(f => organismesWithFormations.add(f.id_organisme));
     
@@ -624,16 +706,23 @@ Promise.all([
 ])
 .then(([organismes, formations]) => {
     allFormations = formations;
-    organismes.forEach(org => { allOrganismes[org.id] = org; });
+    organismes.forEach(org => { 
+        allOrganismes[org.id] = org;
+        // Récupérer la région pour chaque organisme
+        if (org.adresse) {
+            getRegionFromAddress(org.adresse, region => {
+                if (region) {
+                    organismeRegions[org.id] = region;
+                }
+            });
+        }
+    });
     
-    // Initialiser la recherche et les filtres
     initSearch();
     initFilters();
     
-    // Afficher toutes les formations initialement
     updateDisplayedFormations(allFormations);
     
-    // Créer les marqueurs pour chaque organisme
     organismes.forEach(org => {
         if (!org.adresse || markersDict[org.id]) return;
         
@@ -661,7 +750,6 @@ Promise.all([
                     </a>
                 </div>
             `;
-
 
             orgFormations.forEach(ff => {
                 popupContent += `- ${ff.nom} (${ff.type})<br>`;
@@ -710,3 +798,38 @@ document.addEventListener('DOMContentLoaded', function () {
         icon.classList.toggle('fa-chevron-right');
     });
 });
+
+// Ajouter cette fonction dans carte.js
+function showRegionBoundaries(regionName) {
+    // Si un layer existe déjà, on le supprime
+    if (currentRegionLayer) {
+        map.removeLayer(currentRegionLayer);
+        currentRegionLayer = null;
+    }
+
+    if (!regionName) return;
+
+    // Charger les données GeoJSON des régions
+    fetch('/static/data/regions-france.geojson')
+        .then(response => response.json())
+        .then(data => {
+            const region = data.features.find(f => 
+                f.properties.nom === regionName || 
+                f.properties.nom.includes(regionName)
+            );
+
+            if (region) {
+                currentRegionLayer = L.geoJSON(region, {
+                    style: {
+                        color: '#1e90a2', // Couleur du contour
+                        weight: 3, // Épaisseur du contour
+                        fillOpacity: 0, // Transparence du remplissage
+                        opacity: 1 // Opacité du contour
+                    }
+                }).addTo(map);
+
+                // Ajuster la vue de la carte pour montrer toute la région
+                map.fitBounds(currentRegionLayer.getBounds());
+            }
+        });
+}

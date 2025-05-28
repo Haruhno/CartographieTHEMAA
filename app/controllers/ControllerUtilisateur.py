@@ -249,3 +249,38 @@ def profil():
     # GET request - afficher le formulaire
     organismes = Organisme.query.all()
     return render_template('profil.html', user=current_user, organismes=organismes)
+
+@utilisateur_bp.route('/delete_account', methods=['POST'])
+@login_required
+def delete_account():
+    password = request.form.get('password')
+    
+    if not current_user.check_password(password):
+        flash("Mot de passe incorrect", "danger")
+        return redirect(url_for('utilisateur.profil'))
+    
+    try:
+        # Supprimer la photo de profil si elle existe
+        if current_user.photo_profil:
+            try:
+                filepath = os.path.join(current_app.root_path, current_user.photo_profil)
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+            except Exception as e:
+                current_app.logger.error(f"Erreur suppression photo: {e}")
+        
+        # Supprimer l'utilisateur
+        user_id = current_user.id_utilisateur
+        logout_user()
+        user_to_delete = Utilisateur.query.get(user_id)
+        db.session.delete(user_to_delete)
+        db.session.commit()
+        
+        flash("Votre compte a été supprimé avec succès", "success")
+        return redirect(url_for('carte'))
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Erreur suppression compte: {e}")
+        flash("Une erreur est survenue lors de la suppression du compte", "danger")
+        return redirect(url_for('utilisateur.profil'))

@@ -57,6 +57,45 @@
         .reset-filters:hover {
             background: #5a6268;
         }
+        .etat-container {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .reason-link {
+            font-size: 0.8em;
+        }
+        .reason-link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .reason-link a:hover {
+            text-decoration: underline;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-box {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            max-width: 500px;
+            width: 90%;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
@@ -242,12 +281,20 @@
                                                 class="table-input">
                                         </td>
                                         <td>
-                                            <button type="button" class="etat-btn" 
-                                                    data-id="{{ f.id_formation }}" 
-                                                    data-state="{{ f.etat }}">
-                                                {{ "Validé" if f.etat == "valide" else "En attente" }}
-                                            </button>
-                                            <input type="hidden" name="etat_{{ f.id_formation }}" id="etat_input_{{ f.id_formation }}" value="{{ f.etat }}">
+                                            <div class="etat-container">
+                                                <button type="button" class="etat-btn" 
+                                                        data-id="{{ f.id_formation }}" 
+                                                        data-state="{{ f.etat }}"
+                                                        {% if f.raison %}title="{{ f.raison }}"{% endif %}>
+                                                    {{ "Validé" if f.etat == "valide" else "En attente" }}
+                                                </button>
+                                                <input type="hidden" name="etat_{{ f.id_formation }}" id="etat_input_{{ f.id_formation }}" value="{{ f.etat }}">
+                                                {% if f.raison %}
+                                                <div class="reason-link">
+                                                    <a href="#" class="show-reason" data-reason="{{ f.raison }}">voir raison</a>
+                                                </div>
+                                                {% endif %}
+                                            </div>
                                         </td>
                                         <td class="action-buttons">
                                             <!-- Bouton de modification qui redirige vers une page dédiée -->
@@ -269,6 +316,7 @@
                                             title="Enregistrer">
                                                 <i class="fas fa-save"></i>
                                             </a>
+
                                         </td>
                                     </tr>
                                     <!-- Row details (caché par défaut) -->
@@ -332,6 +380,24 @@
                         </div>
                     </div>
                 </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour afficher la raison complète -->
+    <div id="fullReasonModal" class="modal-overlay" style="display: none;">
+        <div class="modal-box">
+            <h3>Raison complète</h3>
+            <div id="fullReasonContent" style="padding: 10px; background: #f5f5f5; border-radius: 4px; margin-bottom: 15px;"></div>
+            <div class="modal-buttons">
+                <form action="{{ url_for('formation.delete_reason', id=0) }}" method="POST" id="deleteReasonForm">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette raison ?')">
+                        Supprimer la raison
+                    </button>
+                </form>
+                <button class="btn btn-secondary" onclick="document.getElementById('fullReasonModal').style.display='none'">
+                    Fermer
+                </button>
             </div>
         </div>
     </div>
@@ -642,6 +708,25 @@
             if (e.target.classList.contains('close-btn')) {
                 e.target.parentElement.remove();
             }
+        });
+
+        // Afficher la raison complète
+        document.querySelectorAll('.show-reason').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const reason = this.getAttribute('data-reason');
+                const formationId = this.closest('.formation-row').dataset.id;
+                
+                // Afficher la raison
+                document.getElementById('fullReasonContent').textContent = reason;
+                
+                // Mettre à jour l'action du formulaire avec l'ID correct
+                const form = document.getElementById('deleteReasonForm');
+                form.action = form.action.replace('/0', '/' + formationId);
+                
+                // Afficher la modal
+                document.getElementById('fullReasonModal').style.display = 'flex';
+            });
         });
 
         // Initialisation

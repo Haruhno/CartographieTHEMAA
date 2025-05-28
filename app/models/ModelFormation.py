@@ -18,3 +18,4 @@ class Formation(db.Model):
     label = db.Column(db.String(50))
     id_organisme = db.Column(db.Integer, db.ForeignKey('Organisme.id_organisme'), nullable=False)
     etat = db.Column(db.Enum('valide', 'en_attente', name='etat_formation'), nullable=False, default='en_attente')
+    raison = db.Column(db.Text)

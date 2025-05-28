@@ -276,3 +276,67 @@ function closeDeleteModal() {
     document.getElementById('deleteModal').style.display = 'none';
 }
 
+// === PAGE : dashboard.html ===
+
+// Gestion des modals de raison
+
+let currentAction = ''; // 'edit' ou 'delete'
+let currentId = ''; // ID de la formation
+
+$(document).ready(function () {
+    // Cas 1 : depuis dashboard (suppression)
+    $('.btn-delete').on('click', function (e) {
+        e.preventDefault();
+        currentAction = 'delete';
+        currentId = $(this).data('id');
+        $('#modalTitle').text("Raison de la suppression");
+        $('#reasonText').val('');
+        $('#reasonModal').show();
+    });
+
+    // Cas 2 : depuis formulaire modification (soumettre)
+    $('#submitModification').on('click', function (e) {
+        e.preventDefault();
+        currentAction = 'edit';
+        $('#modalTitle').text("Raison de la modification");
+        $('#reasonText').val('');
+        $('#reasonModal').show();
+    });
+
+    // Annuler
+    $('#cancelReason').on('click', function () {
+        $('#reasonModal').hide();
+    });
+
+    // Confirmer
+    $('#confirmReason').on('click', function() {
+        const reason = $('#reasonText').val().trim();
+        if (!reason) {
+            alert("Veuillez indiquer une raison.");
+            return;
+        }
+
+        if (currentAction === 'delete') {
+            const form = $('<form>', {
+                'method': 'POST',
+                'action': '/formations/delete_with_reason'
+            }).append(
+                $('<input>', {
+                    'type': 'hidden',
+                    'name': 'id',
+                    'value': currentId
+                }),
+                $('<input>', {
+                    'type': 'hidden',
+                    'name': 'reason',
+                    'value': reason
+                })
+            );
+
+            $(document.body).append(form);
+            form.submit();
+        }
+
+        $('#reasonModal').hide();
+    });
+});

@@ -8,9 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    
 </head>
 <body>
 
@@ -90,14 +88,6 @@
     </div>
     
     <div class="filter-group">
-        <h4 class="filter-title">Région</h4>
-        <select id="regionFilter" class="filter-select">
-            <option value="">Toutes les régions</option>
-            <!-- Les options seront ajoutées dynamiquement -->
-        </select>
-    </div>
-    
-    <div class="filter-group">
         <h4 class="filter-title">Financement</h4>
         <select id="financementFilter" class="filter-select">
             <option value="">Tous les financements</option>
@@ -108,6 +98,56 @@
         </select>
     </div>
     
+    <div class="filter-group">
+        <h4 class="filter-title">Prix</h4>
+        <div class="price-filters">
+            <div class="price-input">
+                <label for="prixMin">Min (€)</label>
+                <input type="number" id="prixMin" min="0" placeholder="Min">
+            </div>
+            <div class="price-input">
+                <label for="prixMax">Max (€)</label>
+                <input type="number" id="prixMax" min="0" placeholder="Max">
+            </div>
+        </div>
+    </div>
+    
+    <div class="filter-group">
+        <h4 class="filter-title">Durée</h4>
+        <select id="dureeFilter" class="filter-select">
+            <option value="">Toutes durées</option>
+            <option value="jour">Jour(s)</option>
+            <option value="semaine">Semaine(s)</option>
+            <option value="mois">Mois</option>
+            <option value="an">An(s)</option>
+        </select>
+    </div>
+    <div class="filter-group">
+        <h4 class="filter-title">Région</h4>
+        <select id="regionFilter" class="filter-select">
+            <option value="">Toutes les régions</option>
+            <option value="Auvergne-Rhône-Alpes">Auvergne-Rhône-Alpes</option>
+            <option value="Bourgogne-Franche-Comté">Bourgogne-Franche-Comté</option>
+            <option value="Bretagne">Bretagne</option>
+            <option value="Centre-Val de Loire">Centre-Val de Loire</option>
+            <option value="Corse">Corse</option>
+            <option value="Grand Est">Grand Est</option>
+            <option value="Hauts-de-France">Hauts-de-France</option>
+            <option value="Île-de-France">Île-de-France</option>
+            <option value="Normandie">Normandie</option>
+            <option value="Nouvelle-Aquitaine">Nouvelle-Aquitaine</option>
+            <option value="Occitanie">Occitanie</option>
+            <option value="Pays de la Loire">Pays de la Loire</option>
+            <option value="Provence-Alpes-Côte d'Azur">Provence-Alpes-Côte d'Azur</option>
+            <option value="Guadeloupe">Guadeloupe</option>
+            <option value="Martinique">Martinique</option>
+            <option value="Guyane">Guyane</option>
+            <option value="La Réunion">La Réunion</option>
+            <option value="Mayotte">Mayotte</option>
+        </select>
+    </div>
+    
+    
     <div class="filter-actions">
         <button id="applyFiltersBtn" class="btn btn-primary">
             <i class="fas fa-check"></i> Appliquer
@@ -116,6 +156,7 @@
             <i class="fas fa-undo"></i> Réinitialiser
         </button>
     </div>
+
 </div>
 
 <!-- Sidebar avec Header intégré -->

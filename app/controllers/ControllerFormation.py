@@ -288,3 +288,59 @@ def formation_informations(organisme_id):
     return render_template("formation_informations.html", 
                          organisme=organisme, 
                          formations=formations)
+
+
+@formation_bp.route('/modify/<int:id>', methods=['GET'])
+def modify_formation(id):
+    formation = Formation.query.get_or_404(id)
+    return render_template('modify_formation.html', formation=formation)
+
+@formation_bp.route('/modify_with_reason', methods=['POST'])
+def modify_with_reason():
+    formation = Formation.query.get_or_404(request.form['id'])
+    
+    # Mettre à jour les champs de la formation
+    formation.nom = request.form['nom']
+    formation.type = request.form['type']
+    formation.description = request.form['description']
+    formation.duree = request.form['duree']
+    formation.dates = request.form['dates']
+    formation.lieu = request.form['lieu']
+    prix = request.form.get('prix')
+    formation.prix = float(prix) if prix else None
+    formation.conditions_acces = request.form['conditions_acces']
+    formation.financement = request.form['financement']
+    formation.presentation_intervenants = request.form['presentation_intervenants']
+    formation.lien_inscription = request.form['lien_inscription']
+    
+    # Mettre en attente avec la raison
+    formation.etat = 'en_attente'
+    formation.raison = f"Modifier:{request.form['reason']}"
+    
+    db.session.commit()
+    
+    flash("Modification soumise avec succès et en attente de validation.", "success")
+    return redirect(url_for("dashboard"))
+
+@formation_bp.route('/delete_with_reason', methods=["POST"])
+def delete_with_reason():
+    formation = Formation.query.get_or_404(request.form['id'])
+    
+    # Mettre en attente avec la raison au lieu de supprimer
+    formation.etat = 'en_attente'
+    formation.raison = f"Supprimer:{request.form['reason']}"
+    
+    db.session.commit()
+    
+    flash("Demande de suppression soumise avec succès et en attente de validation.", "success")
+    return redirect(url_for("dashboard"))
+
+@formation_bp.route('/delete_reason/<int:id>', methods=['POST'])
+@admin_required
+def delete_reason(id):
+    formation = Formation.query.get_or_404(id)
+    formation.raison = None  # Effacer la raison
+    db.session.commit()
+    
+    flash("Raison supprimée avec succès.", "success")
+    return redirect(url_for('formation.edit_formations'))

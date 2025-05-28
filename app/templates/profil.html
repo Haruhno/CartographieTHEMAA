@@ -119,31 +119,64 @@
                     </div>
                     <input type="hidden" id="next_url" name="next_url">
                     <!-- Ajoutez ceci dans votre formulaire existant, après les autres champs -->
-                    <div class="form-group">
-                        <label>Organisme</label>
-                        <div class="organisme-info">
-                            {% if user.organisme %}
-                                <p>
-                                    <strong>{{ user.organisme.nom }}</strong><br>
-                                    {{ user.organisme.adresse }}<br>
-                                    {{ user.organisme.email }} - {{ user.organisme.telephone }}
-                                </p>
-                                <div class="organisme-buttons">
-                                    <button type="button" class="btn btn-small" id="changer-organisme-btn">Changer d'organisme</button>
-                                    <button type="submit" name="retirer_organisme" value="1" class="btn btn-small btn-danger">Retirer l'organisme</button>
-                                </div>
-                            {% else %}
-                                <p>Aucun organisme associé à votre compte.</p>
-                                <button type="button" class="btn btn-primary" id="associer-organisme-btn">Associer un organisme</button>
-                            {% endif %}
+                    {% if user.role == 'user' %}
+                        <div class="form-group">
+                            <label>Organisme</label>
+                            <div class="organisme-info-profile">
+                                {% if user.organisme %}
+                                    <p>
+                                        <strong>{{ user.organisme.nom }}</strong><br>
+                                        {{ user.organisme.adresse }}<br>
+                                        {{ user.organisme.email }} - {{ user.organisme.telephone }}
+                                    </p>
+                                    <div class="organisme-buttons">
+                                        <button type="button" class="btn btn-small" id="changer-organisme-btn">Changer d'organisme</button>
+                                        <button type="submit" name="retirer_organisme" value="1" class="btn btn-small btn-danger">Retirer l'organisme</button>
+                                    </div>
+                                {% else %}
+                                    <p>Aucun organisme associé à votre compte.</p>
+                                    <button type="button" class="btn btn-primary" id="associer-organisme-btn">Associer un organisme</button>
+                                {% endif %}
+                            </div>
                         </div>
-                    </div>
-
+                    {% endif %}
 
                     <button type="submit" class="btn">Mettre à jour le profil</button>
+
+                    <!-- Remplacer la div danger-zone existante par celle-ci -->
+                    <div class="form-group danger-zone">
+                        <h3>Zone dangereuse</h3>
+                        <p class="danger-description">Attention : cette action est irréversible. Une fois votre compte supprimé, toutes vos données seront perdues.</p>
+                        <button type="button" class="btn-danger-outline" onclick="showDeleteModal()">
+                            <i class="fas fa-trash"></i> Supprimer mon compte
+                        </button>
+                    </div>
                 </form>
+
+
             </div>
         </div>
+    </div>
+</div>
+
+<div id="deleteAccountModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+        <h3 style="color: #dc3545;">Supprimer votre compte</h3>
+        <p>Cette action est irréversible. Pour confirmer, veuillez saisir votre mot de passe.</p>
+        
+        <form id="deleteAccountForm" method="POST" action="{{ url_for('utilisateur.delete_account') }}">
+            <div class="form-group">
+                <input type="password" id="confirm_password" name="password" 
+                       placeholder="Votre mot de passe" required>
+                <span class="password-toggle" onclick="toggleDeletePassword()">
+                    <i class="fas fa-eye"></i>
+                </span>
+            </div>
+            <div class="modal-buttons">
+                <button type="button" class="btn btn-secondary" onclick="hideDeleteModal()">Annuler</button>
+                <button type="submit" class="btn btn-danger">Supprimer mon compte</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -198,7 +231,35 @@
     });
 
 
+    function showDeleteModal() {
+        document.getElementById('deleteAccountModal').style.display = 'flex';
+    }
 
+    function hideDeleteModal() {
+        document.getElementById('deleteAccountModal').style.display = 'none';
+    }
+
+    function toggleDeletePassword() {
+        const input = document.getElementById('confirm_password');
+        const icon = input.nextElementSibling.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+
+    // Fermer le modal si on clique en dehors
+    window.onclick = function(event) {
+        const modal = document.getElementById('deleteAccountModal');
+        if (event.target === modal) {
+            hideDeleteModal();
+        }
+    }
 </script>
 </body>
 </html>
