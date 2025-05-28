@@ -10,7 +10,7 @@ RUN apt-get update && \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Installation groupée des dépendances Python (avec les nouvelles dépendances)
+# Installation groupée des dépendances Python
 RUN pip install --no-cache-dir \
     Flask==3.0.2 \
     Flask-SQLAlchemy==3.1.1 \
@@ -19,7 +19,8 @@ RUN pip install --no-cache-dir \
     mysqlclient==2.2.1 \
     gunicorn==21.2.0 \
     flask-login==0.6.3 \
-    werkzeug==3.0.1  # Pour le hachage des mots de passe
+    werkzeug==3.0.1 \
+    requests==2.31.0
 
 COPY . /app
 

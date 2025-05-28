@@ -507,7 +507,7 @@ function initFilters() {
 function normalizeDuree(duree) {
     switch (duree) {
         case 'jour': return ['jour', 'jours', 'journée', 'journées'];
-        case 'semaine': return ['semaine', 'semaines'];
+        case 'heure': return ['heure', 'heures'];
         case 'mois': return ['mois']; // mois est invariant
         case 'an': return ['an', 'ans', 'année', 'années'];
         default: return [];
