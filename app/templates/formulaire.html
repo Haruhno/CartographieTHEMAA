@@ -181,56 +181,7 @@
 <body>
     <div class="admin-container">
         <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="logo">THEMAA</div>
-            <nav>
-                <ul>
-                    <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a></li>
-                    {% if current_user.is_admin %}
-                        <li><a href="{{ url_for('organisme.edit_organismes') }}"><i class="fas fa-building"></i> Organismes</a></li>
-                        <li><a href="{{ url_for('formation.edit_formations') }}"><i class="fas fa-graduation-cap"></i> Formations</a></li>
-                    {% endif %}
-                    <li class="active"><a href="{{ url_for('formation.formulaire') }}"><i class="fas fa-file-alt"></i> Formulaire</a></li>
-                    <li><a href="{{ url_for('carte') }}"><i class="fas fa-map-marked-alt"></i> Carte</a></li>
-                    <li><a href="{{ url_for('utilisateur.profil') }}"><i class="fas fa-user"></i> Mon Profil</a></li>
-                </ul>
-            </nav>
-=======
-<div class="container">
-    <h1 class="text-center mb-4">Formulaire</h1>
-
-    <form method="POST" action="{{ url_for('formation.submit_formation') }}">
-        <div class="form-card">
-            <div class="form-group"><label>Nom *</label><input type="text" name="nom" required></div>
-            <div class="form-group">
-                <label>Type *</label>
-                <select name="type" required>
-                    <option value="initiale">Initiale</option>
-                    <option value="continue">Continue</option>
-                </select>
-            </div>
-            <div class="form-group"><label>Description *</label><textarea name="description" required></textarea></div>
-            <div class="form-group"><label>Durée *</label><input type="text" name="duree" required></div>
-            <div class="form-group"><label>Dates *</label><input type="text" name="dates" required></div>
-            <div class="form-group"><label>Lieu *</label><input type="text" name="lieu" required></div>
-            <div class="form-group"><label>Prix</label><input type="number" name="prix" step="0.01"></div>
-            <div class="form-group"><label>Conditions d'accès</label><textarea name="conditions_acces"></textarea></div>
-            <div class="form-group"><label>Financement</label><input type="text" name="financement"></div>
-            <div class="form-group"><label>Présentation des intervenants</label><textarea name="presentation_intervenants"></textarea></div>
-            <div class="form-group"><label>Lien d'inscription</label><input type="text" name="lien_inscription"></div>
-            <div class="form-group"><label>Label / Agrément</label><input type="text" name="label"></div>
-
-            <div class="form-group">
-                <label>Organisme</label>
-                <select name="id_organisme">
-                    {% for organisme in organismes %}
-                        <option value="{{ organisme.id_organisme }}">{{ organisme.nom }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Soumettre la formation</button>
-        </div>
+        {% include 'includes/nav.html' %}
 
         <!-- Main Content -->
         <div class="main-content">
@@ -261,24 +212,24 @@
                     
                     <form method="POST" action="{{ url_for('formation.submit_formation') }}">
                         <!-- Stepper -->
-                        <div class="form-stepper">
-                            <div class="step active" data-step="1">
-                                <div class="step-number">1</div>
-                                <div class="step-label">Informations de base</div>
+                            <div class="form-stepper">
+                                <div class="step active" data-step="1">
+                                    <div class="step-number">1</div>
+                                    <div class="step-label">Informations de base</div>
+                                </div>
+                                <div class="step" data-step="2">
+                                    <div class="step-number">2</div>
+                                    <div class="step-label">Détails pratiques</div>
+                                </div>
+                                <div class="step" data-step="3">
+                                    <div class="step-number">3</div>
+                                    <div class="step-label">Certifications</div>
+                                </div>
+                                <div class="step" data-step="4">
+                                    <div class="step-number">4</div>
+                                    <div class="step-label">Validation</div>
+                                </div>
                             </div>
-                            <div class="step" data-step="2">
-                                <div class="step-number">2</div>
-                                <div class="step-label">Détails pratiques</div>
-                            </div>
-                            <div class="step" data-step="3">
-                                <div class="step-number">3</div>
-                                <div class="step-label">Certifications</div>
-                            </div>
-                            <div class="step" data-step="4">
-                                <div class="step-number">4</div>
-                                <div class="step-label">Validation</div>
-                            </div>
-                        </div>
                         
                         <!-- Tab 1 - Informations de base -->
                         <div class="tab-content active" id="tab-1">

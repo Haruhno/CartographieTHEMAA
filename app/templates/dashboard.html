@@ -26,10 +26,9 @@
         {% endwith %}
     </div>
 
-
     <div class="admin-container">
-        <!-- Sidebar -->
         {% include 'includes/nav.html' %}
+        
         <!-- Main Content -->
         <div class="main-content">
             <header>
@@ -52,7 +51,6 @@
             </header>
 
             <div class="content">
-
                 {% if user.role == 'admin' %}
                     <!-- Organismes Section -->
                     <section class="card">
@@ -66,7 +64,6 @@
                             </a>
                         </div>
 
-                        <!-- Pour les organismes -->
                         <div class="pagination-controls">
                             <span id="itemCountOrganismes">Affichage de {{ organismes|length }} organismes</span>
                             <div class="pagination-buttons">
@@ -90,6 +87,7 @@
                                     <th>Adresse</th>
                                     <th>Email</th>
                                     <th>Téléphone</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -183,76 +181,22 @@
                     </section>
                 {% elif user.role == 'user' %}
                     <section class="user-dashboard">
-                        {% if not user.id_organisme %}
-                            <div class="user-welcome-card">
+                        <div class="user-welcome-card">
+                            <h2>Bienvenue, {{ user.nom }} !</h2>
+                            {% if user.id_organisme %}
+                                <p class="user-organisme">
+                                    <i class="fas fa-building"></i> 
+                                    Organisme : <strong>{{ user.organisme.nom }}</strong>
+                                </p>
+                            {% else %}
                                 <p class="user-organisme warning">
                                     <i class="fas fa-exclamation-triangle"></i>
                                     Vous n'êtes pas encore associé à un organisme, allez dans votre profil pour en ajouter un.
                                 </p>
-                            </div>
-                            
-                            <!-- Masquer le bouton d'ajout de formation -->
-                            <div class="user-formations-header">
-                                <h2><i class="fas fa-graduation-cap"></i> Vos formations</h2>
-                                <a href="{{ url_for('utilisateur.profil', _anchor='organisme-section') }}" class="btn-associate">
-                                    <i class="fas fa-link"></i>
-                                    Associer un organisme pour gérer vos formations
-                                </a>
                             {% endif %}
                         </div>
 
-                        <div class="user-formations-header">
-                            <h2><i class="fas fa-graduation-cap"></i> Vos formations</h2>
-                            <a href="{{ url_for('formation.formulaire') }}" class="btn btn-add">
-                                <i class="fas fa-plus"></i> Ajouter une formation
-                            </a>
-                        </div>
-
-                        {% if formations %}
-                            <div class="user-formations-grid">
-                                {% for formation in formations %}
-                                    <div class="user-formation-card">
-                                        <div class="user-formation-header">
-                                            <h3>{{ formation.nom }}</h3>
-                                            <span class="user-formation-type {{ formation.type }}">
-                                                {{ 'Initiale' if formation.type == 'initiale' else 'Continue' }}
-                                            </span>
-                                        </div>
-                                        
-                                        <div class="user-formation-details">
-                                            <p><i class="fas fa-calendar-alt"></i> {{ formation.dates }}</p>
-                                            <p><i class="fas fa-clock"></i> {{ formation.duree }}</p>
-                                            <p><i class="fas fa-map-marker-alt"></i> {{ formation.lieu }}</p>
-                                            {% if formation.prix %}
-                                                <p><i class="fas fa-euro-sign"></i> {{ "%.2f"|format(formation.prix) }} €</p>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <div class="user-formation-status">
-                                            <span class="status-badge {{ formation.etat }}">
-                                                {{ 'Validée' if formation.etat == 'valide' else 'En attente' }}
-                                            </span>
-                                        </div>
-                                        
-                                        <div class="user-formation-actions">
-                                            <a href="{{ url_for('formation.modify_formation', id=formation.id_formation) }}" class="btn btn-edit">
-                                                <i class="fas fa-edit"></i> Modifier
-                                            </a>
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <div class="user-welcome-card">
-                                <h2>Bienvenue, {{ user.nom }} !</h2>
-                                {% if user.id_organisme %}
-                                    <p class="user-organisme">
-                                        <i class="fas fa-building"></i> 
-                                        Organisme : <strong>{{ user.organisme.nom }}</strong>
-                                    </p>
-                                {% endif %}
-                            </div>
-
+                        {% if user.id_organisme %}
                             <div class="user-formations-header">
                                 <h2><i class="fas fa-graduation-cap"></i> Vos formations</h2>
                                 <a href="{{ url_for('formation.formulaire') }}" class="btn btn-add">
@@ -290,7 +234,7 @@
                                                 <a href="{{ url_for('formation.modify_formation', id=formation.id_formation) }}" class="btn btn-edit">
                                                     <i class="fas fa-edit"></i> Modifier
                                                 </a>
-                                                <button class="btn btn-delete" data-id="{{ formation.id_formation }}" data-action="delete">
+                                                <button class="btn btn-delete" onclick="showDeleteModal('{{ formation.id_formation }}')">
                                                     <i class="fas fa-trash-alt"></i> Supprimer
                                                 </button>
                                             </div>
@@ -307,12 +251,21 @@
                                     </a>
                                 </div>
                             {% endif %}
+                        {% else %}
+                            <div class="user-formations-header">
+                                <h2><i class="fas fa-graduation-cap"></i> Vos formations</h2>
+                                <a href="{{ url_for('utilisateur.profil', _anchor='organisme-section') }}" class="btn-associate">
+                                    <i class="fas fa-link"></i>
+                                    Associer un organisme pour gérer vos formations
+                                </a>
+                            </div>
                         {% endif %}
                     </section>
                 {% endif %}
             </div>
         </div>
     </div>
+    
     <!-- Modal global à placer en bas de la page, avant </body> -->
     <div id="reasonModal" class="modal-overlay" style="display: none;">
         <div class="modal-box">
@@ -324,7 +277,105 @@
             </div>
         </div>
     </div>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
+    <!-- Modal de suppression -->
+    <div id="deleteModal" class="modal-overlay" style="display: none;">
+        <div class="modal-box">
+            <h3>Confirmation de suppression</h3>
+            <p>Veuillez indiquer la raison de la suppression :</p>
+            <form id="deleteForm" action="{{ url_for('formation.delete_with_reason') }}" method="POST">
+                <input type="hidden" id="deleteFormationId" name="id">
+                <textarea 
+                    id="deleteReason" 
+                    name="reason" 
+                    rows="4" 
+                    maxlength="1000" 
+                    required
+                    placeholder="Veuillez expliquer la raison de la suppression..."
+                    style="resize: none;"
+                ></textarea>
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="hideDeleteModal()">Annuler</button>
+                    <button type="submit" class="btn btn-danger">Confirmer la suppression</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+    function showDeleteModal(formationId) {
+        const modal = document.getElementById('deleteModal');
+        document.getElementById('deleteFormationId').value = formationId;
+        document.getElementById('deleteReason').value = '';
+        modal.style.display = 'flex';
+    }
+
+    function hideDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.style.display = 'none';
+    }
+
+    // Fermer le modal si on clique en dehors
+    window.onclick = function(event) {
+        const modal = document.getElementById('deleteModal');
+        if (event.target === modal) {
+            hideDeleteModal();
+        }
+    }
+    </script>
+
+    <!-- Ajouter les styles CSS -->
+    <style>
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal-box {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 500px;
+    }
+
+    .modal-box h3 {
+        margin: 0 0 15px 0;
+        color: #333;
+    }
+
+    .modal-box textarea {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0 20px 0;
+        border: 2px solid #ddd;
+        border-radius: 4px;
+        font-family: inherit;
+    }
+
+    .modal-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333;
+    }
+    </style>
 </body>
 </html>
