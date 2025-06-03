@@ -7,7 +7,19 @@ from functools import wraps
 from flask_login import current_user
 from flask_login import login_required, current_user
 
+
 formation_bp = Blueprint("formation", __name__, url_prefix="/formations")
+
+def organisme_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return redirect(url_for('utilisateur.connexion'))
+        if not current_user.id_organisme:
+            return redirect(url_for('dashboard'))  # Rediriger si l'utilisateur n'est pas un organisme
+        return f(*args, **kwargs)
+    return decorated_function
+
 
 @formation_bp.route("/all", methods=["GET"])
 def get_all_formations():
@@ -228,6 +240,7 @@ def delete_formation(id):
 
 
 @formation_bp.route("/formulaire", methods=["GET"])
+@organisme_required  # Ajout du décorateur
 def formulaire():
     organismes = Organisme.query.all()
 
@@ -429,20 +442,3 @@ def delete_reason(id):
     flash("Raison supprimée avec succès.", "success")
     return redirect(url_for('formation.edit_formations'))
 
-def organisme_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated:
-            return redirect(url_for('utilisateur.connexion'))
-        if not current_user.id_organisme:
-            return redirect(url_for('dashboard'))  # Rediriger si l'utilisateur n'est pas un organisme
-        return f(*args, **kwargs)
-    return decorated_function
-
-
-# Modification de la route formulaire
-@formation_bp.route("/formulaire", methods=["GET"])
-@organisme_required  # Ajout du décorateur
-def formulaire():
-    organismes = Organisme.query.all()
-    return render_template("formulaire.html", organismes=organismes)
