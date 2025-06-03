@@ -8,6 +8,7 @@ from database import db
 import os
 import re
 from functools import wraps
+import requests
 
 utilisateur_bp = Blueprint("utilisateur", __name__, url_prefix="/utilisateur")
 
@@ -57,6 +58,25 @@ def deconnexion():
 @utilisateur_bp.route("/inscription", methods=["GET", "POST"])
 def inscription():
     if request.method == "POST":
+        # Vérification du captcha
+        recaptcha_response = request.form.get('g-recaptcha-response')
+        if not recaptcha_response:
+            flash("Veuillez valider le captcha", "danger")
+            return redirect(url_for("utilisateur.inscription"))
+
+        # Vérification avec l'API Google
+        verify_url = 'https://www.google.com/recaptcha/api/siteverify'
+        payload = {
+            'secret': current_app.config['RECAPTCHA_PRIVATE_KEY'],
+            'response': recaptcha_response
+        }
+        response = requests.post(verify_url, data=payload)
+        result = response.json()
+
+        if not result.get('success', False):
+            flash("Échec de la vérification du captcha", "danger")
+            return redirect(url_for("utilisateur.inscription"))
+
         nom = request.form.get("nom")
         email = request.form.get("email")
         password = request.form.get("password")
