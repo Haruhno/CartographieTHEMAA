@@ -12,24 +12,7 @@
 <body>
 <div class="admin-container">
     <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="logo">THEMAA</div>
-        <nav>
-            <ul>
-                <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-home"></i>Dashboard</a></li>
-                {% if user.role == 'admin' %}
-                    <li><a href="{{ url_for('organisme.edit_organismes') }}"><i class="fas fa-building"></i> Organismes</a></li>
-                    <li><a href="{{ url_for('formation.edit_formations') }}"><i class="fas fa-graduation-cap"></i> Formations</a></li>
-                    <li><a href="{{ url_for('formation.formulaire') }}"><i class="fas fa-file-alt"></i> Formulaire</a></li>
-                    <li><a href="{{ url_for('carte') }}"><i class="fas fa-map-marked-alt"></i> Carte</a></li>
-                {% elif user.role == 'user' %}
-                    <li><a href="{{ url_for('formation.formulaire') }}"><i class="fas fa-graduation-cap"></i> Formulaire</a></li>
-                    <li><a href="{{ url_for('carte') }}"><i class="fas fa-map-marked-alt"></i> Carte</a></li>
-                {% endif %}
-                <li class="active"><a href="{{ url_for('utilisateur.profil') }}"><i class="fas fa-user"></i> Mon Profil</a></li>
-            </ul>
-        </nav>
-    </div>
+    {% include 'includes/nav.html' %}
 
     <!-- Main Content -->
     <div class="main-content">
@@ -118,9 +101,9 @@
                         </span>
                     </div>
                     <input type="hidden" id="next_url" name="next_url">
-                    <!-- Ajoutez ceci dans votre formulaire existant, après les autres champs -->
+                    <!-- Remplacer la section organisme par -->
                     {% if user.role == 'user' %}
-                        <div class="form-group">
+                        <div class="form-group" id="organisme-section">
                             <label>Organisme</label>
                             <div class="organisme-info-profile">
                                 {% if user.organisme %}
@@ -129,13 +112,14 @@
                                         {{ user.organisme.adresse }}<br>
                                         {{ user.organisme.email }} - {{ user.organisme.telephone }}
                                     </p>
-                                    <div class="organisme-buttons">
-                                        <button type="button" class="btn btn-small" id="changer-organisme-btn">Changer d'organisme</button>
-                                        <button type="submit" name="retirer_organisme" value="1" class="btn btn-small btn-danger">Retirer l'organisme</button>
-                                    </div>
+                                    <button type="button" class="btn btn-small" onclick="showOrganismeContactModal()">
+                                        <i class="fas fa-envelope"></i> Demander un changement d'organisme
+                                    </button>
                                 {% else %}
                                     <p>Aucun organisme associé à votre compte.</p>
-                                    <button type="button" class="btn btn-primary" id="associer-organisme-btn">Associer un organisme</button>
+                                    <a href="{{ url_for('organisme.choose_organisme') }}" class="btn btn-primary">
+                                        <i class="fas fa-link"></i> Associer un organisme
+                                    </a>
                                 {% endif %}
                             </div>
                         </div>
@@ -179,6 +163,35 @@
         </form>
     </div>
 </div>
+
+<!-- Ajouter le modal de contact -->
+<div id="organismeContactModal" class="modal-overlay" style="display: none;">
+    <div class="modal-box">
+        <h3>Contacter un administrateur</h3>
+        <p>Pour modifier ou retirer votre organisme, veuillez contacter un administrateur en remplissant ce formulaire :</p>
+        
+        <form id="organismeContactForm" method="POST" action="{{ url_for('utilisateur.contact_admin_organisme') }}">
+            <div class="form-group">
+                <label for="request_type">Type de demande :</label>
+                <select id="request_type" name="request_type" required>
+                    <option value="change">Changer d'organisme</option>
+                    <option value="remove">Retirer l'organisme</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="message">Motif de la demande :</label>
+                <textarea id="message" name="message" rows="4" required></textarea>
+            </div>
+
+            <div class="modal-buttons">
+                <button type="button" class="btn btn-secondary" onclick="closeOrganismeContactModal()">Annuler</button>
+                <button type="submit" class="btn btn-primary">Envoyer la demande</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 
 <script>
     // Prévisualisation de l'image
@@ -253,11 +266,24 @@
         }
     }
 
+    function showOrganismeContactModal() {
+        document.getElementById('organismeContactModal').style.display = 'flex';
+    }
+
+    function closeOrganismeContactModal() {
+        document.getElementById('organismeContactModal').style.display = 'none';
+    }
+
     // Fermer le modal si on clique en dehors
     window.onclick = function(event) {
         const modal = document.getElementById('deleteAccountModal');
         if (event.target === modal) {
             hideDeleteModal();
+        }
+
+        const organismeModal = document.getElementById('organismeContactModal');
+        if (event.target === organismeModal) {
+            closeOrganismeContactModal();
         }
     }
 </script>

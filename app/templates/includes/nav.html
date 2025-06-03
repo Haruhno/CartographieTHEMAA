@@ -1,0 +1,81 @@
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="logo">THEMAA</div>
+    <nav>
+        <ul>
+            <!-- Dashboard -->
+            {% if 'dashboard' in request.endpoint %}
+                <li class="active"><a href="{{ url_for('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a></li>
+            {% else %}
+                <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a></li>
+            {% endif %}
+
+            <!-- Carte - Accessible à tous -->
+            {% if 'carte' in request.endpoint %}
+                <li class="active"><a href="{{ url_for('carte') }}"><i class="fas fa-map-marked-alt"></i> Carte</a></li>
+            {% else %}
+                <li><a href="{{ url_for('carte') }}"><i class="fas fa-map-marked-alt"></i> Carte</a></li>
+            {% endif %}
+
+            <!-- Formulaire - Pour les utilisateurs avec organisme -->
+            {% if current_user.role == 'user' %}
+                {% if current_user.id_organisme %}
+                    {% if 'formation.formulaire' in request.endpoint %}
+                        <li class="active"><a href="{{ url_for('formation.formulaire') }}"><i class="fas fa-file-alt"></i> Formulaire</a></li>
+                    {% else %}
+                        <li><a href="{{ url_for('formation.formulaire') }}"><i class="fas fa-file-alt"></i> Formulaire</a></li>
+                    {% endif %}
+                {% else %}
+                    <li>
+                        <a href="#" 
+                           onclick="showOrganismeWarning(event)" 
+                           data-profile-url="{{ url_for('utilisateur.profil', _anchor='organisme-section') }}">
+                            <i class="fas fa-file-alt"></i> Formulaire
+                        </a>
+                    </li>
+                {% endif %}
+            {% endif %}
+
+            <!-- Menu Formations - Admin -->
+            {% if current_user.role == 'admin' %}
+                {% if 'formation.' in request.endpoint %}
+                    <li class="active"><a href="{{ url_for('formation.edit_formations') }}"><i class="fas fa-graduation-cap"></i> Formations</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('formation.edit_formations') }}"><i class="fas fa-graduation-cap"></i> Formations</a></li>
+                {% endif %}
+            {% endif %}
+
+            <!-- Menu Organismes - Admin -->
+            {% if current_user.role == 'admin' %}
+                {% if 'organisme.' in request.endpoint %}
+                    <li class="active"><a href="{{ url_for('organisme.edit_organismes') }}"><i class="fas fa-building"></i> Organismes</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('organisme.edit_organismes') }}"><i class="fas fa-building"></i> Organismes</a></li>
+                {% endif %}
+            {% endif %}
+
+            <!-- Menu Utilisateurs - Admin -->
+            {% if current_user.role == 'admin' %}
+                {% if 'utilisateur.edit' in request.endpoint and request.endpoint != 'utilisateur.profil' %}
+                    <li class="active"><a href="{{ url_for('utilisateur.edit_utilisateurs') }}"><i class="fas fa-users"></i> Utilisateurs</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('utilisateur.edit_utilisateurs') }}"><i class="fas fa-users"></i> Utilisateurs</a></li>
+                {% endif %}
+            {% endif %}
+
+            <!-- Support -->
+            {% if 'utilisateur.support' in request.endpoint %}
+                <li class="active"><a href="{{ url_for('utilisateur.support') }}"><i class="fas fa-headset"></i> Support</a></li>
+            {% else %}
+                <li><a href="{{ url_for('utilisateur.support') }}"><i class="fas fa-headset"></i> Support</a></li>
+            {% endif %}
+
+            <!-- Profil - Toujours en dernier -->
+            {% if 'utilisateur.profil' in request.endpoint %}
+                <li class="active"><a href="{{ url_for('utilisateur.profil') }}"><i class="fas fa-user"></i> Mon Profil</a></li>
+            {% else %}
+                <li><a href="{{ url_for('utilisateur.profil') }}"><i class="fas fa-user"></i> Mon Profil</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>

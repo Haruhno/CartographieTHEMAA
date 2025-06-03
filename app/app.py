@@ -1,5 +1,6 @@
 from flask import Flask, render_template
 from flask_login import LoginManager
+from flask_mail import Mail
 from controllers.ControllerOrganisme import *
 from controllers.ControllerFormation import *
 from controllers.ControllerUtilisateur import *
@@ -31,6 +32,12 @@ init_db(app)
 app.register_blueprint(organisme_bp)
 app.register_blueprint(formation_bp)
 app.register_blueprint(utilisateur_bp)
+
+# Créer l'instance Flask-Mail avant l'import des controllers
+mail = Mail()
+
+# Initialiser Flask-Mail après la création de l'app
+mail.init_app(app)
 
 @app.route('/')
 def carte():

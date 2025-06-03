@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajouter un Utilisateur</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        {% include 'includes/nav.html' %}
+
+        <div class="main-content">
+            <header>
+                <h1>Ajouter un Utilisateur</h1>
+                <div class="user-info">
+                    <a href="{{ url_for('utilisateur.profil') }}" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 10px;">
+                        <span>{{ user.nom }}</span>
+                        {% if user.photo_profil %}
+                            <img src="/{{ user.photo_profil }}"
+                                alt="Photo de profil" 
+                                style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                        {% else %}
+                            <i class="fas fa-user-circle" style="font-size: 1.5em;"></i>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('utilisateur.deconnexion') }}" style="margin-left: 10px; color: #dc3545;">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </header>
+
+            <div class="content">
+                <section class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-user-plus"></i> Nouveau Utilisateur</h2>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('utilisateur.create_utilisateur') }}" class="form-card">
+                        <div class="form-group">
+                            <label for="nom">Nom complet *</label>
+                            <input type="text" id="nom" name="nom" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email">Email *</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">Mot de passe *</label>
+                            <input type="password" id="password" name="password" required>
+                            <small>Le mot de passe doit contenir au moins 5 caractères</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="num_adherent">Numéro d'adhérent</label>
+                            <input type="text" id="num_adherent" name="num_adherent">
+                        </div>
+                        <div class="form-group">
+                            <label for="id_organisme">Organisme</label>
+                            <select id="id_organisme" name="id_organisme" class="table-select">
+                                <option value="">Aucun</option>
+                                {% for org in organismes %}
+                                <option value="{{ org.id_organisme }}">{{ org.nom }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Créer l'utilisateur
+                            </button>
+                            <a href="{{ url_for('utilisateur.edit_utilisateurs') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Annuler
+                            </a>
+                        </div>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -9,19 +9,7 @@
 </head>
 <body>
 <div class="admin-container">
-    <div class="sidebar">
-        <div class="logo">THEMAA</div>
-        <nav>
-            <ul>
-                <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a></li>
-                <li class="active"><a href="{{ url_for('organisme.edit_organismes') }}"><i class="fas fa-building"></i> Organismes</a></li>
-                <li><a href="{{ url_for('formation.edit_formations') }}"><i class="fas fa-graduation-cap"></i> Formations</a></li>
-                <li><a href="{{ url_for('formation.formulaire') }}"><i class="fas fa-file-alt"></i> Formulaire</a></li>
-                <li><a href="{{ url_for('carte') }}"><i class="fas fa-map-marked-alt"></i> Carte</a></li>
-                <li><a href="{{ url_for('utilisateur.profil') }}"><i class="fas fa-user"></i> Mon Profil</a></li>
-            </ul>
-        </nav>
-    </div>
+    {% include 'includes/nav.html' %}
 
     <div class="main-content">
         <header>

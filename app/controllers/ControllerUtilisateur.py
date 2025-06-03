@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, jsonify, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from models.ModelUtilisateur import Utilisateur
 from models.ModelOrganisme import Organisme
@@ -9,12 +9,16 @@ import os
 import re
 from functools import wraps
 import requests
+from flask_mail import Mail, Message
 
 utilisateur_bp = Blueprint("utilisateur", __name__, url_prefix="/utilisateur")
 
 # Configuration pour les uploads de fichiers
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 UPLOAD_FOLDER = 'static/uploads/profils'
+
+# Initialisation de Flask-Mail
+mail = Mail()
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -304,3 +308,413 @@ def delete_account():
         current_app.logger.error(f"Erreur suppression compte: {e}")
         flash("Une erreur est survenue lors de la suppression du compte", "danger")
         return redirect(url_for('utilisateur.profil'))
+
+@utilisateur_bp.route('/reset_password_request', methods=['GET', 'POST'])
+def reset_password_request():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        user = Utilisateur.query.filter_by(email=email).first()
+        
+        if user:
+            token = user.generate_reset_token()
+            reset_url = url_for('utilisateur.reset_password', token=token, _external=True)
+            
+            msg = Message('Réinitialisation de votre mot de passe THEMAA',
+                        sender='noreply@themaa.fr',
+                        recipients=[user.email])
+            
+            msg.body = f'''Bonjour {user.nom},
+
+Vous avez demandé la réinitialisation de votre mot de passe sur le site THEMAA.
+
+Pour procéder au changement de votre mot de passe, veuillez cliquer sur le lien suivant :
+{reset_url}
+
+Ce lien est valable pendant 24 heures.
+
+Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email. Votre mot de passe actuel restera inchangé.
+
+Pour votre sécurité :
+- Ne transmettez jamais ce lien à qui que ce soit
+- Le service THEMAA ne vous demandera jamais votre mot de passe par email
+
+Cordialement,
+L'équipe THEMAA
+
+---
+Ceci est un message automatique, merci de ne pas y répondre.
+'''
+            try:
+                mail.send(msg)
+                flash('Un email avec les instructions de réinitialisation vous a été envoyé.', 'success')
+                return redirect(url_for('utilisateur.connexion'))
+            except Exception as e:
+                current_app.logger.error(f"Erreur lors de l'envoi de l'email : {e}")
+                flash("Impossible d'envoyer l'email. Veuillez réessayer plus tard.", "error")
+                return redirect(url_for('utilisateur.reset_password_request'))
+
+        # Message volontairement vague pour la sécurité
+        flash('Si cette adresse email existe dans notre base, vous recevrez les instructions de réinitialisation.', 'info')
+        return redirect(url_for('utilisateur.connexion'))
+        
+    return render_template('reset_password_request.html')
+
+@utilisateur_bp.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    user = Utilisateur.query.filter_by(reset_token=token).first()
+    
+    if not user or not user.verify_reset_token(token):
+        flash('Le lien de réinitialisation est invalide ou a expiré', 'error')
+        return redirect(url_for('utilisateur.reset_password_request'))
+        
+    if request.method == 'POST':
+        password = request.form.get('password')
+        password2 = request.form.get('password2')
+        
+        if password != password2:
+            flash('Les mots de passe ne correspondent pas', 'error')
+            return render_template('reset_password.html')
+            
+        if len(password) < 5:
+            flash('Le mot de passe doit contenir au moins 5 caractères', 'error')
+            return render_template('reset_password.html')
+            
+        user.set_password(password)
+        user.reset_token = None
+        user.reset_token_expiration = None
+        db.session.commit()
+        
+        flash('Votre mot de passe a été mis à jour', 'success')
+        return redirect(url_for('utilisateur.connexion'))
+        
+    return render_template('reset_password.html')
+
+@utilisateur_bp.route("/new", methods=["GET"])
+@admin_required
+def new_utilisateur():
+    try:
+        organismes = Organisme.query.all()  # Récupérer les organismes
+        return render_template(
+            "new_utilisateur.html",
+            organismes=organismes,  # Passer les organismes au template
+            user=current_user
+        )
+    except Exception as e:
+        current_app.logger.error(f"Error in new_utilisateur: {str(e)}")
+        flash("Une erreur est survenue lors du chargement de la page", "error")
+        return redirect(url_for('utilisateur.edit_utilisateurs'))
+
+@utilisateur_bp.route("/edit", methods=["GET"])
+@admin_required
+def edit_utilisateurs():
+    try:
+        utilisateurs = Utilisateur.query.all()
+        organismes = Organisme.query.all()
+        roles = ['admin', 'user']
+        return render_template(
+            "edit_utilisateurs.html",
+            utilisateurs=utilisateurs,
+            organismes=organismes,
+            roles=roles,
+            user=current_user
+        )
+    except Exception as e:
+        current_app.logger.error(f"Error in edit_utilisateurs: {str(e)}")
+        flash("Une erreur est survenue lors du chargement de la page", "error")
+        return redirect(url_for('dashboard'))
+
+@utilisateur_bp.route("/update", methods=["POST"])
+@admin_required
+def update_utilisateurs():
+    if "delete" in request.form:
+        id_ = request.form["delete"]
+        utilisateur = Utilisateur.query.get_or_404(int(id_))
+        if utilisateur.id_utilisateur == current_user.id_utilisateur:
+            flash("Vous ne pouvez pas supprimer votre propre compte.", "error")
+            return redirect(url_for("utilisateur.edit_utilisateurs"))
+        db.session.delete(utilisateur)
+        db.session.commit()
+        flash("Utilisateur supprimé avec succès.", "success")
+        return redirect(url_for("utilisateur.edit_utilisateurs"))
+
+    for key, value in request.form.items():
+        if key.startswith("nom_"):
+            id_ = key.split("_")[1]
+            utilisateur = Utilisateur.query.get(int(id_))
+            if utilisateur:
+                utilisateur.nom = value
+                utilisateur.email = request.form.get(f"email_{id_}")
+                utilisateur.role = request.form.get(f"role_{id_}")
+                utilisateur.id_organisme = request.form.get(f"id_organisme_{id_}") if request.form.get(f"id_organisme_{id_}") else None
+
+    db.session.commit()
+    flash("Tous les utilisateurs ont été mis à jour avec succès.", "success")
+    return redirect(url_for("utilisateur.edit_utilisateurs"))
+
+@utilisateur_bp.route('/preview/<int:id>', methods=['GET'])
+@admin_required
+def preview_utilisateur(id):
+    utilisateur = Utilisateur.query.get_or_404(id)
+    organismes = Organisme.query.all()
+    roles = ['admin', 'user']
+    return render_template("preview_utilisateur.html", 
+                         utilisateur=utilisateur,
+                         organismes=organismes,
+                         roles=roles)
+
+@utilisateur_bp.route("/update/<int:id>", methods=["POST"])
+@admin_required
+def update_utilisateur_by_id(id):
+    utilisateur = Utilisateur.query.get_or_404(id)
+    
+    try:
+        # Traitement de la réinitialisation de la photo
+        if 'reset_photo' in request.form:
+            if utilisateur.photo_profil:
+                try:
+                    filepath = os.path.join(current_app.root_path, utilisateur.photo_profil)
+                    if os.path.exists(filepath):
+                        os.remove(filepath)
+                except Exception as e:
+                    current_app.logger.error(f"Erreur suppression photo: {e}")
+                utilisateur.photo_profil = None
+                db.session.commit()
+                flash("Photo de profil supprimée avec succès", "success")
+                return redirect(url_for('utilisateur.preview_utilisateur', id=id))
+
+        # Traitement du retrait d'organisme
+        if 'retirer_organisme' in request.form:
+            utilisateur.id_organisme = None
+            db.session.commit()
+            flash("L'organisme a été retiré avec succès", "success")
+            return redirect(url_for('utilisateur.preview_utilisateur', id=id))
+
+        # Traitement des données JSON (sauvegarde individuelle)
+        if request.is_json:
+            data = request.get_json()
+            utilisateur.nom = data.get("nom")
+            utilisateur.email = data.get("email")
+            utilisateur.role = data.get("role")
+            utilisateur.num_adherent = data.get("num_adherent") if data.get("num_adherent") else None
+            utilisateur.id_organisme = int(data.get("id_organisme")) if data.get("id_organisme") else None
+            
+            db.session.commit()
+            return jsonify({"success": True, "message": "Utilisateur mis à jour avec succès"})
+
+        # Traitement du formulaire standard
+        else:
+            utilisateur.nom = request.form.get("nom")
+            utilisateur.email = request.form.get("email")
+            utilisateur.role = request.form.get("role")
+            utilisateur.num_adherent = request.form.get("num_adherent") if request.form.get("num_adherent") else None
+            utilisateur.id_organisme = request.form.get("id_organisme") if request.form.get("id_organisme") else None
+
+            # Gestion de la photo de profil
+            if 'photo_profil' in request.files:
+                file = request.files['photo_profil']
+                if file and file.filename != '':
+                    if allowed_file(file.filename):
+                        # Supprimer l'ancienne photo si elle existe
+                        if utilisateur.photo_profil:
+                            try:
+                                old_filepath = os.path.join(current_app.root_path, utilisateur.photo_profil)
+                                if os.path.exists(old_filepath):
+                                    os.remove(old_filepath)
+                            except Exception as e:
+                                current_app.logger.error(f"Erreur suppression ancienne photo: {e}")
+
+                        # Sauvegarder la nouvelle photo
+                        extension = file.filename.rsplit('.', 1)[1].lower()
+                        filename = secure_filename(f"user_{utilisateur.id_utilisateur}.{extension}")
+                        upload_dir = os.path.join(current_app.root_path, UPLOAD_FOLDER)
+                        if not os.path.exists(upload_dir):
+                            os.makedirs(upload_dir)
+                        filepath = os.path.join(upload_dir, filename)
+                        file.save(filepath)
+                        utilisateur.photo_profil = os.path.join(UPLOAD_FOLDER, filename).replace('\\', '/')
+                    else:
+                        flash("Format de fichier non autorisé", "error")
+                        return redirect(url_for('utilisateur.preview_utilisateur', id=id))
+
+            # Gestion du mot de passe
+            new_password = request.form.get("new_password")
+            if new_password:
+                if new_password != request.form.get("confirm_password"):
+                    flash("Les mots de passe ne correspondent pas", "error")
+                    return redirect(url_for('utilisateur.preview_utilisateur', id=id))
+                utilisateur.set_password(new_password)
+
+            db.session.commit()
+            flash("Utilisateur mis à jour avec succès", "success")
+            return redirect(url_for('utilisateur.edit_utilisateurs', id=id))
+
+    except Exception as e:
+        db.session.rollback()
+        if request.is_json:
+            return jsonify({"success": False, "message": str(e)})
+        flash(f"Erreur lors de la mise à jour : {str(e)}", "error")
+        return redirect(url_for('utilisateur.preview_utilisateur', id=id))
+
+@utilisateur_bp.route("/delete/<int:id>", methods=["POST"])
+@admin_required
+def delete_utilisateur(id):
+    utilisateur = Utilisateur.query.get_or_404(id)
+    if utilisateur.id_utilisateur == current_user.id_utilisateur:
+        flash("Vous ne pouvez pas supprimer votre propre compte.", "error")
+        return redirect(url_for("utilisateur.edit_utilisateurs"))
+    
+    try:
+        # Supprimer la photo de profil si elle existe
+        if utilisateur.photo_profil:
+            try:
+                filepath = os.path.join(current_app.root_path, utilisateur.photo_profil)
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+            except Exception as e:
+                current_app.logger.error(f"Erreur suppression photo: {e}")
+        
+        db.session.delete(utilisateur)
+        db.session.commit()
+        flash("Utilisateur supprimé avec succès.", "success")
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erreur lors de la suppression : {str(e)}", "error")
+    
+    return redirect(url_for("utilisateur.edit_utilisateurs"))
+
+@utilisateur_bp.route("/create", methods=["POST"])
+@admin_required
+def create_utilisateur():
+    try:
+        nom = request.form.get("nom")
+        email = request.form.get("email")
+        password = request.form.get("password")
+        role = request.form.get("role", "user")  # Par défaut 'user'
+        num_adherent = request.form.get("num_adherent")
+        id_organisme = request.form.get("id_organisme")
+
+        if not nom or not email or not password:
+            flash("Tous les champs obligatoires doivent être remplis", "error")
+            return redirect(url_for("utilisateur.new_utilisateur"))
+
+        if Utilisateur.query.filter_by(email=email).first():
+            flash("Cet email est déjà utilisé", "error")
+            return redirect(url_for("utilisateur.new_utilisateur"))
+
+        new_user = Utilisateur(
+            nom=nom,
+            email=email,
+            role=role,
+            num_adherent=num_adherent if num_adherent else None,
+            id_organisme=id_organisme if id_organisme else None
+        )
+        new_user.set_password(password)
+
+        db.session.add(new_user)
+        db.session.commit()
+        flash("Utilisateur créé avec succès", "success")
+        return redirect(url_for("utilisateur.edit_utilisateurs"))
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error in create_utilisateur: {str(e)}")
+        flash(f"Erreur lors de la création de l'utilisateur : {str(e)}", "error")
+        return redirect(url_for("utilisateur.new_utilisateur"))
+
+@utilisateur_bp.route('/contact_admin_organisme', methods=['POST'])
+@login_required
+def contact_admin_organisme():
+    try:
+        request_type = request.form.get('request_type')
+        message = request.form.get('message')
+        
+        # Préparer l'email
+        subject = f"Demande de modification d'organisme - {current_user.nom}"
+        body = f"""
+Une nouvelle demande de modification d'organisme a été soumise :
+
+Utilisateur : {current_user.nom} (ID: {current_user.id_utilisateur})
+Email : {current_user.email}
+Organisme actuel : {current_user.organisme.nom if current_user.organisme else 'Aucun'}
+Type de demande : {'Changement' if request_type == 'change' else 'Retrait'} d'organisme
+
+Message de l'utilisateur :
+{message}
+
+---
+Cet email a été envoyé automatiquement depuis le site THEMAA.
+"""
+        # Envoyer l'email aux administrateurs
+        admins = Utilisateur.query.filter_by(role='admin').all()
+        for admin in admins:
+            msg = Message(subject,
+                        sender='noreply@themaa.fr',
+                        recipients=[admin.email])
+            msg.body = body
+            mail.send(msg)
+
+        flash("Votre demande a été envoyée aux administrateurs. Vous serez contacté prochainement.", "success")
+        return redirect(url_for('utilisateur.profil'))
+
+    except Exception as e:
+        current_app.logger.error(f"Erreur lors de l'envoi de la demande : {e}")
+        flash("Une erreur est survenue lors de l'envoi de votre demande. Veuillez réessayer plus tard.", "error")
+        return redirect(url_for('utilisateur.profil'))
+
+@utilisateur_bp.route('/support', methods=['GET', 'POST'])
+@login_required
+def support():
+    return render_template('support.html', user=current_user)
+
+@utilisateur_bp.route('/contact_support', methods=['POST'])
+@login_required
+def contact_support():
+    try:
+        subject = request.form.get('subject')
+        priority = request.form.get('priority')
+        message = request.form.get('message')
+
+        # Préparer l'email pour les administrateurs
+        subject_map = {
+            'probleme_technique': 'Problème technique',
+            'question_compte': 'Question sur le compte',
+            'suggestion': 'Suggestion d\'amélioration',
+            'autre': 'Autre demande'
+        }
+
+        email_subject = f"[Support THEMAA] {subject_map.get(subject, 'Demande')} - {priority.upper()}"
+        email_body = f"""
+Une nouvelle demande de support a été soumise :
+
+Utilisateur : {current_user.nom}
+ID : {current_user.id_utilisateur}
+Email : {current_user.email}
+Organisme : {current_user.organisme.nom if current_user.organisme else 'Aucun'}
+
+Sujet : {subject_map.get(subject, 'Non spécifié')}
+Priorité : {priority.upper()}
+
+Message :
+{message}
+
+---
+Cette demande a été envoyée depuis le formulaire de support THEMAA.
+"""
+        # Envoyer l'email aux administrateurs
+        admins = Utilisateur.query.filter_by(role='admin').all()
+        for admin in admins:
+            msg = Message(
+                subject=email_subject,
+                sender='noreply@themaa.fr',
+                recipients=[admin.email],
+                body=email_body
+            )
+            mail.send(msg)
+
+        flash("Votre demande a été envoyée avec succès. Notre équipe vous répondra dans les plus brefs délais.", "success")
+        return redirect(url_for('utilisateur.support'))
+
+    except Exception as e:
+        current_app.logger.error(f"Erreur lors de l'envoi de la demande de support : {e}")
+        flash("Une erreur est survenue lors de l'envoi de votre demande. Veuillez réessayer plus tard.", "error")
+        return redirect(url_for('utilisateur.support'))

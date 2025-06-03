@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<!-- preview_utilisateur.html -->
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Modifier l'Utilisateur</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .photo-profil-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .photo-profil {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #ddd;
+            margin-bottom: 10px;
+        }
+        .photo-actions {
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="flash-popup-container" id="flashPopupContainer">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-popup flash-{{ category }}">
+                    {{ message }}
+                    <span class="close-btn" onclick="this.parentElement.style.display='none';">&times;</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
+<div class="admin-container">
+    {% include 'includes/nav.html' %}
+
+    <div class="main-content">
+        <header>
+            <h1>Tableau de bord</h1>
+            <div class="user-info">
+                <a href="{{ url_for('utilisateur.profil') }}" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 10px;">
+                    <span>{{ current_user.nom }}</span>
+                    {% if current_user.photo_profil %}
+                        <img src="/{{ current_user.photo_profil }}"
+                            alt="Photo de profil" 
+                            style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                    {% else %}
+                        <i class="fas fa-user-circle" style="font-size: 1.5em;"></i>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('utilisateur.deconnexion') }}" style="margin-left: 10px; color: #dc3545;">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </header>
+
+        <div class="content">
+            <form method="POST" action="{{ url_for('utilisateur.update_utilisateur_by_id', id=utilisateur.id_utilisateur) }}" enctype="multipart/form-data">
+                <section class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-user icon"></i> Fiche Utilisateur</h2>
+                        <div class="header-actions">
+                            <a href="{{ url_for('utilisateur.edit_utilisateurs') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Retour
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-section">
+                            <div class="photo-profil-container">
+                                {% if utilisateur.photo_profil %}
+                                    <img src="/{{ utilisateur.photo_profil }}" alt="Photo de profil" class="photo-profil">
+                                {% else %}
+                                    <i class="fas fa-user-circle photo-profil" style="font-size: 150px; color: #ddd;"></i>
+                                {% endif %}
+                                <div class="photo-actions">
+                                    <label for="photo_profil" class="btn btn-primary">
+                                        <i class="fas fa-upload"></i> Changer
+                                        <input type="file" id="photo_profil" name="photo_profil" accept="image/*" style="display: none;">
+                                    </label>
+                                    <button type="submit" name="reset_photo" class="btn btn-secondary">
+                                        <i class="fas fa-trash"></i> Supprimer
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3 class="section-title">Informations générales</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Nom complet</label>
+                                    <input type="text" name="nom" value="{{ utilisateur.nom }}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Rôle</label>
+                                    <select name="role" required>
+                                        <option value="admin" {% if utilisateur.role == 'admin' %}selected{% endif %}>Administrateur</option>
+                                        <option value="user" {% if utilisateur.role == 'user' %}selected{% endif %}>Utilisateur</option>
+                                        <option value="visiteur" {% if utilisateur.role == 'visiteur' %}selected{% endif %}>Visiteur</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" name="email" value="{{ utilisateur.email }}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Numéro adhérent</label>
+                                    <input type="text" name="num_adherent" value="{{ utilisateur.num_adherent or '' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3 class="section-title">Organisme</h3>
+                            <div class="form-group">
+                                <select name="id_organisme" class="table-select">
+                                    <option value="">Aucun organisme</option>
+                                    {% for org in organismes %}
+                                    <option value="{{ org.id_organisme }}" {% if utilisateur.id_organisme == org.id_organisme %}selected{% endif %}>{{ org.nom }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            {% if utilisateur.id_organisme %}
+                            <div class="form-group">
+                                <!-- Créer un formulaire séparé pour le retrait d'organisme -->
+                                <form method="POST" action="{{ url_for('utilisateur.update_utilisateur_by_id', id=utilisateur.id_utilisateur) }}" style="display: inline;">
+                                    <input type="hidden" name="retirer_organisme" value="1">
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fas fa-unlink"></i> Retirer l'organisme
+                                    </button>
+                                </form>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-section full-width">
+                            <h3 class="section-title">Réinitialiser le mot de passe</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Nouveau mot de passe</label>
+                                    <input type="password" name="new_password" placeholder="Laisser vide pour ne pas changer">
+                                </div>
+                                <div class="form-group">
+                                    <label>Confirmation</label>
+                                    <input type="password" name="confirm_password" placeholder="Confirmer le nouveau mot de passe">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Enregistrer les modifications
+                        </button>
+                        <button type="button" class="btn btn-danger" onclick="openDeleteModal()">
+                            <i class="fas fa-trash-alt"></i> Supprimer cet utilisateur
+                        </button>
+                    </div>
+                </section>
+            </form>
+            
+            <!-- Modal de confirmation personnalisé -->
+            <div id="deleteModal" class="modal-overlay">
+                <div class="modal-box">
+                    <p>Êtes-vous sûr de vouloir supprimer cet utilisateur ?</p>
+                    <div class="modal-buttons">
+                        <button class="btn btn-secondary" onclick="closeDeleteModal()">Annuler</button>
+                        <form method="post" action="{{ url_for('utilisateur.delete_utilisateur', id=utilisateur.id_utilisateur) }}" style="display:inline;">
+                            <button type="submit" class="btn btn-danger">Confirmer</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+    function openDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+    
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+    }
+
+    // Aperçu de l'image avant upload
+    document.getElementById('photo_profil').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = document.querySelector('.photo-profil-container img');
+                if (img) {
+                    img.src = event.target.result;
+                } else {
+                    const icon = document.querySelector('.photo-profil-container i');
+                    if (icon) {
+                        icon.style.display = 'none';
+                        const newImg = document.createElement('img');
+                        newImg.src = event.target.result;
+                        newImg.className = 'photo-profil';
+                        newImg.alt = 'Photo de profil';
+                        document.querySelector('.photo-profil-container').insertBefore(newImg, document.querySelector('.photo-actions'));
+                    }
+                }
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+</body>
+</html>

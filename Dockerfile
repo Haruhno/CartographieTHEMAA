@@ -20,7 +20,8 @@ RUN pip install --no-cache-dir \
     gunicorn==21.2.0 \
     flask-login==0.6.3 \
     werkzeug==3.0.1 \
-    requests==2.31.0
+    requests==2.31.0 \
+    flask-mail==0.9.1
 
 COPY . /app
 

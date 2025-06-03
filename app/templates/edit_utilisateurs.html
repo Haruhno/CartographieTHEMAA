@@ -1,9 +1,10 @@
 <!DOCTYPE html>
+<!-- edit_utilisateurs.html -->
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des Organismes</title>
+    <title>Gestion des Utilisateurs</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -46,83 +47,42 @@
         .reset-filters:hover {
             background: #5a6268;
         }
-        .etat-container {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .reason-link {
-            font-size: 0.8em;
-        }
-        .reason-link a {
-            color: #007bff;
-            text-decoration: none;
-        }
-        .reason-link a:hover {
-            text-decoration: underline;
-        }
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .modal-box {
-            background: white;
-            padding: 20px;
-            border-radius: 5px;
-            max-width: 500px;
-            width: 90%;
-        }
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        /* Table Layout pour edit_organismes */
-
-        /* Colonnes pour la table des organismes */
+        
+        /* Ajustement des colonnes pour la table des utilisateurs */
         /* ID - petite colonne */
         .table th:nth-child(1),
         .table td:nth-child(1) {
             width: 5%;
         }
 
-        /* Nom - colonne large */
+        /* Nom - colonne moyenne */
         .table th:nth-child(2),
         .table td:nth-child(2) {
-            width: 25%;
+            width: 25%;  /* Augmenter la largeur pour la photo + nom */
         }
 
-        /* Email - taille moyenne */
+        /* Email - colonne large */
         .table th:nth-child(3),
         .table td:nth-child(3) {
             width: 20%;
         }
 
-        /* Téléphone - taille moyenne */
+        /* N° Adhérent - petite colonne */
         .table th:nth-child(4),
         .table td:nth-child(4) {
-            width: 15%;
+            width: 10%;
         }
 
-        /* Statut - taille moyenne */
+        /* Rôle - taille moyenne */
         .table th:nth-child(5),
         .table td:nth-child(5) {
-            width: 15%;
+            width: 11%;
         }
 
-        /* Label - taille moyenne */
+        /* Organisme - taille moyenne */
         .table th:nth-child(6),
         .table td:nth-child(6) {
-            width: 12%;
+            width: 25%;
         }
 
         /* Actions - petite colonne */
@@ -131,7 +91,39 @@
             width: 100%;
         }
 
-        
+        /* Styles supplémentaires */
+        .user-info-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar, .user-avatar-placeholder {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            box-sizing: border-box; /* Important pour inclure padding et border dans la taille */
+        }
+
+        .user-avatar {
+            object-fit: cover;
+            border: 1px solid #ced4da; /* Ajouter une bordure légère */
+        }
+
+        .user-avatar-placeholder {
+            width: 32px;
+            height: 32px;
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            border: 1px solid #ced4da;
+        }
+
+        .user-avatar-placeholder i {
+            font-size: 16px; /* Taille de l'icône */
+        }
     </style>
 </head>
 <body>
@@ -175,22 +167,22 @@
             <div class="content">
                 <section class="card">
                     <div class="table-header">
-                        <h2><i class="fas fa-building icon"></i> Liste des Organismes</h2>
+                        <h2><i class="fas fa-users icon"></i> Liste des Utilisateurs</h2>
                         <div class="table-actions">
-                            <a href="{{ url_for('organisme.new_organisme') }}" class="btn btn-add">
-                                <i class="fas fa-plus"></i> Ajouter un organisme
+                            <a href="{{ url_for('utilisateur.new_utilisateur') }}" class="btn btn-add">
+                                <i class="fas fa-plus"></i> Ajouter un utilisateur
                             </a>
                             
-                            <!-- Barre recherche organismes par ID ou Nom -->
+                            <!-- Barre recherche utilisateurs par ID ou Nom -->
                             <div class="search-box" style="margin-right: 10px;">
-                                <input type="text" id="searchOrganisme" placeholder="Rechercher organisme (ID, Nom)...">
+                                <input type="text" id="searchUtilisateur" placeholder="Rechercher utilisateur (ID, Nom)...">
                                 <i class="fas fa-search"></i>
                             </div>
                             
-                            <!-- Nouvelle barre de recherche -->
+                            <!-- Barre de recherche par N° Adhérent -->
                             <div class="search-box" style="margin-right: 10px;">
-                                <input type="text" id="searchContactInfo" placeholder="Rechercher (Email, Téléphone)...">
-                                <i class="fas fa-address-card"></i>
+                                <input type="text" id="searchAdherent" placeholder="Rechercher par N° Adhérent...">
+                                <i class="fas fa-id-card"></i>
                             </div>
                         </div>
                     </div>
@@ -198,21 +190,21 @@
                     <!-- Section Filtres -->
                     <div class="filter-section">
                         <div class="filter-group">
-                            <label for="statutFilter">Statut :</label>
-                            <select id="statutFilter" class="filter-select">
+                            <label for="roleFilter">Rôle :</label>
+                            <select id="roleFilter" class="filter-select">
                                 <option value="tous">Tous</option>
-                                {% for statut in statuts %}
-                                    <option value="{{ statut }}">{{ statut }}</option>
-                                {% endfor %}
+                                <option value="admin">Admin</option>
+                                <option value="user">User</option>
                             </select>
                         </div>
 
                         <div class="filter-group">
-                            <label for="labelFilter">Label :</label>
-                            <select id="labelFilter" class="filter-select">
+                            <label for="organismeFilter">Organisme :</label>
+                            <select id="organismeFilter" class="filter-select">
                                 <option value="tous">Tous</option>
-                                {% for label in labels %}
-                                    <option value="{{ label }}">{{ label }}</option>
+                                <option value="aucun">Aucun</option>
+                                {% for org in organismes %}
+                                <option value="{{ org.id_organisme }}">{{ org.nom }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -224,7 +216,7 @@
 
                     <!-- Pagination en haut -->
                     <div class="pagination-controls">
-                        <span id="itemCount">Affichage de {{ organismes|length }} organismes</span>
+                        <span id="itemCount">Affichage de {{ utilisateurs|length }} utilisateurs</span>
                         <div class="pagination-buttons">
                             <button class="btn" id="prevPage"><i class="fas fa-chevron-left"></i> Précédent</button>
                             <span id="pageInfo">Page 1</span>
@@ -239,83 +231,87 @@
                     </div>
 
                     <div class="table-responsive">
-                        <form method="post" action="{{ url_for('organisme.update_organismes') }}">
+                        <form method="post" action="{{ url_for('utilisateur.update_utilisateurs') }}">
                             <table class="table">
                                 <thead>
                                     <tr>
                                         <th>ID</th>
                                         <th>Nom</th>
                                         <th>Email</th>
-                                        <th>Téléphone</th>
-                                        <th>Statut</th>
-                                        <th>Label</th>
+                                        <th>N° Adhérent</th>
+                                        <th>Rôle</th>
+                                        <th>Organisme</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for o in organismes %}
-                                    <tr class="organisme-row" data-id="{{ o.id_organisme }}" 
-                                        data-statut="{{ o.statut }}"
-                                        data-label="{{ o.label or '' }}">
-                                        <td>{{ o.id_organisme }}</td>
+                                    {% for u in utilisateurs %}
+                                    <tr class="utilisateur-row" data-id="{{ u.id_utilisateur }}" 
+                                        data-role="{{ u.role }}">
+                                        <td>{{ u.id_utilisateur }}</td>
                                         <td>
-                                            <input type="text" name="nom_{{ o.id_organisme }}" value="{{ o.nom }}" class="table-input" required>
+                                            <div class="user-info-cell">
+                                                {% if u.photo_profil %}
+                                                    <img src="/{{ u.photo_profil }}" 
+                                                         alt="Photo de profil" 
+                                                         class="user-avatar">
+                                                {% else %}
+                                                    <div class="user-avatar-placeholder">
+                                                        <i class="fas fa-user"></i>
+                                                    </div>
+                                                {% endif %}
+                                                <input type="text" name="nom_{{ u.id_utilisateur }}" value="{{ u.nom }}" class="table-input" required>
+                                            </div>
                                         </td>
                                         <td>
-                                            <input type="email" name="email_{{ o.id_organisme }}" value="{{ o.email }}" class="table-input" required>
+                                            <input type="email" name="email_{{ u.id_utilisateur }}" value="{{ u.email }}" class="table-input" required>
                                         </td>
                                         <td>
-                                            <input type="text" name="telephone_{{ o.id_organisme }}" value="{{ o.telephone }}" class="table-input" required>
+                                            <input type="text" name="num_adherent_{{ u.id_utilisateur }}" value="{{ u.num_adherent or '' }}" class="table-input">
                                         </td>
                                         <td>
-                                            <select name="statut_{{ o.id_organisme }}" class="table-select" required>
-                                                {% for statut in statuts %}
-                                                <option value="{{ statut }}" {% if statut == o.statut %}selected{% endif %}>{{ statut }}</option>
-                                                {% endfor %}
+                                            <select name="role_{{ u.id_utilisateur }}" class="table-select" required>
+                                                <option value="admin" {% if u.role == 'admin' %}selected{% endif %}>Admin</option>
+                                                <option value="user" {% if u.role == 'user' %}selected{% endif %}>User</option>
                                             </select>
                                         </td>
                                         <td>
-                                            <input type="text" name="label_{{ o.id_organisme }}" 
-                                                value="{{ o.label if o.label else '' }}" 
-                                                class="table-input">
+                                            <select name="id_organisme_{{ u.id_utilisateur }}" class="table-select">
+                                                <option value="">Aucun</option>
+                                                {% for org in organismes %}
+                                                <option value="{{ org.id_organisme }}" {% if u.id_organisme == org.id_organisme %}selected{% endif %}>{{ org.nom }}</option>
+                                                {% endfor %}
+                                            </select>
                                         </td>
                                         <td class="action-buttons">
                                             <!-- Bouton de modification qui redirige vers une page dédiée -->
-                                            <a href="{{ url_for('organisme.preview_organisme', id=o.id_organisme) }}" class="btn-details" title="Modifier">
+                                            <a href="{{ url_for('utilisateur.preview_utilisateur', id=u.id_utilisateur) }}" class="btn-details" title="Modifier">
                                                 <i class="fas fa-pen"></i>
                                             </a>
 
                                             <!-- Bouton supprimer -->
-                                            <button type="submit" name="delete" value="{{ o.id_organisme }}" 
+                                            <button type="submit" name="delete" value="{{ u.id_utilisateur }}" 
                                                     class="btn-delete btn" 
                                                     title="Supprimer"
-                                                    onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet organisme ?');">
+                                                    onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
                                                 <i class="fas fa-trash"></i>
                                             </button>
 
                                             <!-- Nouveau bouton enregistrer qui utilise une route spécifique -->
                                             <a href="#" class="btn-save save-single" 
-                                            data-id="{{ o.id_organisme }}" 
+                                            data-id="{{ u.id_utilisateur }}" 
                                             title="Enregistrer">
                                                 <i class="fas fa-save"></i>
                                             </a>
                                         </td>
                                     </tr>
                                     <!-- Row details (caché par défaut) -->
-                                    <tr class="details-row" id="details_{{ o.id_organisme }}" style="display: none;">
-                                        <td colspan="8">
+                                    <tr class="details-row" id="details_{{ u.id_utilisateur }}" style="display: none;">
+                                        <td colspan="6">
                                             <div class="details-container">
                                                 <div class="form-group">
-                                                    <label>Adresse</label>
-                                                    <textarea name="adresse_{{ o.id_organisme }}" class="table-textarea">{{ o.adresse }}</textarea>
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>Présentation</label>
-                                                    <textarea name="presentation_{{ o.id_organisme }}" class="table-textarea">{{ o.presentation }}</textarea>
-                                                </div>
-                                                <div class="form-group">
                                                     <label>Numéro adhérent</label>
-                                                    <input type="text" name="num_adherent_{{ o.id_organisme }}" value="{{ o.num_adherent or '' }}" class="table-input">
+                                                    <input type="text" name="num_adherent_{{ u.id_utilisateur }}" value="{{ u.num_adherent or '' }}" class="table-input">
                                                 </div>
                                             </div>
                                         </td>
@@ -334,7 +330,7 @@
 
                     <!-- Pagination en bas -->
                     <div class="pagination-controls">
-                        <span id="itemCountBottom">Affichage de {{ organismes|length }} organismes</span>
+                        <span id="itemCountBottom">Affichage de {{ utilisateurs|length }} utilisateurs</span>
                         <div class="pagination-buttons">
                             <button class="btn" id="prevPageBottom"><i class="fas fa-chevron-left"></i> Précédent</button>
                             <span id="pageInfoBottom">Page 1</span>
@@ -370,51 +366,56 @@
 
     // Pagination, recherche et filtres
     document.addEventListener('DOMContentLoaded', function() {
-        const rows = document.querySelectorAll('.organisme-row');
+        const rows = document.querySelectorAll('.utilisateur-row');
         const itemsPerPageSelect = document.getElementById('itemsPerPage');
-        const searchOrganismeInput = document.getElementById('searchOrganisme');
-        const searchContactInfoInput = document.getElementById('searchContactInfo');
-        const statutFilter = document.getElementById('statutFilter');
-        const labelFilter = document.getElementById('labelFilter');
+        const searchUtilisateurInput = document.getElementById('searchUtilisateur');
+        const searchAdherentInput = document.getElementById('searchAdherent');
+        const roleFilter = document.getElementById('roleFilter');
+        const organismeFilter = document.getElementById('organismeFilter');
         const resetFiltersBtn = document.getElementById('resetFilters');
 
         let currentPage = 1;
         let itemsPerPage = parseInt(itemsPerPageSelect.value);
 
         function applyFilters() {
-            const organismeFilter = searchOrganismeInput.value.trim();
-            const contactFilter = searchContactInfoInput.value.trim();
-            const selectedStatut = statutFilter.value;
-            const selectedLabel = labelFilter.value;
+            const utilisateurFilter = searchUtilisateurInput.value.toLowerCase();
+            const adherentFilter = document.getElementById('searchAdherent').value.toLowerCase();
+            const selectedRole = roleFilter.value;
+            const selectedOrganisme = organismeFilter.value;
 
             const filteredRows = Array.from(rows).filter(row => {
-                // Filtre par recherche organisme (ID ou Nom)
+                // Filtre par recherche utilisateur (ID, Nom)
                 const idCell = row.querySelector('td:first-child');
                 const idText = idCell ? idCell.textContent : '';
                 const nameInput = row.querySelector('td:nth-child(2) input');
                 const nameText = nameInput ? nameInput.value : '';
-                const organismeMatch = compareStrings(idText, organismeFilter) || 
-                                     compareStrings(nameText, organismeFilter);
+                
+                const utilisateurMatch = compareStrings(idText, utilisateurFilter) || 
+                                       compareStrings(nameText, utilisateurFilter);
 
-                // Nouveau filtre pour email et téléphone
-                const emailInput = row.querySelector('td:nth-child(3) input');
-                const phoneInput = row.querySelector('td:nth-child(4) input');
-                const emailText = emailInput ? emailInput.value : '';
-                const phoneText = phoneInput ? phoneInput.value : '';
-                const contactMatch = !contactFilter || 
-                                   compareStrings(emailText, contactFilter) || 
-                                   compareStrings(phoneText, contactFilter);
+                // Filtre par numéro d'adhérent
+                const adherentInput = row.querySelector('td:nth-child(4) input');
+                const adherentText = adherentInput ? adherentInput.value : '';
+                const adherentMatch = !adherentFilter || compareStrings(adherentText, adherentFilter);
 
-                // Filtre par statut
-                const statutMatch = selectedStatut === 'tous' || 
-                                  row.getAttribute('data-statut') === selectedStatut;
+                // Filtre par rôle
+                const roleMatch = selectedRole === 'tous' || 
+                                 row.getAttribute('data-role') === selectedRole;
 
-                // Filtre par label
-                const labelInput = row.querySelector('td:nth-child(6) input');
-                const labelValue = labelInput ? labelInput.value : '';
-                const labelMatch = selectedLabel === 'tous' || labelValue === selectedLabel;
+                // Filtre par organisme
+                const organismeSelect = row.querySelector('select[name^="id_organisme_"]');
+                const organismeValue = organismeSelect ? organismeSelect.value : '';
+                let organismeMatch = false;
 
-                return organismeMatch && contactMatch && statutMatch && labelMatch;
+                if (selectedOrganisme === 'tous') {
+                    organismeMatch = true;
+                } else if (selectedOrganisme === 'aucun') {
+                    organismeMatch = !organismeValue || organismeValue === '';
+                } else {
+                    organismeMatch = organismeValue === selectedOrganisme;
+                }
+
+                return utilisateurMatch && adherentMatch && roleMatch && organismeMatch;
             });
 
             return filteredRows;
@@ -443,8 +444,8 @@
             // Mettre à jour les infos de pagination
             document.getElementById('pageInfo').textContent = `Page ${currentPage} sur ${totalPages}`;
             document.getElementById('pageInfoBottom').textContent = `Page ${currentPage} sur ${totalPages}`;
-            document.getElementById('itemCount').textContent = `Affichage de ${filteredRows.length} organismes`;
-            document.getElementById('itemCountBottom').textContent = `Affichage de ${filteredRows.length} organismes`;
+            document.getElementById('itemCount').textContent = `Affichage de ${filteredRows.length} utilisateurs`;
+            document.getElementById('itemCountBottom').textContent = `Affichage de ${filteredRows.length} utilisateurs`;
 
             // Désactiver les boutons si nécessaire
             document.getElementById('prevPage').disabled = currentPage === 1;
@@ -454,22 +455,22 @@
         }
 
         // Événements pour les filtres
-        statutFilter.addEventListener('change', function() {
+        roleFilter.addEventListener('change', function() {
             currentPage = 1;
             updatePagination();
         });
 
-        labelFilter.addEventListener('change', function() {
+        organismeFilter.addEventListener('change', function() {
             currentPage = 1;
             updatePagination();
         });
 
         // Réinitialiser les filtres
         resetFiltersBtn.addEventListener('click', function() {
-            searchOrganismeInput.value = '';
-            searchContactInfoInput.value = '';
-            statutFilter.value = 'tous';
-            labelFilter.value = 'tous';
+            searchUtilisateurInput.value = '';
+            searchAdherentInput.value = '';
+            roleFilter.value = 'tous';
+            organismeFilter.value = 'tous';
             currentPage = 1;
             updatePagination();
         });
@@ -481,12 +482,12 @@
             updatePagination();
         });
 
-        searchOrganismeInput.addEventListener('input', function() {
+        searchUtilisateurInput.addEventListener('input', function() {
             currentPage = 1;
             updatePagination();
         });
 
-        searchContactInfoInput.addEventListener('input', function() {
+        searchAdherentInput.addEventListener('input', function() {
             currentPage = 1;
             updatePagination();
         });
@@ -531,21 +532,17 @@
                 e.preventDefault();
                 const id = this.getAttribute('data-id');
                 
-                // Récupérer toutes les données du formulaire pour cet organisme
+                // Récupérer toutes les données du formulaire pour cet utilisateur
                 const data = {
                     nom: document.querySelector(`input[name="nom_${id}"]`).value,
                     email: document.querySelector(`input[name="email_${id}"]`).value,
-                    telephone: document.querySelector(`input[name="telephone_${id}"]`).value,
-                    site_web: document.querySelector(`input[name="site_web_${id}"]`)?.value || '',
-                    statut: document.querySelector(`select[name="statut_${id}"]`).value,
-                    label: document.querySelector(`input[name="label_${id}"]`)?.value || '',
-                    adresse: document.querySelector(`textarea[name="adresse_${id}"]`)?.value || '',
-                    presentation: document.querySelector(`textarea[name="presentation_${id}"]`)?.value || '',
+                    role: document.querySelector(`select[name="role_${id}"]`).value,
+                    id_organisme: document.querySelector(`select[name="id_organisme_${id}"]`).value,
                     num_adherent: document.querySelector(`input[name="num_adherent_${id}"]`)?.value || ''
                 };
 
                 // Envoyer les données via fetch
-                fetch(`/organismes/update/${id}`, {
+                fetch(`/utilisateur/update/${id}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

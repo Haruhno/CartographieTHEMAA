@@ -369,3 +369,39 @@ document.querySelectorAll('.delete-organisme').forEach(btn => {
     });
 });
 
+function showOrganismeWarning(event) {
+    event.preventDefault();
+    const profileUrl = event.currentTarget.dataset.profileUrl;
+    
+    const popup = document.createElement('div');
+    popup.className = 'warning-popup';
+    popup.innerHTML = `
+        <div class="warning-popup-content">
+            <div class="warning-popup-header">
+                <i class="fas fa-exclamation-circle"></i>
+                <h3>Association requise</h3>
+            </div>
+            <p>Pour accéder à cette fonctionnalité, vous devez d'abord associer votre compte à un organisme.</p>
+            <div class="warning-popup-actions">
+                <button class="btn btn-secondary" onclick="closeWarningPopup(this.closest('.warning-popup'))">Annuler</button>
+                <button class="btn btn-primary" onclick="window.location.href='${profileUrl}'">
+                    <i class="fas fa-link"></i> Associer un organisme
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(popup);
+    setTimeout(() => popup.classList.add('show'), 10);
+}
+
+function closeWarningPopup(popup) {
+    popup.classList.remove('show');
+    setTimeout(() => {
+        popup.remove();
+    }, 300);
+}
+
+function redirectToProfil() {
+    window.location.href = "{{ url_for('utilisateur.profil', _anchor='organisme-section') }}";
+}

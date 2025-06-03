@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support - THEMAA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="admin-container">
+        {% include 'includes/nav.html' %}
+        
+        <div class="main-content">
+            <header>
+                <h1>Support</h1>
+                <div class="user-info">
+                    <a href="{{ url_for('utilisateur.profil') }}" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 10px;">
+                        <span>{{ current_user.nom }}</span>
+                        {% if current_user.photo_profil %}
+                            <img src="/{{ current_user.photo_profil }}"
+                                alt="Photo de profil" 
+                                style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                        {% else %}
+                            <i class="fas fa-user-circle" style="font-size: 1.5em;"></i>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('utilisateur.deconnexion') }}" style="margin-left: 10px; color: #dc3545;">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </header>
+
+            <div class="content">
+                <div class="support-container">
+                    <div class="support-card">
+                        <div class="support-header">
+                            <i class="fas fa-headset"></i>
+                            <h2>Comment pouvons-nous vous aider ?</h2>
+                            <p>Notre équipe est là pour vous aider. Remplissez le formulaire ci-dessous et nous vous répondrons dans les plus brefs délais.</p>
+                        </div>
+
+                        <form method="POST" action="{{ url_for('utilisateur.contact_support') }}" class="support-form">
+                            <div class="form-group">
+                                <label for="subject">Sujet</label>
+                                <select id="subject" name="subject" required>
+                                    <option value="">Sélectionnez un sujet</option>
+                                    <option value="probleme_technique">Problème technique</option>
+                                    <option value="question_compte">Question sur mon compte</option>
+                                    <option value="suggestion">Suggestion d'amélioration</option>
+                                    <option value="autre">Autre</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="priority">Priorité</label>
+                                <div class="priority-options">
+                                    <label class="priority-option">
+                                        <input type="radio" name="priority" value="basse" required>
+                                        <span class="priority-label low">Basse</span>
+                                    </label>
+                                    <label class="priority-option">
+                                        <input type="radio" name="priority" value="moyenne" checked>
+                                        <span class="priority-label medium">Moyenne</span>
+                                    </label>
+                                    <label class="priority-option">
+                                        <input type="radio" name="priority" value="haute">
+                                        <span class="priority-label high">Haute</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="message">Message</label>
+                                <textarea id="message" name="message" rows="6" required 
+                                    placeholder="Décrivez votre problème ou votre demande en détail..."></textarea>
+                                <small class="char-count">0/1000 caractères</small>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i> Envoyer
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="support-info">
+                        <div class="info-card">
+                            <i class="fas fa-clock"></i>
+                            <h3>Temps de réponse</h3>
+                            <p>Nous nous efforçons de répondre à toutes les demandes sous 24-48h ouvrées.</p>
+                        </div>
+                        <div class="info-card">
+                            <i class="fas fa-shield-alt"></i>
+                            <h3>Confidentialité</h3>
+                            <p>Vos informations sont traitées de manière confidentielle et sécurisée.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('message').addEventListener('input', function() {
+            const maxLength = 1000;
+            const currentLength = this.value.length;
+            const charCount = document.querySelector('.char-count');
+            charCount.textContent = `${currentLength}/${maxLength} caractères`;
+            
+            if (currentLength >= maxLength) {
+                charCount.style.color = '#dc3545';
+            } else {
+                charCount.style.color = '#666';
+            }
+        });
+    </script>
+</body>
+</html>

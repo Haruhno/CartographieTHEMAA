@@ -29,26 +29,7 @@
 
     <div class="admin-container">
         <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="logo">THEMAA</div>
-            <nav>
-                <ul>
-                    <li class="active"><a href="#"><i class="fas fa-home"></i> Dashboard</a></li>
-                    {% if user.role == 'admin' %}
-                        <li><a href="{{ url_for('organisme.edit_organismes') }}"><i class="fas fa-building"></i> Organismes</a></li>
-                        <li><a href="{{ url_for('formation.edit_formations') }}"><i class="fas fa-graduation-cap"></i> Formations</a></li>
-                        <li><a href="{{ url_for('formation.formulaire') }}"><i class="fas fa-file-alt"></i> Formulaire</a></li>
-                        <li><a href="{{ url_for('carte') }}"><i class="fas fa-map-marked-alt"></i> Carte</a></li>
-                    {% elif user.role == 'user' %}
-                        <li><a href="{{ url_for('formation.formulaire') }}"><i class="fas fa-graduation-cap"></i> Formulaire</a></li>
-                        <li><a href="{{ url_for('carte') }}"><i class="fas fa-map-marked-alt"></i> Carte</a></li>
-                    {% endif %}
-                    <li><a href="{{ url_for('utilisateur.profil') }}"><i class="fas fa-user"></i> Mon Profil</a></li>
-                </ul>
-            </nav>
-
-        </div>
-
+        {% include 'includes/nav.html' %}
         <!-- Main Content -->
         <div class="main-content">
             <header>
@@ -136,74 +117,87 @@
                     </section>
                 {% elif user.role == 'user' %}
                     <section class="user-dashboard">
-                        <div class="user-welcome-card">
-                            <h2>Bienvenue, {{ user.nom }} !</h2>
-                            {% if user.id_organisme %}
-                                <p class="user-organisme">
-                                    <i class="fas fa-building"></i> 
-                                    Organisme : <strong>{{ user.organisme.nom }}</strong>
-                                </p>
-                            {% else %}
+                        {% if not user.id_organisme %}
+                            <div class="user-welcome-card">
                                 <p class="user-organisme warning">
                                     <i class="fas fa-exclamation-triangle"></i>
                                     Vous n'êtes pas encore associé à un organisme, allez dans votre profil pour en ajouter un.
                                 </p>
-                            {% endif %}
-                        </div>
-
-                        <div class="user-formations-header">
-                            <h2><i class="fas fa-graduation-cap"></i> Vos formations</h2>
-                            <a href="{{ url_for('formation.formulaire') }}" class="btn btn-add">
-                                <i class="fas fa-plus"></i> Ajouter une formation
-                            </a>
-                        </div>
-
-                        {% if formations %}
-                            <div class="user-formations-grid">
-                                {% for formation in formations %}
-                                    <div class="user-formation-card">
-                                        <div class="user-formation-header">
-                                            <h3>{{ formation.nom }}</h3>
-                                            <span class="user-formation-type {{ formation.type }}">
-                                                {{ 'Initiale' if formation.type == 'initiale' else 'Continue' }}
-                                            </span>
-                                        </div>
-                                        
-                                        <div class="user-formation-details">
-                                            <p><i class="fas fa-calendar-alt"></i> {{ formation.dates }}</p>
-                                            <p><i class="fas fa-clock"></i> {{ formation.duree }}</p>
-                                            <p><i class="fas fa-map-marker-alt"></i> {{ formation.lieu }}</p>
-                                            {% if formation.prix %}
-                                                <p><i class="fas fa-euro-sign"></i> {{ "%.2f"|format(formation.prix) }} €</p>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <div class="user-formation-status">
-                                            <span class="status-badge {{ formation.etat }}">
-                                                {{ 'Validée' if formation.etat == 'valide' else 'En attente' }}
-                                            </span>
-                                        </div>
-                                        
-                                        <div class="user-formation-actions">
-                                            <a href="{{ url_for('formation.modify_formation', id=formation.id_formation) }}" class="btn btn-edit">
-                                                <i class="fas fa-edit"></i> Modifier
-                                            </a>
-                                            <button class="btn btn-delete" data-id="{{ formation.id_formation }}" data-action="delete">
-                                                <i class="fas fa-trash-alt"></i> Supprimer
-                                            </button>
-                                        </div>
-                                    </div>
-                                {% endfor %}
+                            </div>
+                            
+                            <!-- Masquer le bouton d'ajout de formation -->
+                            <div class="user-formations-header">
+                                <h2><i class="fas fa-graduation-cap"></i> Vos formations</h2>
+                                <a href="{{ url_for('utilisateur.profil', _anchor='organisme-section') }}" class="btn-associate">
+                                    <i class="fas fa-link"></i>
+                                    Associer un organisme pour gérer vos formations
+                                </a>
                             </div>
                         {% else %}
-                            <div class="user-no-formations">
-                                <i class="fas fa-exclamation-circle"></i>
-                                <h3>Vous n'avez pas encore ajouté de formation</h3>
-                                <p>Commencez par ajouter votre première formation en cliquant sur le bouton ci-dessus</p>
-                                <a href="{{ url_for('formation.formulaire') }}" class="btn btn-primary">
+                            <div class="user-welcome-card">
+                                <h2>Bienvenue, {{ user.nom }} !</h2>
+                                {% if user.id_organisme %}
+                                    <p class="user-organisme">
+                                        <i class="fas fa-building"></i> 
+                                        Organisme : <strong>{{ user.organisme.nom }}</strong>
+                                    </p>
+                                {% endif %}
+                            </div>
+
+                            <div class="user-formations-header">
+                                <h2><i class="fas fa-graduation-cap"></i> Vos formations</h2>
+                                <a href="{{ url_for('formation.formulaire') }}" class="btn btn-add">
                                     <i class="fas fa-plus"></i> Ajouter une formation
                                 </a>
                             </div>
+
+                            {% if formations %}
+                                <div class="user-formations-grid">
+                                    {% for formation in formations %}
+                                        <div class="user-formation-card">
+                                            <div class="user-formation-header">
+                                                <h3>{{ formation.nom }}</h3>
+                                                <span class="user-formation-type {{ formation.type }}">
+                                                    {{ 'Initiale' if formation.type == 'initiale' else 'Continue' }}
+                                                </span>
+                                            </div>
+                                            
+                                            <div class="user-formation-details">
+                                                <p><i class="fas fa-calendar-alt"></i> {{ formation.dates }}</p>
+                                                <p><i class="fas fa-clock"></i> {{ formation.duree }}</p>
+                                                <p><i class="fas fa-map-marker-alt"></i> {{ formation.lieu }}</p>
+                                                {% if formation.prix %}
+                                                    <p><i class="fas fa-euro-sign"></i> {{ "%.2f"|format(formation.prix) }} €</p>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <div class="user-formation-status">
+                                                <span class="status-badge {{ formation.etat }}">
+                                                    {{ 'Validée' if formation.etat == 'valide' else 'En attente' }}
+                                                </span>
+                                            </div>
+                                            
+                                            <div class="user-formation-actions">
+                                                <a href="{{ url_for('formation.modify_formation', id=formation.id_formation) }}" class="btn btn-edit">
+                                                    <i class="fas fa-edit"></i> Modifier
+                                                </a>
+                                                <button class="btn btn-delete" data-id="{{ formation.id_formation }}" data-action="delete">
+                                                    <i class="fas fa-trash-alt"></i> Supprimer
+                                                </button>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="user-no-formations">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <h3>Vous n'avez pas encore ajouté de formation</h3>
+                                    <p>Commencez par ajouter votre première formation en cliquant sur le bouton ci-dessus</p>
+                                    <a href="{{ url_for('formation.formulaire') }}" class="btn btn-primary">
+                                        <i class="fas fa-plus"></i> Ajouter une formation
+                                    </a>
+                                </div>
+                            {% endif %}
                         {% endif %}
                     </section>
                 {% endif %}
@@ -222,7 +216,6 @@
         </div>
     </div>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-
 
 </body>
 </html>
