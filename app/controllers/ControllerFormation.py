@@ -236,7 +236,7 @@ def delete_formation(id):
     db.session.delete(formation)
     db.session.commit()
     flash("Formation supprimée avec succès.", "success")
-    return redirect(url_for("formation.edit_formations"))  # Modifié pour un redirect classique
+    return redirect(url_for("formation.edit_formations"))
 
 
 @formation_bp.route("/formulaire", methods=["GET"])
