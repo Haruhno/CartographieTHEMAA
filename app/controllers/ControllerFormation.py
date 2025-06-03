@@ -5,6 +5,7 @@ from database import db
 from .ControllerUtilisateur import admin_required
 from functools import wraps
 from flask_login import current_user
+from flask_login import login_required, current_user
 
 formation_bp = Blueprint("formation", __name__, url_prefix="/formations")
 
@@ -122,7 +123,15 @@ def update_formation_by_id(id):
 def edit_formations():
     formations = Formation.query.all()
     organismes = Organisme.query.all()
-    return render_template("edit_formations.html", formations=formations, organismes=organismes)
+
+    # Récupérer les labels distincts (non vides, non null)
+    labels = db.session.query(Formation.label).distinct().all()
+    labels = [l[0] for l in labels if l[0] and l[0].strip().lower() != 'none']
+
+    return render_template("edit_formations.html",
+                           formations=formations,
+                           organismes=organismes,
+                           labels=labels)
 
 @formation_bp.route("/update", methods=["POST"])
 @admin_required
@@ -218,46 +227,117 @@ def delete_formation(id):
     return redirect(url_for("formation.edit_formations"))  # Modifié pour un redirect classique
 
 
+@formation_bp.route("/formulaire", methods=["GET"])
+def formulaire():
+    organismes = Organisme.query.all()
+
+    # ---------- Financements ----------
+    all_financements_raw = db.session.query(Formation.financement).filter(Formation.financement != None).all()
+    financement_set = set()
+    for row in all_financements_raw:
+        if row[0]:
+            financement_set.update([f.strip() for f in str(row[0]).split(',')])
+    financements = sorted(financement_set) if financement_set else ["OPCO (Opérateur De Compétences)", "CPF (Compte Personnel de Formation)", "France Travail", "Auto-financement"]
+
+    # ----------- Labels ----------
+    all_labels_raw = db.session.query(Formation.label).filter(Formation.label != None).all()
+    label_set = set()
+    for row in all_labels_raw:
+        if row[0]:
+            label_set.update([l.strip() for l in str(row[0]).split(',')])
+    labels = sorted(label_set) if label_set else ["Qualiopi", "RNCP (Répertoire National des Certifications Professionnelles)", "Erasmus+"]
+
+    # ---------- Certifications ----------
+    certifications = ["DE (Diplôme d'État)", "DNSP (Diplôme National Supérieur Professionnel)", "Formation Certifiante", "Formation Non Certifiante"]
+    if hasattr(Formation, "certifications"):
+        all_certs_raw = db.session.query(Formation.certifications).filter(Formation.certifications != None).all()
+        cert_set = set()
+        for row in all_certs_raw:
+            if row[0]:
+                cert_set.update([c.strip() for c in str(row[0]).split(',')])
+        certifications = sorted(cert_set) if cert_set else certifications
+
+    return render_template(
+        "formulaire.html",
+        organismes=organismes,
+        financements=financements,
+        labels=labels,
+        certifications=certifications
+    )
 
 @formation_bp.route("/submit", methods=["POST"])
+@login_required
 def submit_formation():
-    nom = request.form["nom"]
-    type_ = request.form["type"]
-    description = request.form["description"]
-    duree = request.form["duree"]
-    dates = request.form["dates"]
-    lieu = request.form["lieu"]
-    prix = request.form.get("prix")
-    prix = float(prix) if prix else None
-    conditions_acces = request.form.get("conditions_acces")
-    financement = request.form.get("financement")
-    presentation_intervenants = request.form.get("presentation_intervenants")
-    lien_inscription = request.form.get("lien_inscription")
-    if lien_inscription and not lien_inscription.startswith("http://") and not lien_inscription.startswith("https://"):
-        lien_inscription = "https://" + lien_inscription
-    label = request.form.get("label")
-    id_organisme = request.form["id_organisme"]
+    try:
+        # Récupérer les données du formulaire
+        nom = request.form.get('nom')
+        type_formation = request.form.get('type')
+        id_organisme = request.form.get('id_organisme')
+        description = request.form.get('description')
+        # Correction: reconstituer la durée complète
+        duree_heures = request.form.get('duree_heures')
+        duree_valeur = request.form.get('duree_valeur')
+        duree_unite = request.form.get('duree_unite')
+        # Compose la durée sous forme "75.0 heures / 10 jours"
+        duree = None
+        if duree_heures and duree_valeur and duree_unite:
+            duree = f"{duree_heures} heures / {duree_valeur} {duree_unite}"
+        elif duree_heures:
+            duree = f"{duree_heures} heures"
+        elif duree_valeur and duree_unite:
+            duree = f"{duree_valeur} {duree_unite}"
 
-    formation_en_attente = Formation(
-        nom=nom,
-        type=type_,
-        description=description,
-        duree=duree,
-        dates=dates,
-        lieu=lieu,
-        prix=prix,
-        conditions_acces=conditions_acces,
-        financement=financement,
-        presentation_intervenants=presentation_intervenants,
-        lien_inscription=lien_inscription,
-        label=label,
-        id_organisme=id_organisme
-    )
-    db.session.add(formation_en_attente)
-    db.session.commit()
+        dates = request.form.get('dates')
+        lieu = request.form.get('adresse')  # Correction: champ "adresse" dans le formulaire HTML
+        prix = request.form.get('prix')
+        prix = float(prix) if prix else None
+        conditions_acces = request.form.get('conditions_acces')
+        financement = request.form.get('financement')
+        presentation_intervenants = request.form.get('presentation_intervenants')
+        lien_inscription = request.form.get('lien_inscription')
+        if lien_inscription and not lien_inscription.startswith("http://") and not lien_inscription.startswith("https://"):
+            lien_inscription = "https://" + lien_inscription
+        label = request.form.get('label')
+        # num_adherent n'est PAS un champ du modèle Formation, donc on ne le passe pas au constructeur
 
-    print("Formation ajoutée avec succès.")  # Debugging print
-    return redirect(url_for("dashboard")) 
+        # Vérification des champs obligatoires pour éviter les erreurs d'intégrité
+        if not nom or not type_formation or not id_organisme or not description or not duree or not dates or not lieu:
+            flash("Merci de remplir tous les champs obligatoires du formulaire.", "danger")
+            return redirect(url_for('formation.formulaire'))
+
+        # Créer la nouvelle formation avec l'état "en_attente"
+        nouvelle_formation = Formation(
+            nom=nom,
+            type=type_formation,
+            id_organisme=id_organisme,
+            description=description,
+            duree=duree,
+            dates=dates,
+            lieu=lieu,
+            prix=prix,
+            conditions_acces=conditions_acces,
+            financement=financement,
+            presentation_intervenants=presentation_intervenants,
+            lien_inscription=lien_inscription,
+            label=label,
+            etat='en_attente'
+        )
+
+        db.session.add(nouvelle_formation)
+        db.session.commit()
+
+        flash('Votre formation a été soumise avec succès et est en attente de validation.', 'success')
+
+        # Redirection en fonction du rôle
+        if hasattr(current_user, "is_admin") and current_user.is_admin:
+            return redirect(url_for('formation.edit_formations', filtre='en_attente'))
+        else:
+            return redirect(url_for('dashboard'))
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Une erreur s'est produite lors de la soumission du formulaire: {str(e)}", 'danger')
+        return redirect(url_for('formation.formulaire'))
 
 @formation_bp.route("/valides", methods=["GET"])
 def get_formations_valides():

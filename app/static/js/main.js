@@ -78,7 +78,6 @@ $(document).ready(function(){
                             <td>${o.adresse}</td>
                             <td>${o.email}</td>
                             <td>${o.telephone}</td>
-                            <td><button class="btn btn-danger btn-sm" onclick="supprimerOrganisme(${o.id})">🗑</button></td>
                         </tr>
                     `);
                 });
@@ -120,7 +119,6 @@ $(document).ready(function(){
                             <td>${f.duree}</td>
                             <td>${f.lieu}</td>
                             <td>${f.prix}</td>
-                            <td><button class="btn btn-danger btn-sm" onclick="supprimerFormation(${f.id})">🗑</button></td>
                         </tr>
                     `);
                 });
@@ -405,3 +403,224 @@ function closeWarningPopup(popup) {
 function redirectToProfil() {
     window.location.href = "{{ url_for('utilisateur.profil', _anchor='organisme-section') }}";
 }
+document.addEventListener('DOMContentLoaded', function() {
+    // Pagination pour les organismes
+    if (document.getElementById('tableOrganismes')) {
+        const organismeRows = document.querySelectorAll('#tableOrganismes .organisme-row');
+        const itemsPerPageOrganismes = document.getElementById('itemsPerPageOrganismes');
+        
+        let currentPageOrganismes = 1;
+        let itemsPerPageOrg = parseInt(itemsPerPageOrganismes.value);
+
+        function updatePaginationOrganismes() {
+            const totalPages = Math.ceil(organismeRows.length / itemsPerPageOrg) || 1;
+            
+            // Masquer toutes les lignes
+            organismeRows.forEach(row => row.style.display = 'none');
+            
+            // Afficher les lignes de la page courante
+            const startIndex = (currentPageOrganismes - 1) * itemsPerPageOrg;
+            const endIndex = startIndex + itemsPerPageOrg;
+            
+            organismeRows.forEach((row, index) => {
+                if (index >= startIndex && index < endIndex) {
+                    row.style.display = '';
+                }
+            });
+
+            // Mettre à jour les infos de pagination
+            document.getElementById('pageInfoOrganismes').textContent = `Page ${currentPageOrganismes} sur ${totalPages}`;
+            document.getElementById('pageInfoOrganismesBottom').textContent = `Page ${currentPageOrganismes} sur ${totalPages}`;
+            document.getElementById('itemCountOrganismes').textContent = `Affichage de ${organismeRows.length} organismes`;
+            document.getElementById('itemCountOrganismesBottom').textContent = `Affichage de ${organismeRows.length} organismes`;
+
+            // Désactiver les boutons si nécessaire
+            document.getElementById('prevPageOrganismes').disabled = currentPageOrganismes === 1;
+            document.getElementById('prevPageOrganismesBottom').disabled = currentPageOrganismes === 1;
+            document.getElementById('nextPageOrganismes').disabled = currentPageOrganismes === totalPages || totalPages === 0;
+            document.getElementById('nextPageOrganismesBottom').disabled = currentPageOrganismes === totalPages || totalPages === 0;
+        }
+
+        // Événements pour la pagination des organismes
+        itemsPerPageOrganismes.addEventListener('change', function() {
+            itemsPerPageOrg = parseInt(this.value);
+            currentPageOrganismes = 1;
+            updatePaginationOrganismes();
+        });
+
+        document.getElementById('prevPageOrganismes').addEventListener('click', function() {
+            if (currentPageOrganismes > 1) {
+                currentPageOrganismes--;
+                updatePaginationOrganismes();
+            }
+        });
+
+        document.getElementById('nextPageOrganismes').addEventListener('click', function() {
+            const totalPages = Math.ceil(organismeRows.length / itemsPerPageOrg);
+            if (currentPageOrganismes < totalPages) {
+                currentPageOrganismes++;
+                updatePaginationOrganismes();
+            }
+        });
+
+        document.getElementById('prevPageOrganismesBottom').addEventListener('click', function() {
+            if (currentPageOrganismes > 1) {
+                currentPageOrganismes--;
+                updatePaginationOrganismes();
+            }
+        });
+
+        document.getElementById('nextPageOrganismesBottom').addEventListener('click', function() {
+            const totalPages = Math.ceil(organismeRows.length / itemsPerPageOrg);
+            if (currentPageOrganismes < totalPages) {
+                currentPageOrganismes++;
+                updatePaginationOrganismes();
+            }
+        });
+
+        // Initialisation
+        updatePaginationOrganismes();
+    }
+
+    // Pagination pour les formations
+    if (document.getElementById('tableFormations')) {
+        const formationRows = document.querySelectorAll('#tableFormations .formation-row');
+        const itemsPerPageFormations = document.getElementById('itemsPerPageFormations');
+        
+        let currentPageFormations = 1;
+        let itemsPerPageForm = parseInt(itemsPerPageFormations.value);
+
+        function updatePaginationFormations() {
+            const totalPages = Math.ceil(formationRows.length / itemsPerPageForm) || 1;
+            
+            // Masquer toutes les lignes
+            formationRows.forEach(row => row.style.display = 'none');
+            
+            // Afficher les lignes de la page courante
+            const startIndex = (currentPageFormations - 1) * itemsPerPageForm;
+            const endIndex = startIndex + itemsPerPageForm;
+            
+            formationRows.forEach((row, index) => {
+                if (index >= startIndex && index < endIndex) {
+                    row.style.display = '';
+                }
+            });
+
+            // Mettre à jour les infos de pagination
+            document.getElementById('pageInfoFormations').textContent = `Page ${currentPageFormations} sur ${totalPages}`;
+            document.getElementById('pageInfoFormationsBottom').textContent = `Page ${currentPageFormations} sur ${totalPages}`;
+            document.getElementById('itemCountFormations').textContent = `Affichage de ${formationRows.length} formations`;
+            document.getElementById('itemCountFormationsBottom').textContent = `Affichage de ${formationRows.length} formations`;
+
+            // Désactiver les boutons si nécessaire
+            document.getElementById('prevPageFormations').disabled = currentPageFormations === 1;
+            document.getElementById('prevPageFormationsBottom').disabled = currentPageFormations === 1;
+            document.getElementById('nextPageFormations').disabled = currentPageFormations === totalPages || totalPages === 0;
+            document.getElementById('nextPageFormationsBottom').disabled = currentPageFormations === totalPages || totalPages === 0;
+        }
+
+        // Événements pour la pagination des formations
+        itemsPerPageFormations.addEventListener('change', function() {
+            itemsPerPageForm = parseInt(this.value);
+            currentPageFormations = 1;
+            updatePaginationFormations();
+        });
+
+        document.getElementById('prevPageFormations').addEventListener('click', function() {
+            if (currentPageFormations > 1) {
+                currentPageFormations--;
+                updatePaginationFormations();
+            }
+        });
+
+        document.getElementById('nextPageFormations').addEventListener('click', function() {
+            const totalPages = Math.ceil(formationRows.length / itemsPerPageForm);
+            if (currentPageFormations < totalPages) {
+                currentPageFormations++;
+                updatePaginationFormations();
+            }
+        });
+
+        document.getElementById('prevPageFormationsBottom').addEventListener('click', function() {
+            if (currentPageFormations > 1) {
+                currentPageFormations--;
+                updatePaginationFormations();
+            }
+        });
+
+        document.getElementById('nextPageFormationsBottom').addEventListener('click', function() {
+            const totalPages = Math.ceil(formationRows.length / itemsPerPageForm);
+            if (currentPageFormations < totalPages) {
+                currentPageFormations++;
+                updatePaginationFormations();
+            }
+        });
+
+        // Initialisation
+        updatePaginationFormations();
+    }
+
+    // Pour les cartes de formations utilisateur
+    if (document.querySelector('.user-formations-grid')) {
+        const formationCards = document.querySelectorAll('.user-formation-card');
+        const itemsPerPageUser = 6; // 6 cartes par page
+        let currentPageUser = 1;
+        const totalPagesUser = Math.ceil(formationCards.length / itemsPerPageUser);
+
+        function updateUserFormationsPagination() {
+            // Masquer toutes les cartes
+            formationCards.forEach(card => card.style.display = 'none');
+            
+            // Afficher les cartes de la page courante
+            const startIndex = (currentPageUser - 1) * itemsPerPageUser;
+            const endIndex = startIndex + itemsPerPageUser;
+            
+            formationCards.forEach((card, index) => {
+                if (index >= startIndex && index < endIndex) {
+                    card.style.display = '';
+                }
+            });
+
+            // Créer ou mettre à jour les contrôles de pagination
+            let paginationControls = document.querySelector('.user-formations-pagination');
+            if (!paginationControls) {
+                paginationControls = document.createElement('div');
+                paginationControls.className = 'user-formations-pagination';
+                document.querySelector('.user-formations-grid').after(paginationControls);
+            }
+
+            paginationControls.innerHTML = `
+                <div class="pagination-buttons">
+                    <button class="btn" id="prevPageUser" ${currentPageUser === 1 ? 'disabled' : ''}>
+                        <i class="fas fa-chevron-left"></i> Précédent
+                    </button>
+                    <span>Page ${currentPageUser} sur ${totalPagesUser}</span>
+                    <button class="btn" id="nextPageUser" ${currentPageUser === totalPagesUser ? 'disabled' : ''}>
+                        Suivant <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            `;
+
+            // Ajouter les événements
+            document.getElementById('prevPageUser')?.addEventListener('click', () => {
+                if (currentPageUser > 1) {
+                    currentPageUser--;
+                    updateUserFormationsPagination();
+                }
+            });
+
+            document.getElementById('nextPageUser')?.addEventListener('click', () => {
+                if (currentPageUser < totalPagesUser) {
+                    currentPageUser++;
+                    updateUserFormationsPagination();
+                }
+            });
+        }
+
+        // Initialisation
+        if (formationCards.length > itemsPerPageUser) {
+            updateUserFormationsPagination();
+        }
+    }
+});
+

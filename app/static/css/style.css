@@ -2930,3 +2930,36 @@ input[type="file"] {
         padding: 1.5rem;
     }
 }
+
+/* Styles pour le récapitulatif */
+.summary-container {
+    border: 1px solid #e0e0e0;
+}
+
+.summary-item {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.summary-label {
+    font-weight: 500;
+    color: #555;
+    min-width: 120px;
+    display: inline-block;
+}
+
+.summary-value {
+    color: #333;
+    flex: 1;
+}
+
+@media (max-width: 768px) {
+    .summary-item {
+        flex-direction: column;
+    }
+    
+    .summary-label {
+        margin-bottom: 3px;
+    }
+}
