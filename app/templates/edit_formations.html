@@ -195,9 +195,9 @@
                             <label for="labelFilter">Label :</label>
                             <select id="labelFilter" class="filter-select">
                                 <option value="tous">Tous</option>
-                                <option value="Qualiopi">Qualiopi</option>
-                                <option value="RNCP">RNCP</option>
-                                <option value="Autre">Autre</option>
+                                {% for label in labels %}
+                                    <option value="{{ label }}">{{ label }}</option>
+                                {% endfor %}
                             </select>
                         </div>
 
@@ -498,17 +498,9 @@
 
                 // Filtre par label
                 const labelInput = row.querySelector('td:nth-child(6) input');
-                const labelValue = labelInput ? labelInput.value : '';
-                if (selectedLabel !== 'tous') {
-                    if (selectedLabel === 'Qualiopi' && !labelValue.includes('Qualiopi')) {
-                        return false;
-                    }
-                    if (selectedLabel === 'RNCP' && !labelValue.includes('RNCP')) {
-                        return false;
-                    }
-                    if (selectedLabel === 'Autre' && (labelValue.includes('Qualiopi') || labelValue.includes('RNCP') || labelValue === 'null')) {
-                        return false;
-                    }
+                const labelValue = labelInput ? labelInput.value.trim() : '';
+                if (selectedLabel !== 'tous' && labelValue.toLowerCase() !== selectedLabel.toLowerCase()) {
+                    return false;
                 }
 
 
