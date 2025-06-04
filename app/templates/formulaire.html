@@ -93,7 +93,7 @@
                                 <div class="form-row" style="gap: 24px;">
                                     <div class="form-group">
                                         <label class="required-field">Organisme</label>
-                                        {% if current_user.role == admin %}
+                                        {% if current_user.role == 'admin' %}
                                             <select name="id_organisme" required>
                                                 {% for organisme in organismes %}
                                                     <option value="{{ organisme.id_organisme }}" {% if organisme.id_organisme == current_user.id_organisme %}selected{% endif %}>{{ organisme.nom }}</option>
