@@ -2,39 +2,337 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Ajouter un Organisme</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nouvel Organisme - THEMAA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+<style>
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 30px;
+    }
+
+</style>
 <body>
-<div class="container">
-    <h1 class="text-center mb-4">Nouvel Organisme</h1>
+    <div class="admin-container">
+        {% include 'includes/nav.html' %}
 
-    <form method="POST" action="{{ url_for('organisme.create_organisme_user') }}">
-        <div class="form-card">
-            <div class="form-group"><label>Nom *</label><input type="text" name="nom" required></div>
-            <div class="form-group"><label>Adresse *</label><input type="text" name="adresse" required></div>
-            <div class="form-group"><label>Email *</label><input type="email" name="email" required></div>
-            <div class="form-group"><label>Téléphone *</label><input type="text" name="telephone" required></div>
-            <div class="form-group"><label>Site Web</label><input type="url" name="site_web"></div>
-            <div class="form-group"><label>Présentation *</label><textarea name="presentation" required></textarea></div>
-            <div class="form-group"><label>Numéro d'adhérent</label><input type="text" name="num_adherent"></div>
-            <div class="form-group">
-                <label>Statut *</label>
-                <select name="statut" required>
-                    <option value="Association loi 1901">Association loi 1901</option>
-                    <option value="SARL">SARL</option>
-                    <option value="EURL">EURL</option>
-                    <option value="Auto-entrepreneur">Auto-entrepreneur</option>
-                    <option value="Autre">Autre</option>
-                </select>
+        <div class="main-content">
+            <header>
+                <h1>Nouvel Organisme</h1>
+                <div class="user-info">
+                    <a href="{{ url_for('utilisateur.profil') }}" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 10px;">
+                        <span>{{ current_user.nom }}</span>
+                        {% if current_user.photo_profil %}
+                            <img src="/{{ current_user.photo_profil }}" alt="Photo de profil" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                        {% else %}
+                            <i class="fas fa-user-circle" style="font-size: 1.5em;"></i>
+                        {% endif %}
+                    </a>
+                    <a href="{{ url_for('utilisateur.deconnexion') }}" style="margin-left: 10px; color: #dc3545;">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </header>
+
+            <div class="content">
+                <div class="card">
+                    <form method="POST" action="{{ url_for('organisme.create_organisme_user') }}">
+                        <!-- Stepper -->
+                        <div class="form-stepper">
+                            <div class="step active" data-step="1">
+                                <div class="step-number">1</div>
+                                <div class="step-label">Informations générales</div>
+                            </div>
+                            <div class="step" data-step="2">
+                                <div class="step-number">2</div>
+                                <div class="step-label">Coordonnées</div>
+                            </div>
+                            <div class="step" data-step="3">
+                                <div class="step-number">3</div>
+                                <div class="step-label">Validation</div>
+                            </div>
+                        </div>
+
+                        <!-- Tab 1 -->
+                        <div class="tab-content active" id="tab-1">
+                            <div class="form-section">
+                                <h3 class="section-title"><i class="fas fa-info-circle"></i> Informations de base</h3>
+                                <div class="form-group">
+                                    <label class="required-field">Nom de l'organisme</label>
+                                    <input type="text" name="nom" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required-field">Présentation</label>
+                                    <textarea name="presentation" required rows="4"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required-field">Statut juridique</label>
+                                    <select name="statut" required>
+                                        <option value="Association loi 1901">Association loi 1901</option>
+                                        <option value="SARL">SARL</option>
+                                        <option value="EURL">EURL</option>
+                                        <option value="Auto-entrepreneur">Auto-entrepreneur</option>
+                                        <option value="Autre">Autre</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <a href="javascript:history.back()" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Précédent
+                                </a>
+                                <button type="button" class="btn btn-primary next-tab" data-next="2">
+                                    Suivant <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tab 2 -->
+                        <div class="tab-content" id="tab-2">
+                            <div class="form-section">
+                                <h3 class="section-title"><i class="fas fa-address-card"></i> Coordonnées</h3>
+                                <div class="form-group">
+                                    <label class="required-field">Email</label>
+                                    <input type="email" name="email" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required-field">Téléphone</label>
+                                    <input type="tel" name="telephone" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Site Web</label>
+                                    <input type="url" name="site_web">
+                                </div>
+                            </div>
+
+                            <div class="form-section">
+                                <h3 class="section-title"><i class="fas fa-map-marker-alt"></i> Adresse</h3>
+                                <div class="form-row" style="gap: 24px;">
+                                    <div class="form-group" style="flex: 2;">
+                                        <label class="required-field">Adresse</label>
+                                        <input type="text" id="rue" name="rue" required placeholder="260 Rue de Charenton">
+                                    </div>
+                                    <div class="form-group" style="flex: 0.5;">
+                                        <label class="required-field">Code postal</label>
+                                        <input type="text" id="code_postal" name="code_postal" required 
+                                               pattern="\d{5}" 
+                                               maxlength="5" 
+                                               inputmode="numeric" 
+                                               autocomplete="postal-code"
+                                               placeholder="75012"
+                                               oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,5);">
+                                    </div>
+                                    <div class="form-group" style="flex: 1;">
+                                        <label class="required-field">Ville</label>
+                                        <input type="text" id="ville" name="ville" required 
+                                               pattern="^[A-Za-zÀ-ÿ\s\-']+$"
+                                               placeholder="Paris"
+                                               title="Seules les lettres, espaces, tirets et apostrophes sont autorisés"
+                                               oninput="this.value = this.value.replace(/[^A-Za-zÀ-ÿ\s\-']/g, '');">
+                                    </div>
+                                </div>
+                                <!-- Champ caché pour stocker l'adresse complète -->
+                                <input type="hidden" id="adresse_complete" name="adresse">
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary prev-tab" data-prev="1">
+                                    <i class="fas fa-arrow-left"></i> Précédent
+                                </button>
+                                <button type="button" class="btn btn-primary next-tab" data-next="3">
+                                    Suivant <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tab 3 -->
+                        <div class="tab-content" id="tab-3">
+                            <div class="form-section">
+                                <h3 class="section-title"><i class="fas fa-check-circle"></i> Informations complémentaires</h3>
+                                <div class="form-group">
+                                    <label>Numéro d'adhérent</label>
+                                    <input type="text" name="num_adherent">
+                                </div>
+                            </div>
+                            
+                            <div class="form-section">
+                                <h3 class="section-title"><i class="fas fa-tag"></i> Labels</h3>
+                                <div class="checkbox-group" id="labels-group">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="label_1" name="labels" value="Qualiopi">
+                                        <label for="label_1">Qualiopi</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="label_2" name="labels" value="RNCP">
+                                        <label for="label_2">RNCP (Répertoire National des Certifications Professionnelles)</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="label_3" name="labels" value="Erasmus+">
+                                        <label for="label_3">Erasmus+</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="aucun_label" name="labels" value="aucun">
+                                        <label for="aucun_label">Ni label / ni agrément</label>
+                                    </div>
+                                </div>
+                                <div id="labels-error" class="error-message" style="display:none;"></div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary prev-tab" data-prev="2">
+                                    <i class="fas fa-arrow-left"></i> Précédent
+                                </button>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-check"></i> Enregistrer l'organisme
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="form-group"><label>Label</label><input type="text" name="label"></div>
-
-            <button type="submit" class="btn btn-primary">Enregistrer l'organisme</button>
-            <a href="{{ url_for('utilisateur.profil') }}" class="btn btn-secondary">Annuler</a>
         </div>
-    </form>
-</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const nextButtons = document.querySelectorAll('.next-tab');
+            const prevButtons = document.querySelectorAll('.prev-tab');
+            const tabs = document.querySelectorAll('.tab-content');
+            const steps = document.querySelectorAll('.step');
+
+            nextButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const currentTab = this.closest('.tab-content');
+                    const nextTabId = this.getAttribute('data-next');
+                    
+                    if (validateTab(currentTab.id)) {
+                        currentTab.classList.remove('active');
+                        document.getElementById(`tab-${nextTabId}`).classList.add('active');
+                        updateStepper(nextTabId);
+                    }
+                });
+            });
+
+            prevButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const currentTab = this.closest('.tab-content');
+                    const prevTabId = this.getAttribute('data-prev');
+                    currentTab.classList.remove('active');
+                    document.getElementById(`tab-${prevTabId}`).classList.add('active');
+                    updateStepper(prevTabId);
+                });
+            });
+
+            function validateTab(tabId) {
+                const tab = document.getElementById(tabId);
+                const requiredInputs = tab.querySelectorAll('[required]');
+                let isValid = true;
+
+                requiredInputs.forEach(input => {
+                    if (!input.value.trim()) {
+                        input.style.borderColor = 'var(--danger-color)';
+                        isValid = false;
+                    } else {
+                        input.style.borderColor = '';
+                    }
+                });
+
+                return isValid;
+            }
+
+            function updateStepper(activeStep) {
+                steps.forEach(step => {
+                    const stepNumber = step.getAttribute('data-step');
+                    step.classList.remove('active', 'completed');
+                    if (stepNumber === activeStep) {
+                        step.classList.add('active');
+                    } else if (stepNumber < activeStep) {
+                        step.classList.add('completed');
+                    }
+                });
+            }
+
+            updateStepper('1');
+
+            // Gestion des labels
+            const aucunLabelCheckbox = document.getElementById('aucun_label');
+            const labelCheckboxes = Array.from(document.querySelectorAll('#labels-group input[type="checkbox"]'))
+                .filter(cb => cb.id !== 'aucun_label');
+
+            if (aucunLabelCheckbox) {
+                aucunLabelCheckbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        labelCheckboxes.forEach(cb => {
+                            cb.checked = false;
+                            cb.disabled = true;
+                        });
+                    } else {
+                        labelCheckboxes.forEach(cb => cb.disabled = false);
+                    }
+                });
+            }
+
+            labelCheckboxes.forEach(cb => {
+                cb.addEventListener('change', function() {
+                    if (this.checked && aucunLabelCheckbox) {
+                        aucunLabelCheckbox.checked = false;
+                        aucunLabelCheckbox.dispatchEvent(new Event('change'));
+                    }
+                });
+            });
+
+            // Validation spécifique pour le code postal
+            const codePostalInput = document.querySelector('input[name="code_postal"]');
+            if (codePostalInput) {
+                codePostalInput.addEventListener('input', function() {
+                    if (this.value.length === 5 && this.validity.valid) {
+                        this.style.borderColor = 'var(--success-color)';
+                    } else {
+                        this.style.borderColor = '';
+                    }
+                });
+            }
+
+            // Validation spécifique pour la ville
+            const villeInput = document.querySelector('input[name="ville"]');
+            if (villeInput) {
+                villeInput.addEventListener('input', function() {
+                    if (this.validity.valid && this.value.length > 1) {
+                        this.style.borderColor = 'var(--success-color)';
+                    } else {
+                        this.style.borderColor = '';
+                    }
+                });
+            }
+
+            // Fonction pour mettre à jour l'adresse complète
+            function updateAdresseComplete() {
+                const rue = document.getElementById('rue').value.trim();
+                const codePostal = document.getElementById('code_postal').value.trim();
+                const ville = document.getElementById('ville').value.trim();
+                
+                if (rue && codePostal && ville) {
+                    const adresseComplete = `${rue}, ${codePostal} ${ville}`;
+                    document.getElementById('adresse_complete').value = adresseComplete;
+                }
+            }
+
+            // Écouter les changements sur les champs d'adresse
+            ['rue', 'code_postal', 'ville'].forEach(id => {
+                const input = document.getElementById(id);
+                input.addEventListener('input', updateAdresseComplete);
+                input.addEventListener('change', updateAdresseComplete);
+            });
+
+            // Validation du formulaire avant l'envoi
+            document.querySelector('form').addEventListener('submit', function(e) {
+                updateAdresseComplete(); // S'assurer que l'adresse est mise à jour avant l'envoi
+            });
+        });
+    </script>
 </body>
 </html>

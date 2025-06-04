@@ -117,7 +117,7 @@
         <select id="dureeFilter" class="filter-select">
             <option value="">Toutes durées</option>
             <option value="jour">Jour(s)</option>
-            <option value="heure">Heure(s)</option>
+            <option value="semaine">Semaine(s)</option>
             <option value="mois">Mois</option>
             <option value="an">An(s)</option>
         </select>
@@ -147,6 +147,23 @@
         </select>
     </div>
     
+    
+    <div class="filter-group">
+        <h4 class="filter-title">Durée en heures</h4>
+        <div class="hours-filter">
+            <div class="slider-container">
+                <input type="range" id="hoursSlider" min="0" max="100" value="0" class="slider">
+                <div class="slider-values">
+                    <span id="minHours">0h</span>
+                    <span id="currentHours">0h</span>  <!-- Ajout de cette ligne -->
+                    <span id="maxHours">100h</span>
+                </div>
+            </div>
+            <div class="hours-input">
+                <input type="number" id="hoursInput" min="0" placeholder="Nombre d'heures">
+            </div>
+        </div>
+    </div>
     
     <div class="filter-actions">
         <button id="applyFiltersBtn" class="btn btn-primary">
@@ -201,3 +218,52 @@
 
 </body>
 </html>
+
+<style>
+.hours-filter {
+    padding: 10px 0;
+}
+
+.slider-container {
+    margin-bottom: 10px;
+}
+
+.slider {
+    width: 100%;
+    height: 5px;
+    border-radius: 5px;
+    background: #ddd;
+    outline: none;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    cursor: pointer;
+}
+
+.slider-values {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    font-size: 0.8em;
+    color: #666;
+}
+
+.hours-input {
+    margin-top: 10px;
+}
+
+.hours-input input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+</style>

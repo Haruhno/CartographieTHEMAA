@@ -45,6 +45,8 @@ var currentFilters = {
 // Ajouter aux variables globales
 var organismeRegions = {};  // Pour stocker les régions des organismes
 let currentRegionLayer = null; // Pour stocker le layer de la région actuelle
+let minHours = 0;
+let maxHours = 100;
 
 // =====================
 // HIGHLIGHT D'UNE FORMATION
@@ -124,10 +126,11 @@ function geocodeAddress(address, callback) {
         });
 }
 
+
 // Nouvelle fonction pour récupérer la région
 function getRegionFromAddress(address, callback) {
     const cleanedAddress = address.replace(/,/g, '');
-    const url = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(cleanedAddress)}&limit=1`;
+    const url = `https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(cleanedAddress)}&limit=1`;
 
     fetch(url)
         .then(response => response.json())
@@ -135,16 +138,19 @@ function getRegionFromAddress(address, callback) {
             if (data.features && data.features.length > 0) {
                 const context = data.features[0].properties.context;
                 const contextParts = context.split(',');
-                // Prendre le dernier élément qui est la région
                 const region = contextParts[contextParts.length - 1]?.trim();
-                console.log('Région trouvée:', region);
+                
                 callback(region);
             } else {
+                console.log('❌ Aucune région trouvée pour:', address);
+                console.log('--------------------------------');
                 callback(null);
             }
         })
         .catch(error => {
-            console.error('Erreur lors de la récupération de la région:', error);
+            console.error('🚨 Erreur lors de la récupération de la région:', error);
+            console.error('Pour l\'adresse:', address);
+            console.log('--------------------------------');
             callback(null);
         });
 }
@@ -501,13 +507,81 @@ function initFilters() {
         showRegionBoundaries(this.value);
         applyFilters();
     });
+    
+    // Initialiser le slider d'heures
+    initHoursSlider();
+}
+
+// Ajouter cette nouvelle fonction
+function initHoursSlider() {
+    const slider = document.getElementById('hoursSlider');
+    const input = document.getElementById('hoursInput');
+    
+    const hoursRange = calculateHoursRange(allFormations);
+    updateHoursSlider(hoursRange.min, hoursRange.max, hoursRange.min);
+    
+    slider.addEventListener('input', function() {
+        const value = parseInt(this.value);
+        updateHoursSlider(slider.min, slider.max, value);
+        applyFilters();
+    });
+    
+    input.addEventListener('change', function() {
+        const value = parseInt(this.value) || parseInt(slider.min);
+        updateHoursSlider(slider.min, slider.max, value);
+        applyFilters();
+    });
+}
+
+// Ajouter cette nouvelle fonction pour calculer les durées min/max des formations filtrées
+function calculateHoursRange(formations) {
+    const durees = formations
+        .map(f => f.duree_heures)
+        .filter(duree => duree !== null && duree !== undefined);
+    
+    if (durees.length < 2) {
+        return { min: 0, max: 100 };
+    }
+    
+    return {
+        min: Math.floor(Math.min(...durees)),
+        max: Math.ceil(Math.max(...durees))
+    };
+}
+
+// Ajouter cette fonction pour mettre à jour le slider
+function updateHoursSlider(min, max, currentValue) {
+    const slider = document.getElementById('hoursSlider');
+    const input = document.getElementById('hoursInput');
+    
+    slider.min = min;
+    slider.max = max;
+    slider.value = currentValue ? Math.min(Math.max(currentValue, min), max) : min;
+    
+    document.getElementById('minHours').textContent = `${min}h`;
+    document.getElementById('maxHours').textContent = `${max}h`;
+    document.getElementById('currentHours').textContent = `${slider.value}h`;
+    
+    input.value = slider.value;
+    currentFilters.hours = parseInt(slider.value);
+}
+
+// Fonction pour extraire le nombre d'heures d'une durée
+function extractHours(dureeString) {
+    if (!dureeString) return null;
+    
+    const match = dureeString.toLowerCase().match(/(\d+)\s*h(?:eure)?s?/);
+    if (match) {
+        return parseInt(match[1]);
+    }
+    return null;
 }
 
 // Normalisation simple de la durée sélectionnée
 function normalizeDuree(duree) {
     switch (duree) {
         case 'jour': return ['jour', 'jours', 'journée', 'journées'];
-        case 'heure': return ['heure', 'heures'];
+        case 'semaine': return ['semaine', 'semaines', 'semaine(s)'];
         case 'mois': return ['mois']; // mois est invariant
         case 'an': return ['an', 'ans', 'année', 'années'];
         default: return [];
@@ -555,7 +629,14 @@ function applyFiltersToFormations(formations) {
             }
         }
 
-        
+        // Filtre par heures
+        if (currentFilters.hours && currentFilters.hours > 0) {
+            const formationHours = formation.duree_heures;
+            if (formationHours === null || formationHours < currentFilters.hours) {
+                return false;
+            }
+        }
+
         return true;
     });
 }
@@ -574,7 +655,24 @@ function applyFilters() {
         );
     }
     
+    // Appliquer tous les filtres sauf celui des heures
+    const currentHours = currentFilters.hours;
+    const tempHours = currentFilters.hours;
+    currentFilters.hours = null; // Désactiver temporairement le filtre des heures
+    
     filteredFormations = applyFiltersToFormations(filteredFormations);
+    
+    // Calculer et mettre à jour la plage des heures
+    const hoursRange = calculateHoursRange(filteredFormations);
+    updateHoursSlider(hoursRange.min, hoursRange.max, tempHours);
+    
+    // Réappliquer le filtre des heures si nécessaire
+    currentFilters.hours = currentHours;
+    if (currentFilters.hours) {
+        filteredFormations = filteredFormations.filter(f => 
+            f.duree_heures !== null && f.duree_heures >= currentFilters.hours
+        );
+    }
     
     updateDisplayedFormations(filteredFormations);
 }
@@ -612,6 +710,11 @@ function resetFilters() {
         currentRegionLayer = null;
     }
     
+    // Réinitialiser le slider et l'input des heures
+    const hoursRange = calculateHoursRange(allFormations);
+    updateHoursSlider(hoursRange.min, hoursRange.max, hoursRange.min);
+    currentFilters.hours = null;
+    
     applyFilters();
 }
 
@@ -623,6 +726,25 @@ function toggleFiltersPanel() {
 // =====================
 // MISE À JOUR DE L'AFFICHAGE
 // =====================
+
+function formatDateRange(dateRangeStr) {
+    const moisNoms = [
+        "janvier", "février", "mars", "avril", "mai", "juin",
+        "juillet", "août", "septembre", "octobre", "novembre", "décembre"
+    ];
+
+    const parts = dateRangeStr.split(' au ');
+    if (parts.length !== 2) return dateRangeStr; // si le format est inattendu
+
+    const formatPart = (dateStr) => {
+        const [day, month, year] = dateStr.split('/');
+        return `${parseInt(day)} ${moisNoms[parseInt(month) - 1]} ${year}`;
+    };
+
+    return `${formatPart(parts[0])} au ${formatPart(parts[1])}`;
+}
+
+
 function updateDisplayedFormations(filteredFormations) {
     const container = document.getElementById('formations-container');
     container.innerHTML = '';
@@ -640,18 +762,19 @@ function updateDisplayedFormations(filteredFormations) {
 
             const typeClass = f.type === 'initiale' ? 'type-initiale' : 'type-continue';
             const prixDisplay = f.prix !== null ? `${f.prix} €` : 'Non renseigné';
+            const heuresDisplay = f.duree_heures ? `${f.duree_heures}h` : 'Non renseigné';
             
             item.innerHTML = `
                 <div class="organisme-name">${org.nom}</div>
                 <div class="formation-name">${f.nom}</div>
                 <div class="formation-details">
-                    <strong>Lieu:</strong> ${f.lieu}<br>
-                    <strong>Dates:</strong> ${f.dates}<br>
-                    <strong>Durée:</strong> ${f.duree}<br>
-                    <strong>Prix:</strong> ${prixDisplay}<br>
-                    <strong>Adresse:</strong> ${org.adresse}
+                    <div><strong>Lieu:</strong> ${f.lieu}</div>
+                    <div><strong>Dates:</strong> ${formatDateRange(f.dates)}</div>
+                    <div><strong>Heures:</strong> ${heuresDisplay}</div>
+                    <div><strong>Durée:</strong> ${f.duree}</div>
+                    <div><strong>Prix:</strong> ${prixDisplay}</div>
                 </div>
-                <span class="formation-type ${typeClass}">${f.type}</span>
+                <span class="formation-type ${typeClass}">${f.type === 'initiale' ? 'Initiale' : 'Continue'}</span>
             `;
 
             item.addEventListener('mouseenter', () => highlightFormationItem(f.id));
@@ -705,7 +828,10 @@ Promise.all([
     fetch('/formations/valides').then(res => res.json())
 ])
 .then(([organismes, formations]) => {
-    allFormations = formations;
+    allFormations = formations.map(f => ({
+        ...f,
+        duree_heures: f.duree_heures ? parseFloat(f.duree_heures) : null
+    }));
     organismes.forEach(org => { 
         allOrganismes[org.id] = org;
         // Récupérer la région pour chaque organisme

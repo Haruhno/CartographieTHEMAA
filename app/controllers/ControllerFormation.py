@@ -90,6 +90,10 @@ def organisme_required(f):
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
             return redirect(url_for('utilisateur.connexion'))
+        # Permettre à l'admin de passer
+        if current_user.is_admin:
+            return f(*args, **kwargs)
+        # Vérifier si l'utilisateur est lié à un organisme
         if not current_user.id_organisme:
             return redirect(url_for('dashboard'))
         return f(*args, **kwargs)
@@ -449,8 +453,8 @@ def get_formations_valides():
             "presentation_intervenants": f.presentation_intervenants,
             "lien_inscription": f.lien_inscription,
             "label": f.label,
-            "certifications": f.certifications,
-            "id_organisme": f.id_organisme
+            "id_organisme": f.id_organisme,
+            "duree_heures": float(f.duree_heures) if f.duree_heures is not None else None  # Ajout de cette ligne
         })
 
     return jsonify(resultats)
@@ -519,4 +523,26 @@ def delete_reason(id):
     
     flash("Raison supprimée avec succès.", "success")
     return redirect(url_for('formation.edit_formations'))
+
+@formation_bp.route("/duree-heures-range", methods=["GET"])
+def get_duree_heures_range():
+    # Récupérer les valeurs non nulles
+    durees = db.session.query(Formation.duree_heures)\
+        .filter(Formation.duree_heures != None)\
+        .all()
+    
+    # Convertir en liste de nombres
+    durees = [float(d[0]) for d in durees if d[0] is not None]
+    
+    # Si moins de 2 formations avec des durées, retourner les valeurs par défaut
+    if len(durees) < 2:
+        return jsonify({
+            "min": 0,
+            "max": 100
+        })
+    
+    return jsonify({
+        "min": min(durees),
+        "max": max(durees)
+    })
 

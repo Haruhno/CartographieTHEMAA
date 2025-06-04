@@ -61,30 +61,6 @@
         .reason-link a:hover {
             text-decoration: underline;
         }
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .modal-box {
-            background: white;
-            padding: 20px;
-            border-radius: 5px;
-            max-width: 500px;
-            width: 90%;
-        }
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
 
         /* Table Layout pour edit_organismes */
 
@@ -177,7 +153,7 @@
                     <div class="table-header">
                         <h2><i class="fas fa-building icon"></i> Liste des Organismes</h2>
                         <div class="table-actions">
-                            <a href="{{ url_for('organisme.new_organisme') }}" class="btn btn-add">
+                            <a href="{{ url_for('organisme.new_organisme_user') }}" class="btn btn-add">
                                 <i class="fas fa-plus"></i> Ajouter un organisme
                             </a>
                             
@@ -285,11 +261,9 @@
                                                 <i class="fas fa-pen"></i>
                                             </a>
 
-                                            <!-- Bouton supprimer -->
-                                            <button type="submit" name="delete" value="{{ o.id_organisme }}" 
-                                                    class="btn-delete btn" 
-                                                    title="Supprimer"
-                                                    onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet organisme ?');">
+                                            <!-- Nouveau bouton supprimer qui ouvre le modal -->
+                                            <button type="button" class="btn-delete btn" title="Supprimer" 
+                                                    onclick="openDeleteModal('{{ o.id_organisme }}')">
                                                 <i class="fas fa-trash"></i>
                                             </button>
 
@@ -343,6 +317,20 @@
                     </div>
                 </section>
             </div>
+        </div>
+    </div>
+
+    <!-- Ajouter le modal avant la fermeture du body -->
+    <div id="deleteModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3>Confirmation de suppression</h3>
+            <p>Êtes-vous sûr de vouloir supprimer cet organisme ?</p>
+            <form id="deleteForm" method="POST">
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Annuler</button>
+                    <button type="submit" class="btn btn-danger">Confirmer</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -576,6 +564,27 @@
                 e.target.parentElement.remove();
             }
         });
+
+        // Gestion de la suppression avec modal
+        window.openDeleteModal = function(organismeId) {
+            const modal = document.getElementById('deleteModal');
+            const form = document.getElementById('deleteForm');
+            form.action = `/organismes/delete/${organismeId}`;
+            modal.style.display = 'flex';
+        }
+
+        window.closeDeleteModal = function() {
+            const modal = document.getElementById('deleteModal');
+            modal.style.display = 'none';
+        }
+
+        // Fermer le modal si on clique en dehors
+        window.onclick = function(event) {
+            const modal = document.getElementById('deleteModal');
+            if (event.target === modal) {
+                closeDeleteModal();
+            }
+        }
 
         // Initialisation
         updatePagination();

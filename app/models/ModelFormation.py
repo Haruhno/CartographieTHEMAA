@@ -8,6 +8,7 @@ class Formation(db.Model):
     type = db.Column(db.Enum('initiale', 'continue'), nullable=False)
     description = db.Column(db.Text, nullable=False)
     duree = db.Column(db.String(50), nullable=False)
+    duree_heures = db.Column(db.Float, nullable=True)  # Ajout du nouveau champ
     dates = db.Column(db.String(100), nullable=False)
     duree_heures = db.Column(db.Float, nullable=True)
     lieu = db.Column(db.String(100), nullable=False)
@@ -22,3 +23,4 @@ class Formation(db.Model):
     id_organisme = db.Column(db.Integer, db.ForeignKey('Organisme.id_organisme'), nullable=False)
     etat = db.Column(db.Enum('valide', 'en_attente', name='etat_formation'), nullable=False, default='en_attente')
     raison = db.Column(db.Text)
+    certifications = db.Column(db.String(255))
