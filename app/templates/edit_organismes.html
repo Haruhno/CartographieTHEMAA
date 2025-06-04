@@ -235,13 +235,13 @@
                                         data-label="{{ o.label or '' }}">
                                         <td>{{ o.id_organisme }}</td>
                                         <td>
-                                            <input type="text" name="nom_{{ o.id_organisme }}" value="{{ o.nom }}" class="table-input" required>
+                                            <input type="text" name="nom_{{ o.id_organisme }}" value="{{ o.nom }}" class="table-input" required placeholder="Nom de l'organisme">
                                         </td>
                                         <td>
-                                            <input type="email" name="email_{{ o.id_organisme }}" value="{{ o.email }}" class="table-input" required>
+                                            <input type="email" name="email_{{ o.id_organisme }}" value="{{ o.email }}" class="table-input" required placeholder="exemple@domaine.com">
                                         </td>
                                         <td>
-                                            <input type="text" name="telephone_{{ o.id_organisme }}" value="{{ o.telephone }}" class="table-input" required>
+                                            <input type="text" name="telephone_{{ o.id_organisme }}" value="{{ o.telephone }}" class="table-input" required placeholder="06XXXXXXXX">
                                         </td>
                                         <td>
                                             <select name="statut_{{ o.id_organisme }}" class="table-select" required>
@@ -253,7 +253,7 @@
                                         <td>
                                             <input type="text" name="label_{{ o.id_organisme }}" 
                                                 value="{{ o.label if o.label else '' }}" 
-                                                class="table-input">
+                                                class="table-input" placeholder="Label(s) (ex: Qualiopi)">
                                         </td>
                                         <td class="action-buttons">
                                             <!-- Bouton de modification qui redirige vers une page dédiée -->
@@ -281,15 +281,15 @@
                                             <div class="details-container">
                                                 <div class="form-group">
                                                     <label>Adresse</label>
-                                                    <textarea name="adresse_{{ o.id_organisme }}" class="table-textarea">{{ o.adresse }}</textarea>
+                                                    <textarea name="adresse_{{ o.id_organisme }}" class="table-textarea" placeholder="Adresse complète">{{ o.adresse }}</textarea>
                                                 </div>
                                                 <div class="form-group">
                                                     <label>Présentation</label>
-                                                    <textarea name="presentation_{{ o.id_organisme }}" class="table-textarea">{{ o.presentation }}</textarea>
+                                                    <textarea name="presentation_{{ o.id_organisme }}" class="table-textarea" placeholder="Présentation de l'organisme">{{ o.presentation }}</textarea>
                                                 </div>
                                                 <div class="form-group">
                                                     <label>Numéro adhérent</label>
-                                                    <input type="text" name="num_adherent_{{ o.id_organisme }}" value="{{ o.num_adherent or '' }}" class="table-input">
+                                                    <input type="text" name="num_adherent_{{ o.id_organisme }}" value="{{ o.num_adherent or '' }}" class="table-input" placeholder="Numéro d'adhérent">
                                                 </div>
                                             </div>
                                         </td>
