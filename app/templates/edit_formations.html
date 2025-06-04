@@ -243,7 +243,7 @@
                                         data-prix="{{ f.prix or 0 }}">
                                         <td>{{ f.id_formation }}</td>
                                         <td>
-                                            <input type="text" name="nom_{{ f.id_formation }}" value="{{ f.nom }}" class="table-input" required placeholder="Nom de la formation">
+                                            <input type="text" name="nom_{{ f.id_formation }}" value="{{ f.nom }}" class="table-input" required>
                                         </td>
                                         <td>
                                             <select name="type_{{ f.id_formation }}" class="table-select" required>
@@ -261,12 +261,12 @@
                                             </select>
                                         </td>
                                         <td>
-                                            <input type="number" name="prix_{{ f.id_formation }}" value="{{ f.prix }}" class="table-input" step="0.01" placeholder="Prix en €">
+                                            <input type="number" name="prix_{{ f.id_formation }}" value="{{ f.prix }}" class="table-input" step="0.01">
                                         </td>
                                         <td>
                                             <input type="text" name="label_{{ f.id_formation }}" 
                                                 value="{{ f.label if f.label and f.label != 'None' else '' }}" 
-                                                class="table-input" placeholder="Label(s) (ex: Qualiopi)">
+                                                class="table-input">
                                         </td>
                                         <td>
                                             <div class="etat-container">

@@ -298,56 +298,55 @@
                                         <label class="required-field" style="display:block;">Durée (heures)</label>
                                         <input type="text" name="duree_heures" required
                                             inputmode="decimal"
-                                            pattern="^\d+([,]\d{0,1})?$"
+                                            step="0.1"
+                                            min="0"
                                             style="width:100%;"
                                             oninput="
-                                                // Remplacer les points par des virgules
-                                                this.value = this.value.replace('.', ',');
-                                                // Supprimer tout sauf chiffres et virgule
-                                                this.value = this.value.replace(/[^0-9,]/g, '');
-                                                // Limiter à une seule virgule
-                                                const partsHeures = this.value.split(',');
-                                                if (partsHeures.length > 2) {
-                                                    this.value = partsHeures[0] + ',' + partsHeures[1];
-                                                }
-                                                // Limiter à 1 chiffre après la virgule
-                                                if (partsHeures[1] && partsHeures[1].length > 1) {
-                                                    this.value = partsHeures[0] + ',' + partsHeures[1].slice(0,1);
+                                                // Remplacer la virgule par un point
+                                                this.value = this.value.replace(',', '.');
+
+                                                // Supprimer tout sauf chiffres et point
+                                                this.value = this.value.replace(/[^0-9.]/g, '');
+
+                                                // Limiter à un seul point et un chiffre après
+                                                if (this.value.includes('.')) {
+                                                    const [intPart, decPart] = this.value.split('.');
+                                                    this.value = intPart + '.' + (decPart ? decPart.substring(0, 1) : '');
                                                 }
                                             "
                                             maxlength="6"
                                             placeholder="ex : 75.0"
-                                        >
+                                        />
                                     </div>
                                     <div class="form-group" style="flex:1; position: relative;">
                                         <label class="required-field" style="display:block;">Durée (jour(s), semaine(s), mois, année(s))</label>
                                         <div style="display: flex; gap: 10px; align-items: flex-end;">
                                             <input type="text" name="duree_valeur" style="width: 80px;" required
                                                 inputmode="decimal"
-                                                pattern="^\d+([,]\d{0,1})?$"
+                                                pattern="^\d+([.]\d{0,1})?$"
                                                 oninput="
-                                                    // Remplacer les points par des virgules
-                                                    this.value = this.value.replace('.', ',');
-                                                    // Supprimer tout sauf chiffres et virgule
-                                                    this.value = this.value.replace(/[^0-9,]/g, '');
-                                                    // Limiter à une seule virgule
-                                                    const parts = this.value.split(',');
+                                                    // Remplacer les virgules par des points
+                                                    this.value = this.value.replace(',', '.');
+                                                    // Supprimer tout sauf chiffres et point
+                                                    this.value = this.value.replace(/[^0-9.]/g, '');
+                                                    // Limiter à un seul point
+                                                    const parts = this.value.split('.');
                                                     if (parts.length > 2) {
-                                                        this.value = parts[0] + ',' + parts[1];
+                                                        this.value = parts[0] + '.' + parts[1];
                                                     }
-                                                    // Limiter à 1 chiffre après la virgule
+                                                    // Limiter à 1 chiffre après le point
                                                     if (parts[1] && parts[1].length > 1) {
-                                                        this.value = parts[0] + ',' + parts[1].slice(0,1);
+                                                        this.value = parts[0] + '.' + parts[1].slice(0,1);
                                                     }
                                                 "
                                                 maxlength="6"
                                                 placeholder="ex : 10"
-                                            >
+                                            />
                                             <select name="duree_unite" required>
-                                                <option value="jours">Jour(s)</option>
-                                                <option value="semaines">Semaine(s)</option>
-                                                <option value="mois">Mois</option>
-                                                <option value="annees">Année(s)</option>
+                                                <option value="jours">jour(s)</option>
+                                                <option value="semaines">semaine(s)</option>
+                                                <option value="mois">mois</option>
+                                                <option value="annees">année(s)</option>
                                             </select>
                                         </div>
                                         <!-- Message d'erreur déplacé ici pour rester sous les champs d'entrée -->
@@ -1036,8 +1035,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <span class="summary-value">${dates || 'Non renseigné'}</span>
                             </div>
                             <div class="summary-item">
-                                <span class="summary-label">Durée :</span>
-                                <span class="summary-value">${dureeTxt}</span>
+                                <span class="summary-label">Durée (heures) :</span>
+                                <span class="summary-value">${duree_heures ? duree_heures + ' h' : 'Non renseigné'}</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-label">Durée (${duree_unite}) :</span>
+                                <span class="summary-value">${duree_valeur ? duree_valeur + ' ' + duree_unite : 'Non renseigné'}</span>
                             </div>
                             ${prix ? `
                             <div class="summary-item">

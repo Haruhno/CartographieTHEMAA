@@ -34,32 +34,49 @@ def get_formulaire_context():
     financements = FINANCEMENT_OPTIONS
 
     # ---------- Labels ----------
-    all_labels_raw = db.session.query(Formation.label).filter(Formation.label != None).all()
-    label_set = set()
-    for row in all_labels_raw:
-        if row[0]:
-            label_set.update([l.strip() for l in str(row[0]).split(',')])
-    labels = sorted(label_set) if label_set else [
+    # Labels de base à toujours proposer
+    BASE_LABELS = [
         "Qualiopi",
         "RNCP (Répertoire National des Certifications Professionnelles)",
         "Erasmus+"
     ]
+    all_labels_raw = db.session.query(Formation.label).filter(Formation.label != None).all()
+    label_set = set()
+    for row in all_labels_raw:
+        if row[0]:
+            for l in str(row[0]).split(','):
+                l = l.strip()
+                # Mapping BDD value to display value
+                if l.upper() == "RNCP":
+                    label_set.add("RNCP (Répertoire National des Certifications Professionnelles)")
+                elif l:
+                    label_set.add(l)
+    label_set.update(BASE_LABELS)
+    labels = sorted(label_set)
 
     # ---------- Certifications ----------
-    certifications = [
+    BASE_CERTIFICATIONS = [
         "DE (Diplôme d'État)",
         "DNSP (Diplôme National Supérieur Professionnel)",
         "RS (Répertoire Spécifique)",
         "Formation Certifiante",
         "Formation Non Certifiante"
     ]
-    if hasattr(Formation, "certifications"):
-        all_certs_raw = db.session.query(Formation.certifications).filter(Formation.certifications != None).all()
-        cert_set = set()
-        for row in all_certs_raw:
-            if row[0]:
-                cert_set.update([c.strip() for c in str(row[0]).split(',')])
-        certifications = sorted(cert_set) if cert_set else certifications
+    all_certs_raw = db.session.query(Formation.certifications).filter(Formation.certifications != None).all()
+    cert_set = set()
+    for row in all_certs_raw:
+        if row[0]:
+            for c in str(row[0]).split(','):
+                c = c.strip()
+                # Mapping BDD value to display value
+                if c.lower() == "certifiante":
+                    cert_set.add("Formation Certifiante")
+                elif c.lower() == "non certifiante":
+                    cert_set.add("Formation Non Certifiante")
+                elif c:
+                    cert_set.add(c)
+    cert_set.update(BASE_CERTIFICATIONS)
+    certifications = sorted(cert_set)
 
     return {
         "organismes": organismes,
@@ -74,7 +91,7 @@ def organisme_required(f):
         if not current_user.is_authenticated:
             return redirect(url_for('utilisateur.connexion'))
         if not current_user.id_organisme:
-            return redirect(url_for('dashboard'))  # Rediriger si l'utilisateur n'est pas un organisme
+            return redirect(url_for('dashboard'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -91,6 +108,7 @@ def get_all_formations():
             "type": f.type,
             "description": f.description,
             "duree": f.duree,
+            "duree_heures": f.duree_heures,
             "dates": f.dates,
             "lieu": f.lieu,
             "prix": f.prix,
@@ -99,6 +117,7 @@ def get_all_formations():
             "presentation_intervenants": f.presentation_intervenants,
             "lien_inscription": f.lien_inscription,
             "label": f.label,
+            "certifications": f.certifications,
             "id_organisme": f.id_organisme
         })
 
@@ -114,6 +133,8 @@ def handle_formation(id):
         formation.type = request.form.get("type")
         formation.description = request.form.get("description")
         formation.duree = request.form.get("duree")
+        duree_heures = request.form.get("duree_heures")
+        formation.duree_heures = float(duree_heures) if duree_heures else None
         formation.dates = request.form.get("dates")
         formation.lieu = request.form.get("lieu")
         formation.prix = request.form.get("prix")
@@ -123,6 +144,7 @@ def handle_formation(id):
         formation.presentation_intervenants = request.form.get("presentation_intervenants")
         formation.lien_inscription = request.form.get("lien_inscription")
         formation.label = request.form.get("label")
+        formation.certifications = request.form.get("certifications")
         formation.id_organisme = request.form.get("id_organisme")
         formation.etat = request.form.get("etat")
         db.session.commit()
@@ -148,6 +170,8 @@ def update_formation_by_id(id):
         formation.type = data.get("type")
         formation.description = data.get("description")
         formation.duree = data.get("duree")
+        duree_heures = data.get("duree_heures")
+        formation.duree_heures = float(duree_heures) if duree_heures else None
         formation.dates = data.get("dates")
         formation.lieu = data.get("lieu")
         prix = data.get("prix")
@@ -159,6 +183,7 @@ def update_formation_by_id(id):
         if formation.lien_inscription and not formation.lien_inscription.startswith("http://") and not formation.lien_inscription.startswith("https://"):
             formation.lien_inscription = "https://" + formation.lien_inscription
         formation.label = data.get("label")
+        formation.certifications = data.get("certifications")
         formation.id_organisme = data.get("id_organisme")
         formation.etat = data.get("etat")
     else:
@@ -167,7 +192,9 @@ def update_formation_by_id(id):
         formation.type = request.form["type"]
         formation.description = request.form["description"]
         formation.duree = request.form["duree"]
-        formation.dates = request.form["dates"]
+        duree_heures = data.get("duree_heures")
+        formation.duree_heures = float(duree_heures) if duree_heures else None
+        formation.duree_heures = request.form.get("duree_heures")
         formation.lieu = request.form["lieu"]
         prix = request.form.get("prix")
         formation.prix = float(prix) if prix else None
@@ -181,6 +208,7 @@ def update_formation_by_id(id):
         formation.lien_inscription = lien_inscription
 
         formation.label = request.form.get("label")
+        formation.certifications = request.form.get("certifications")
         formation.id_organisme = request.form["id_organisme"]
         formation.etat = request.form.get("etat")
 
@@ -223,6 +251,8 @@ def update_formations():
             formation.type = request.form.get(f"type_{id_}")
             formation.description = request.form.get(f"description_{id_}")
             formation.duree = request.form.get(f"duree_{id_}")
+            formation.duree_heures = request.form.get(f"duree_heures_{id_}")
+            formation.duree_heures = float(formation.duree_heures) if formation.duree_heures else None
             formation.dates = request.form.get(f"dates_{id_}")
             formation.lieu = request.form.get(f"lieu_{id_}")
             formation.prix = request.form.get(f"prix_{id_}")
@@ -232,6 +262,7 @@ def update_formations():
             formation.presentation_intervenants = request.form.get(f"presentation_intervenants_{id_}")
             formation.lien_inscription = request.form.get(f"lien_inscription_{id_}")
             formation.label = request.form.get(f"label_{id_}")
+            formation.certifications = request.form.get(f"certifications_{id_}")
             formation.etat = request.form.get(f"etat_{id_}")
     
     db.session.commit()
@@ -252,6 +283,8 @@ def create_formation():
     type_ = request.form["type"]
     description = request.form["description"]
     duree = request.form["duree"]
+    duree_heures = request.form.get("duree_heures")
+    duree_heures = float(duree_heures) if duree_heures else None
     dates = request.form["dates"]
     lieu = request.form["lieu"]
     prix = request.form.get("prix")
@@ -263,6 +296,7 @@ def create_formation():
     if lien_inscription and not lien_inscription.startswith("http://") and not lien_inscription.startswith("https://"):
         lien_inscription = "https://" + lien_inscription
     label = request.form.get("label")
+    certifications = request.form.get("certifications")
     id_organisme = request.form["id_organisme"]
 
     nouvelle_formation = Formation(
@@ -270,6 +304,7 @@ def create_formation():
         type=type_,
         description=description,
         duree=duree,
+        duree_heures=duree_heures,
         dates=dates,
         lieu=lieu,
         prix=prix,
@@ -278,6 +313,7 @@ def create_formation():
         presentation_intervenants=presentation_intervenants,
         lien_inscription=lien_inscription,
         label=label,
+        certifications=certifications,
         id_organisme=id_organisme
     )
     db.session.add(nouvelle_formation)
@@ -311,15 +347,23 @@ def submit_formation():
         nom = request.form.get('nom')
         type_formation = request.form.get('type')
         id_organisme = request.form.get('id_organisme')
+        try:
+            id_organisme = int(id_organisme) if id_organisme else None
+        except ValueError:
+            id_organisme = None
         description = request.form.get('description')
         # Correction: reconstituer la durée complète
         duree_heures = request.form.get('duree_heures')
+        try:
+            duree_heures = float(duree_heures) if duree_heures else None
+        except ValueError:
+            duree_heures = None
         duree_valeur = request.form.get('duree_valeur')
         duree_unite = request.form.get('duree_unite')
-        # Compose la durée sous forme "75.0 heures / 10 jours"
+        # Stocker dans la BDD uniquement la partie jours/semaines/mois/années
         duree = None
-        if duree_heures and duree_valeur and duree_unite:
-            duree = f"{duree_heures} heures / {duree_valeur} {duree_unite}"
+        if duree_valeur and duree_unite:
+            duree = f"{duree_valeur} {duree_unite}"
         elif duree_heures:
             duree = f"{duree_heures} heures"
         elif duree_valeur and duree_unite:
@@ -336,6 +380,7 @@ def submit_formation():
         if lien_inscription and not lien_inscription.startswith("http://") and not lien_inscription.startswith("https://"):
             lien_inscription = "https://" + lien_inscription
         label = request.form.get('label')
+        certifications = request.form.get('certifications')
         # num_adherent n'est PAS un champ du modèle Formation, donc on ne le passe pas au constructeur
 
         # Vérification des champs obligatoires pour éviter les erreurs d'intégrité
@@ -343,13 +388,13 @@ def submit_formation():
             flash("Merci de remplir tous les champs obligatoires du formulaire.", "danger")
             return redirect(url_for('formation.formulaire'))
 
-        # Créer la nouvelle formation avec l'état "en_attente"
         nouvelle_formation = Formation(
             nom=nom,
             type=type_formation,
             id_organisme=id_organisme,
             description=description,
             duree=duree,
+            duree_heures=duree_heures,
             dates=dates,
             lieu=lieu,
             prix=prix,
@@ -358,6 +403,7 @@ def submit_formation():
             presentation_intervenants=presentation_intervenants,
             lien_inscription=lien_inscription,
             label=label,
+            certifications=certifications,
             etat='en_attente'
         )
 
@@ -366,16 +412,21 @@ def submit_formation():
 
         flash('Votre formation a été soumise avec succès et est en attente de validation.', 'success')
 
-        # Redirection en fonction du rôle
+        # Redirection selon le rôle
         if hasattr(current_user, "is_admin") and current_user.is_admin:
             return redirect(url_for('formation.edit_formations', filtre='en_attente'))
         else:
             return redirect(url_for('dashboard'))
 
     except Exception as e:
+        import traceback; print(traceback.format_exc())
         db.session.rollback()
         flash(f"Une erreur s'est produite lors de la soumission du formulaire: {str(e)}", 'danger')
-        return redirect(url_for('formation.formulaire'))
+        # Redirection selon le rôle même en cas d'erreur
+        if hasattr(current_user, "is_admin") and current_user.is_admin:
+            return redirect(url_for('formation.edit_formations'))
+        else:
+            return redirect(url_for('dashboard'))
 
 @formation_bp.route("/valides", methods=["GET"])
 def get_formations_valides():
@@ -389,6 +440,7 @@ def get_formations_valides():
             "type": f.type,
             "description": f.description,
             "duree": f.duree,
+            "duree_heures": f.duree_heures,
             "dates": f.dates,
             "lieu": f.lieu,
             "prix": f.prix,
@@ -397,6 +449,7 @@ def get_formations_valides():
             "presentation_intervenants": f.presentation_intervenants,
             "lien_inscription": f.lien_inscription,
             "label": f.label,
+            "certifications": f.certifications,
             "id_organisme": f.id_organisme
         })
 
