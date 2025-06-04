@@ -129,17 +129,13 @@ def delete_organisme(id):
 @login_required
 def choose_organisme():
     if request.method == "POST":
-        # Si l'utilisateur a choisi un organisme existant
-        if "id_organisme" in request.form:
-            organisme_id = request.form["id_organisme"]
+        # Vérifier si un ID d'organisme a été fourni
+        organisme_id = request.form.get("id_organisme")
+        if organisme_id:
             current_user.id_organisme = organisme_id
             db.session.commit()
             flash("Organisme associé avec succès!", "success")
             return redirect(url_for("utilisateur.profil"))
-        
-        # Si l'utilisateur veut créer un nouvel organisme
-        elif "create_new" in request.form:
-            return redirect(url_for("organisme.new_organisme_user"))
     
     # GET: Afficher la liste des organismes
     organismes = Organisme.query.all()

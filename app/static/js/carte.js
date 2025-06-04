@@ -124,10 +124,11 @@ function geocodeAddress(address, callback) {
         });
 }
 
+
 // Nouvelle fonction pour récupérer la région
 function getRegionFromAddress(address, callback) {
     const cleanedAddress = address.replace(/,/g, '');
-    const url = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(cleanedAddress)}&limit=1`;
+    const url = `https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(cleanedAddress)}&limit=1`;
 
     fetch(url)
         .then(response => response.json())
@@ -135,16 +136,19 @@ function getRegionFromAddress(address, callback) {
             if (data.features && data.features.length > 0) {
                 const context = data.features[0].properties.context;
                 const contextParts = context.split(',');
-                // Prendre le dernier élément qui est la région
                 const region = contextParts[contextParts.length - 1]?.trim();
-                console.log('Région trouvée:', region);
+                
                 callback(region);
             } else {
+                console.log('❌ Aucune région trouvée pour:', address);
+                console.log('--------------------------------');
                 callback(null);
             }
         })
         .catch(error => {
-            console.error('Erreur lors de la récupération de la région:', error);
+            console.error('🚨 Erreur lors de la récupération de la région:', error);
+            console.error('Pour l\'adresse:', address);
+            console.log('--------------------------------');
             callback(null);
         });
 }

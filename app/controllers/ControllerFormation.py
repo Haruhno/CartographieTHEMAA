@@ -15,8 +15,12 @@ def organisme_required(f):
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
             return redirect(url_for('utilisateur.connexion'))
+        # Permettre à l'admin de passer
+        if current_user.is_admin:
+            return f(*args, **kwargs)
+        # Vérifier si l'utilisateur est lié à un organisme
         if not current_user.id_organisme:
-            return redirect(url_for('dashboard'))  # Rediriger si l'utilisateur n'est pas un organisme
+            return redirect(url_for('dashboard'))
         return f(*args, **kwargs)
     return decorated_function
 

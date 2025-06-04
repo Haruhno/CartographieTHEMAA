@@ -289,11 +289,9 @@
                                                 <i class="fas fa-pen"></i>
                                             </a>
 
-                                            <!-- Bouton supprimer -->
-                                            <button type="submit" name="delete" value="{{ u.id_utilisateur }}" 
-                                                    class="btn-delete btn" 
-                                                    title="Supprimer"
-                                                    onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
+                                            <!-- Nouveau bouton supprimer qui ouvre le modal -->
+                                            <button type="button" class="btn-delete btn" title="Supprimer" 
+                                                    onclick="openDeleteModal('{{ u.id_utilisateur }}')">
                                                 <i class="fas fa-trash"></i>
                                             </button>
 
@@ -339,6 +337,20 @@
                     </div>
                 </section>
             </div>
+        </div>
+    </div>
+
+    <!-- Ajouter le modal de confirmation avant la fermeture du body -->
+    <div id="deleteModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3>Confirmation de suppression</h3>
+            <p>Êtes-vous sûr de vouloir supprimer cet utilisateur ?</p>
+            <form id="deleteForm" method="POST">
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Annuler</button>
+                    <button type="submit" class="btn btn-danger">Confirmer</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -573,6 +585,27 @@
                 e.target.parentElement.remove();
             }
         });
+
+        // Ajouter ces fonctions pour gérer le modal
+        window.openDeleteModal = function(utilisateurId) {
+            const modal = document.getElementById('deleteModal');
+            const form = document.getElementById('deleteForm');
+            form.action = `/utilisateur/delete/${utilisateurId}`;
+            modal.style.display = 'flex';
+        }
+
+        window.closeDeleteModal = function() {
+            const modal = document.getElementById('deleteModal');
+            modal.style.display = 'none';
+        }
+
+        // Fermer le modal si on clique en dehors
+        window.onclick = function(event) {
+            const modal = document.getElementById('deleteModal');
+            if (event.target === modal) {
+                closeDeleteModal();
+            }
+        }
 
         // Initialisation
         updatePagination();
