@@ -10,6 +10,64 @@ from flask_login import login_required, current_user
 
 formation_bp = Blueprint("formation", __name__, url_prefix="/formations")
 
+def get_formulaire_context():
+    organismes = Organisme.query.all()
+
+    # ---------- Financements ----------
+    financement_set = set()
+    all_financements_raw = db.session.query(Formation.financement).filter(Formation.financement != None).all()
+    for row in all_financements_raw:
+        if row[0]:
+            financement_set.update([f.strip() for f in str(row[0]).split(',')])
+
+    # On affiche toujours toutes les options même si elles ne sont pas encore utilisées
+    FINANCEMENT_OPTIONS = [
+        "OPCO (Opérateur De Compétences)",
+        "CPF (Compte Personnel de Formation)",
+        "France Travail",
+        "Fondations",
+        "Bourses",
+        "Employeur·euses",
+        "Régions",
+        "Autofinancement"
+    ]
+    financements = FINANCEMENT_OPTIONS
+
+    # ---------- Labels ----------
+    all_labels_raw = db.session.query(Formation.label).filter(Formation.label != None).all()
+    label_set = set()
+    for row in all_labels_raw:
+        if row[0]:
+            label_set.update([l.strip() for l in str(row[0]).split(',')])
+    labels = sorted(label_set) if label_set else [
+        "Qualiopi",
+        "RNCP (Répertoire National des Certifications Professionnelles)",
+        "Erasmus+"
+    ]
+
+    # ---------- Certifications ----------
+    certifications = [
+        "DE (Diplôme d'État)",
+        "DNSP (Diplôme National Supérieur Professionnel)",
+        "RS (Répertoire Spécifique)",
+        "Formation Certifiante",
+        "Formation Non Certifiante"
+    ]
+    if hasattr(Formation, "certifications"):
+        all_certs_raw = db.session.query(Formation.certifications).filter(Formation.certifications != None).all()
+        cert_set = set()
+        for row in all_certs_raw:
+            if row[0]:
+                cert_set.update([c.strip() for c in str(row[0]).split(',')])
+        certifications = sorted(cert_set) if cert_set else certifications
+
+    return {
+        "organismes": organismes,
+        "financements": financements,
+        "labels": labels,
+        "certifications": certifications
+    }
+
 def organisme_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -183,8 +241,8 @@ def update_formations():
 @formation_bp.route("/new", methods=["GET"])
 @admin_required
 def new_formation():
-    organismes = Organisme.query.all()
-    return render_template("new_formation.html", organismes=organismes)
+    context = get_formulaire_context()
+    return render_template("formulaire.html", **context)
 
 
 @formation_bp.route("/create", methods=["POST"])
@@ -240,43 +298,10 @@ def delete_formation(id):
 
 
 @formation_bp.route("/formulaire", methods=["GET"])
-@organisme_required  # Ajout du décorateur
+@organisme_required
 def formulaire():
-    organismes = Organisme.query.all()
-
-    # ---------- Financements ----------
-    all_financements_raw = db.session.query(Formation.financement).filter(Formation.financement != None).all()
-    financement_set = set()
-    for row in all_financements_raw:
-        if row[0]:
-            financement_set.update([f.strip() for f in str(row[0]).split(',')])
-    financements = sorted(financement_set) if financement_set else ["OPCO (Opérateur De Compétences)", "CPF (Compte Personnel de Formation)", "France Travail", "Auto-financement"]
-
-    # ----------- Labels ----------
-    all_labels_raw = db.session.query(Formation.label).filter(Formation.label != None).all()
-    label_set = set()
-    for row in all_labels_raw:
-        if row[0]:
-            label_set.update([l.strip() for l in str(row[0]).split(',')])
-    labels = sorted(label_set) if label_set else ["Qualiopi", "RNCP (Répertoire National des Certifications Professionnelles)", "Erasmus+"]
-
-    # ---------- Certifications ----------
-    certifications = ["DE (Diplôme d'État)", "DNSP (Diplôme National Supérieur Professionnel)", "Formation Certifiante", "Formation Non Certifiante"]
-    if hasattr(Formation, "certifications"):
-        all_certs_raw = db.session.query(Formation.certifications).filter(Formation.certifications != None).all()
-        cert_set = set()
-        for row in all_certs_raw:
-            if row[0]:
-                cert_set.update([c.strip() for c in str(row[0]).split(',')])
-        certifications = sorted(cert_set) if cert_set else certifications
-
-    return render_template(
-        "formulaire.html",
-        organismes=organismes,
-        financements=financements,
-        labels=labels,
-        certifications=certifications
-    )
+    context = get_formulaire_context()
+    return render_template("formulaire.html", **context)
 
 @formation_bp.route("/submit", methods=["POST"])
 @login_required
