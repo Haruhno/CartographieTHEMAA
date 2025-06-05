@@ -47,17 +47,20 @@ def get_all_organismes():
 def edit_organismes():
     organismes = Organisme.query.all()
     
-    # Récupération des statuts uniques depuis la base de données
-    statuts_raw = db.session.query(Organisme.statut).distinct().filter(Organisme.statut.isnot(None)).all()
-    statuts = sorted([s[0] for s in statuts_raw if s[0] and s[0].strip()])
-    
     # Récupération des labels
-    labels = db.session.query(Organisme.label).distinct().all()
+    labels_raw = db.session.query(Organisme.label).distinct().all()
+    labels_set = set()
+    for label_row in labels_raw:
+        if label_row[0]:
+            # Diviser les labels par virgule
+            for label in label_row[0].split(','):
+                label = label.strip()
+                if label and label.lower() != 'none':
+                    labels_set.add(label)
     
     return render_template("edit_organismes.html", 
                          organismes=organismes,
-                         statuts=statuts,
-                         labels=[l[0] for l in labels if l[0]])
+                         labels=sorted(list(labels_set)))
 
 @organisme_bp.route("/update", methods=["POST"])
 @admin_required
@@ -195,10 +198,31 @@ def preview_organisme(id):
     organisme = Organisme.query.get_or_404(id)
     statuts = db.session.query(Organisme.statut).distinct().all()
     formations = organisme.formations if hasattr(organisme, 'formations') else []
+    
+    # Récupérer tous les labels distincts
+    labels_raw = db.session.query(Organisme.label).distinct().all()
+    labels_set = set()
+    for label_row in labels_raw:
+        if label_row[0]:
+            # Diviser les labels par virgule et les ajouter au set
+            for label in label_row[0].split(','):
+                label = label.strip()
+                if label and label.lower() != 'none':
+                    labels_set.add(label)
+    
+    # Labels de base à toujours proposer
+    BASE_LABELS = [
+        "Qualiopi",
+        "RNCP",
+        "Erasmus+"
+    ]
+    labels_set.update(BASE_LABELS)
+    
     return render_template("preview_organisme.html", 
-                            organisme=organisme,
-                            statuts=[s[0] for s in statuts if s[0]],
-                            formations=formations)
+                         organisme=organisme,
+                         statuts=[s[0] for s in statuts if s[0]],
+                         formations=formations,
+                         labels=sorted(list(labels_set)))
 
 @organisme_bp.route("/update/<int:id>", methods=["POST"])
 @admin_required
@@ -215,7 +239,10 @@ def update_organisme_by_id(id):
         organisme.email = data.get('email', organisme.email)
         organisme.telephone = data.get('telephone', organisme.telephone)
         organisme.statut = data.get('statut', organisme.statut)
-        organisme.label = data.get('label', organisme.label)
+        
+        # Gestion des labels
+        labels = data.get('labels', [])
+        organisme.label = ','.join(labels) if labels else None
 
         db.session.commit()
         return jsonify({"success": True, "message": "Organisme mis à jour avec succès."})
@@ -233,7 +260,10 @@ def update_organisme_by_id(id):
 
         organisme.presentation = request.form.get('presentation')
         organisme.num_adherent = request.form.get('num_adherent')
-        organisme.label = request.form.get('label')
+        
+        # Gestion des labels multiples
+        labels = request.form.getlist('labels[]')
+        organisme.label = ','.join(labels) if labels else None
 
         db.session.commit()
         flash("Organisme mis à jour avec succès!", "success")

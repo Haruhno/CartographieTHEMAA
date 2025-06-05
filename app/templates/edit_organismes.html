@@ -403,11 +403,18 @@
                                   row.getAttribute('data-statut') === selectedStatut;
 
                 // Filtre par label
-                const labelInput = row.querySelector('td:nth-child(6) input');
-                const labelValue = labelInput ? labelInput.value : '';
-                const labelMatch = selectedLabel === 'tous' || labelValue === selectedLabel;
+                const selectedLabel = labelFilter.value;
+                if (selectedLabel !== 'tous') {
+                    const labelInput = row.querySelector('td:nth-child(6) input');
+                    const labelValue = labelInput ? labelInput.value : '';
+                    // Diviser les labels par virgule et vérifier si le label sélectionné est présent
+                    const formationLabels = labelValue.split(',').map(l => l.trim());
+                    if (!formationLabels.includes(selectedLabel)) {
+                        return false;
+                    }
+                }
 
-                return organismeMatch && contactMatch && statutMatch && labelMatch;
+                return organismeMatch && contactMatch && statutMatch;
             });
 
             return filteredRows;

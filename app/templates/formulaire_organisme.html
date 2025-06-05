@@ -15,6 +15,18 @@
         margin-top: 30px;
     }
 
+    .form-control.valid {
+        border-color: #28a745;
+    }
+
+    .form-control.invalid {
+        border-color: #dc3545;
+    }
+
+    input:focus {
+        outline: none;
+        box-shadow: 0 0 3px rgba(0,123,255,.25);
+    }
 </style>
 <body>
     <div class="admin-container">
@@ -121,13 +133,18 @@
                                     </div>
                                     <div class="form-group" style="flex: 0.5;">
                                         <label class="required-field">Code postal</label>
-                                        <input type="text" id="code_postal" name="code_postal" required 
-                                               pattern="\d{5}" 
-                                               maxlength="5" 
-                                               inputmode="numeric" 
+                                        <input type="text" 
+                                               id="code_postal" 
+                                               name="code_postal" 
+                                               required
+                                               minlength="5"
+                                               maxlength="5"
+                                               pattern="[0-9]{5}"
+                                               inputmode="numeric"
                                                autocomplete="postal-code"
                                                placeholder="75012"
-                                               oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,5);">
+                                               title="Le code postal doit contenir exactement 5 chiffres"
+                                               class="form-control">
                                     </div>
                                     <div class="form-group" style="flex: 1;">
                                         <label class="required-field">Ville</label>
@@ -232,34 +249,100 @@
 
             function validateTab(tabId) {
                 const tab = document.getElementById(tabId);
-                const requiredInputs = tab.querySelectorAll('[required]');
                 let isValid = true;
 
-                requiredInputs.forEach(input => {
+                // Nettoyer les anciens messages d'erreur
+                tab.querySelectorAll('.error-message').forEach(el => el.remove());
+
+                // Validation spécifique pour chaque champ
+                if (tabId === 'tab-2') {
+                    // Validation Email
+                    const emailInput = tab.querySelector('input[name="email"]');
+                    if (emailInput) {
+                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                        if (!emailRegex.test(emailInput.value.trim())) {
+                            showError(emailInput, "Veuillez entrer une adresse email valide");
+                            isValid = false;
+                        }
+                    }
+
+                    // Validation Téléphone assouplie
+                    const telInput = tab.querySelector('input[name="telephone"]');
+                    if (telInput) {
+                        // Accepte les formats:
+                        // - 0XXXXXXXXX
+                        // - +33XXXXXXXXX
+                        // - 00336XXXXXXXX
+                        // - Avec ou sans espaces/points/tirets
+                        const telRegex = /^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/;
+                        const cleanNumber = telInput.value.replace(/[\s.-]/g, '');
+                        if (!telRegex.test(cleanNumber)) {
+                            showError(telInput, "Format attendu : 0X XX XX XX XX ou +33X XX XX XX XX");
+                            isValid = false;
+                        }
+                    }
+
+                    // Validation Code Postal
+                    const cpInput = tab.querySelector('input[name="code_postal"]');
+                    if (cpInput) {
+                        if (!/^\d{5}$/.test(cpInput.value.trim())) {
+                            showError(cpInput, "Le code postal doit contenir exactement 5 chiffres");
+                            isValid = false;
+                        }
+                    }
+
+                    // Validation Ville
+                    const villeInput = tab.querySelector('input[name="ville"]');
+                    if (villeInput) {
+                        const villeRegex = /^[A-Za-zÀ-ÿ\s\-']+$/;
+                        if (!villeRegex.test(villeInput.value.trim())) {
+                            showError(villeInput, "La ville ne doit contenir que des lettres, espaces, tirets et apostrophes");
+                            isValid = false;
+                        }
+                    }
+
+                    // Validation Site Web
+                    const siteWebInput = tab.querySelector('input[name="site_web"]');
+                    if (siteWebInput && siteWebInput.value.trim()) {
+                        const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+                        if (!urlRegex.test(siteWebInput.value.trim())) {
+                            showError(siteWebInput, "Veuillez entrer une URL valide");
+                            isValid = false;
+                        }
+                    }
+                }
+
+                // Validation des champs requis
+                tab.querySelectorAll('[required]').forEach(input => {
                     if (!input.value.trim()) {
-                        input.style.borderColor = 'var(--danger-color)';
+                        showError(input, "Ce champ est obligatoire");
                         isValid = false;
-                    } else {
-                        input.style.borderColor = '';
                     }
                 });
 
                 return isValid;
             }
 
-            function updateStepper(activeStep) {
-                steps.forEach(step => {
-                    const stepNumber = step.getAttribute('data-step');
-                    step.classList.remove('active', 'completed');
-                    if (stepNumber === activeStep) {
-                        step.classList.add('active');
-                    } else if (stepNumber < activeStep) {
-                        step.classList.add('completed');
-                    }
-                });
-            }
+            function showError(element, message) {
+                // Supprime l'ancien message d'erreur s'il existe
+                const existingError = element.parentNode.querySelector('.error-message');
+                if (existingError) {
+                    existingError.remove();
+                }
 
-            updateStepper('1');
+                // Crée et ajoute le nouveau message d'erreur
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.style.color = 'var(--danger-color)';
+                errorDiv.style.fontSize = '0.8rem';
+                errorDiv.style.marginTop = '5px';
+                errorDiv.textContent = message;
+                element.parentNode.appendChild(errorDiv);
+
+                // Ajoute la classe d'erreur à l'input
+                element.classList.add('invalid');
+                element.classList.remove('valid');
+            }
 
             // Gestion des labels
             const aucunLabelCheckbox = document.getElementById('aucun_label');
@@ -335,6 +418,233 @@
             document.querySelector('form').addEventListener('submit', function(e) {
                 updateAdresseComplete(); // S'assurer que l'adresse est mise à jour avant l'envoi
             });
+
+            // Validation du code postal
+            document.getElementById('code_postal').addEventListener('input', function(e) {
+                // Ne garder que les chiffres
+                this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);
+                
+                // Validation visuelle
+                if (this.value.length === 5) {
+                    this.classList.add('valid');
+                    this.classList.remove('invalid');
+                } else {
+                    this.classList.remove('valid');
+                    if (this.value.length > 0) {
+                        this.classList.add('invalid');
+                    } else {
+                        this.classList.remove('invalid');
+                    }
+                }
+            });
+
+            // Validation avant soumission du formulaire
+            document.querySelector('form').addEventListener('submit', function(e) {
+                const codePostal = document.getElementById('code_postal');
+                if (codePostal.value.length !== 5) {
+                    e.preventDefault();
+                    codePostal.focus();
+                    alert('Le code postal doit contenir exactement 5 chiffres');
+                }
+            });
+
+            function collectLabels() {
+                const checked = document.querySelectorAll('#labels-group input[type="checkbox"]:checked');
+                const values = Array.from(checked)
+                    .filter(cb => cb.id !== 'aucun_label')
+                    .map(cb => cb.value)
+                    .join(',');
+                
+                // Mettre à jour le champ caché
+                const labelHidden = document.createElement('input');
+                labelHidden.type = 'hidden';
+                labelHidden.name = 'label';
+                labelHidden.value = values;
+                
+                // Remplacer l'ancien champ caché s'il existe
+                const oldHidden = document.querySelector('input[name="label"]');
+                if (oldHidden) {
+                    oldHidden.replaceWith(labelHidden);
+                } else {
+                    document.querySelector('form').appendChild(labelHidden);
+                }
+            }
+
+            // Ajouter les écouteurs d'événements
+            document.querySelectorAll('#labels-group input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', collectLabels);
+            });
+        });
+    </script>
+    
+    <script>
+        // Configuration de l'autocomplétion d'adresse pour le formulaire organisme
+        function setupAddressAutocomplete() {
+            const adresseInput = document.getElementById('rue');
+            const codePostalInput = document.getElementById('code_postal');
+            const villeInput = document.getElementById('ville');
+            
+            let timeoutId = null;
+
+            adresseInput.addEventListener('input', function() {
+                // Annuler la requête précédente si elle existe
+                if (timeoutId) clearTimeout(timeoutId);
+                
+                const searchText = this.value.trim();
+                if (searchText.length < 3) return;
+
+                // Délai de 300ms avant d'envoyer la requête
+                timeoutId = setTimeout(() => {
+                    const url = `https://data.geopf.fr/geocodage/completion?text=${encodeURIComponent(searchText)}&type=StreetAddress`;
+                    
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.results && data.results.length > 0) {
+                                showSuggestions(data.results, adresseInput, codePostalInput, villeInput);
+                            }
+                        })
+                        .catch(error => console.error('Erreur:', error));
+                }, 300);
+            });
+        }
+
+        // Affichage des suggestions
+        function showSuggestions(results, adresseInput, codePostalInput, villeInput) {
+            // Supprimer l'ancienne liste de suggestions si elle existe
+            let suggestionList = document.getElementById('address-suggestions');
+            if (suggestionList) {
+                suggestionList.remove();
+            }
+
+            // Créer la nouvelle liste de suggestions
+            suggestionList = document.createElement('ul');
+            suggestionList.id = 'address-suggestions';
+            suggestionList.className = 'suggestions-list';
+
+            results.forEach(result => {
+                const li = document.createElement('li');
+                li.textContent = result.fulltext;
+                li.addEventListener('click', () => {
+                    // Remplir les champs avec les données de l'adresse sélectionnée
+                    const parts = result.fulltext.split(',');
+                    if (parts.length >= 2) {
+                        adresseInput.value = parts[0].trim();
+                        const postalAndCity = parts[1].trim().match(/(\d{5})\s+(.*)/);
+                        if (postalAndCity) {
+                            codePostalInput.value = postalAndCity[1];
+                            villeInput.value = postalAndCity[2];
+                        }
+                    }
+                    suggestionList.remove();
+                    updateAdresseComplete(); // Mettre à jour l'adresse complète
+                });
+                suggestionList.appendChild(li);
+            });
+
+            // Positionner la liste sous le champ d'adresse
+            adresseInput.parentNode.style.position = 'relative';
+            adresseInput.parentNode.appendChild(suggestionList);
+        }
+
+        // Autocomplétion pour le code postal et la ville
+        const villeSuggestionList = document.createElement('ul');
+        villeSuggestionList.className = 'suggestions-list';
+
+        function clearSuggestions() {
+            villeSuggestionList.innerHTML = '';
+            if (villeSuggestionList.parentNode) {
+                villeSuggestionList.parentNode.removeChild(villeSuggestionList);
+            }
+        }
+
+        // Quand on tape un code postal
+        document.getElementById('code_postal').addEventListener('input', function () {
+            const cp = this.value;
+
+            clearSuggestions();
+
+            if (/^\d{4,5}$/.test(cp)) {
+                fetch(`https://api-adresse.data.gouv.fr/search/?q=${cp}&limit=10`)
+                    .then(res => res.json())
+                    .then(data => {
+                        const villes = new Set();
+                        data.features.forEach(f => {
+                            const city = f.properties.city || f.properties.label;
+                            if (city) villes.add(city);
+                        });
+
+                        if (villes.size > 0) {
+                            villes.forEach(ville => {
+                                const li = document.createElement('li');
+                                li.textContent = ville;
+                                li.style.padding = '8px';
+                                li.style.cursor = 'pointer';
+                                li.addEventListener('click', () => {
+                                    document.getElementById('ville').value = ville;
+                                    clearSuggestions();
+                                    updateAdresseComplete();
+                                });
+                                villeSuggestionList.appendChild(li);
+                            });
+                            this.parentNode.appendChild(villeSuggestionList);
+                        }
+                    })
+                    .catch(console.error);
+            }
+        });
+
+        // Quand on tape une ville
+        document.getElementById('ville').addEventListener('input', function () {
+            const ville = this.value.trim();
+
+            clearSuggestions();
+
+            if (ville.length >= 3) {
+                fetch(`https://api-adresse.data.gouv.fr/search/?q=${ville}&type=municipality&limit=10`)
+                    .then(res => res.json())
+                    .then(data => {
+                        const added = new Set();
+
+                        data.features.forEach(f => {
+                            const city = f.properties.city;
+                            const cp = f.properties.postcode;
+
+                            const key = `${city} ${cp}`;
+                            if (!added.has(key)) {
+                                added.add(key);
+                                const li = document.createElement('li');
+                                li.textContent = `${city} (${cp})`;
+                                li.style.padding = '8px';
+                                li.style.cursor = 'pointer';
+                                li.addEventListener('click', () => {
+                                    this.value = city;
+                                    document.getElementById('code_postal').value = cp;
+                                    clearSuggestions();
+                                    updateAdresseComplete();
+                                });
+                                villeSuggestionList.appendChild(li);
+                            }
+                        });
+
+                        if (added.size > 0) {
+                            this.parentNode.appendChild(villeSuggestionList);
+                        }
+                    })
+                    .catch(console.error);
+            }
+        });
+
+        // Fermer les suggestions quand on clique ailleurs
+        document.addEventListener('click', (e) => {
+            if (!villeSuggestionList.contains(e.target)) {
+                clearSuggestions();
+            }
+        });
+
+        // Initialiser l'autocomplétion au chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            setupAddressAutocomplete();
         });
     </script>
 </body>

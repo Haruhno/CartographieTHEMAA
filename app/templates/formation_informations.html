@@ -42,41 +42,71 @@
         <div class="formation-card">
             <div class="formation-card-header">
                 <h3>{{ formation.nom }}</h3>
-                <span class="formation-type {{ 'type-initiale' if formation.type == 'initiale' else 'type-continue' }}">
-                    {{ 'Initiale' if formation.type == 'initiale' else 'Continue' }}
-                </span>
+                <div class="formation-type-container">
+                    <span class="formation-type {{ 'type-initiale' if formation.type == 'initiale' else 'type-continue' }}">
+                        {{ 'Initiale' if formation.type == 'initiale' else 'Continue' }}
+                    </span>
+                    {% if formation.certifications %}
+                    <span class="formation-certification">
+                        <i class="fas fa-certificate"></i> {{ formation.certifications }}
+                    </span>
+                    {% endif %}
+                </div>
             </div>
             
             <div class="formation-card-body">
                 <div class="formation-details">
-                    <p><strong>Description :</strong> {{ formation.description }}</p>
-                    <p><strong>Durée :</strong> {{ formation.duree }}</p>
-                    <p><strong>Dates :</strong> {{ formation.dates }}</p>
-                    <p><strong>Lieu :</strong> {{ formation.lieu }}</p>
-                    
-                    {% if formation.prix %}
-                    <p><strong>Prix :</strong> {{ "%.2f"|format(formation.prix) }} €</p>
+                    {% if formation.description %}
+                    <p class="description-section">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Description :</strong> {{ formation.description }}
+                    </p>
                     {% endif %}
-                    
+
+                    <div class="details-grid">
+                        <p><i class="fas fa-clock"></i> <strong>Durée :</strong> 
+                            {{ formation.duree }}
+                            {% if formation.duree_heures %} ({{ formation.duree_heures }} heures){% endif %}
+                        </p>
+                        <p><i class="fas fa-calendar"></i> <strong>Dates :</strong> {{ formation.dates }}</p>
+                        <p><i class="fas fa-map-marker-alt"></i> <strong>Lieu :</strong> {{ formation.lieu }}</p>
+                        
+                        {% if formation.prix %}
+                        <p><i class="fas fa-euro-sign"></i> <strong>Prix :</strong> {{ "%.2f"|format(formation.prix) }} €</p>
+                        {% endif %}
+                    </div>
+
+                    {% if formation.label %}
+                    <div class="labels-section">
+                        <p><i class="fas fa-tags"></i> <strong>Labels :</strong></p>
+                        <div class="labels-container">
+                            {% for label in formation.label.split(',') %}
+                            <span class="label-badge">{{ label.strip() }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
                     {% if formation.conditions_acces %}
-                    <p><strong>Conditions d'accès :</strong> {{ formation.conditions_acces }}</p>
+                    <p><i class="fas fa-door-open"></i> <strong>Conditions d'accès :</strong> {{ formation.conditions_acces }}</p>
                     {% endif %}
                     
                     {% if formation.financement %}
-                    <p><strong>Financement :</strong> {{ formation.financement }}</p>
+                    <p><i class="fas fa-hand-holding-usd"></i> <strong>Financement :</strong> {{ formation.financement }}</p>
                     {% endif %}
                     
                     {% if formation.presentation_intervenants %}
-                    <p><strong>Intervenants :</strong> {{ formation.presentation_intervenants }}</p>
+                    <p><i class="fas fa-users"></i> <strong>Intervenants :</strong> {{ formation.presentation_intervenants }}</p>
                     {% endif %}
                 </div>
                 
                 {% if formation.lien_inscription %}
-                <a href="{{ formation.lien_inscription if formation.lien_inscription.startswith('http') else 'http://' + formation.lien_inscription }}" 
-                class="inscription-button" target="_blank" rel="noopener noreferrer">
-                <i class="fas fa-pencil-alt"></i> S'inscrire
-                </a>
-
+                <div class="inscription-container">
+                    <a href="{{ formation.lien_inscription if formation.lien_inscription.startswith('http') else 'http://' + formation.lien_inscription }}" 
+                    class="inscription-button" target="_blank" rel="noopener noreferrer">
+                    <i class="fas fa-pencil-alt"></i> S'inscrire
+                    </a>
+                </div>
                 {% endif %}
             </div>
         </div>
