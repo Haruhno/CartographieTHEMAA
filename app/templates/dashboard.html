@@ -64,14 +64,14 @@
                             </a>
                         </div>
 
-                        <div class="pagination-controls">
+                        <div class="pagination-controls" id="paginationOrganismesTop" style="display:none;">
                             <span id="itemCountOrganismes">Affichage de {{ organismes|length }} organismes</span>
                             <div class="pagination-buttons">
                                 <button class="btn" id="prevPageOrganismes"><i class="fas fa-chevron-left"></i> Précédent</button>
                                 <span id="pageInfoOrganismes">Page 1</span>
                                 <button class="btn" id="nextPageOrganismes">Suivant <i class="fas fa-chevron-right"></i></button>
                             </div>
-                            <select id="itemsPerPage">
+                            <select id="itemsPerPageOrganismes">
                                 <option value="10">10 par page</option>
                                 <option value="25">25 par page</option>
                                 <option value="50">50 par page</option>
@@ -87,7 +87,6 @@
                                     <th>Adresse</th>
                                     <th>Email</th>
                                     <th>Téléphone</th>
-                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -108,7 +107,7 @@
                             </tbody>
                         </table>
 
-                        <div class="pagination-controls">
+                        <div class="pagination-controls" id="paginationOrganismesBottom" style="display:none;">
                             <span id="itemCountOrganismesBottom">Affichage de {{ organismes|length }} organismes</span>
                             <div class="pagination-buttons">
                                 <button class="btn" id="prevPageOrganismesBottom"><i class="fas fa-chevron-left"></i> Précédent</button>
@@ -135,14 +134,14 @@
                             </a>
                         </div>
 
-                        <div class="pagination-controls">
+                        <div class="pagination-controls" id="paginationFormationsTop" style="display:none;">
                             <span id="itemCountFormations">Affichage de {{ formations|length }} formations</span>
                             <div class="pagination-buttons">
                                 <button class="btn" id="prevPageFormations"><i class="fas fa-chevron-left"></i> Précédent</button>
                                 <span id="pageInfoFormations">Page 1</span>
                                 <button class="btn" id="nextPageFormations">Suivant <i class="fas fa-chevron-right"></i></button>
                             </div>
-                            <select id="itemsPerPage">
+                            <select id="itemsPerPageFormations">
                                 <option value="10">10 par page</option>
                                 <option value="25">25 par page</option>
                                 <option value="50">50 par page</option>
@@ -162,10 +161,22 @@
                                     <th>Prix</th>
                                 </tr>
                             </thead>
-                            <tbody></tbody>
+                            <tbody>
+                                {% for f in formations %}
+                                <tr class="formation-row">
+                                    <td>{{ f.id_formation }}</td>
+                                    <td>{{ f.nom }}</td>
+                                    <td>{{ 'Initiale' if f.type == 'initiale' else 'Continue' }}</td>
+                                    <td>{{ f.description }}</td>
+                                    <td>{{ f.duree }}</td>
+                                    <td>{{ f.lieu }}</td>
+                                    <td>{% if f.prix %}{{ "%.2f"|format(f.prix) }} €{% endif %}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
                         </table>
 
-                        <div class="pagination-controls">
+                        <div class="pagination-controls" id="paginationFormationsBottom" style="display:none;">
                             <span id="itemCountFormationsBottom">Affichage de {{ formations|length }} formations</span>
                             <div class="pagination-buttons">
                                 <button class="btn" id="prevPageFormationsBottom"><i class="fas fa-chevron-left"></i> Précédent</button>
@@ -311,6 +322,111 @@
             hideDeleteModal();
         }
     }
+
+    function paginateTable(tableId, itemsPerPage, page, rowClass) {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+        const rows = Array.from(table.querySelectorAll('tbody tr'));
+        const totalRows = rows.length;
+        const totalPages = Math.max(1, Math.ceil(totalRows / itemsPerPage));
+        page = Math.max(1, Math.min(page, totalPages));
+        rows.forEach((row, idx) => {
+            row.style.display = (idx >= (page - 1) * itemsPerPage && idx < page * itemsPerPage) ? '' : 'none';
+        });
+        return { totalRows, totalPages, page };
+    }
+
+    function setupPagination(tableId, topControlsId, bottomControlsId, itemsPerPageId, rowClass, itemCountId, pageInfoId, prevBtnId, nextBtnId, itemCountBottomId, pageInfoBottomId, prevBtnBottomId, nextBtnBottomId) {
+        let currentPage = 1;
+        let itemsPerPage = parseInt(document.getElementById(itemsPerPageId).value);
+
+        function update() {
+            const { totalRows, totalPages, page } = paginateTable(tableId, itemsPerPage, currentPage, rowClass);
+            document.getElementById(itemCountId).textContent = `Affichage de ${totalRows} ${rowClass === 'organisme-row' ? 'organismes' : 'formations'}`;
+            document.getElementById(pageInfoId).textContent = `Page ${page} sur ${totalPages}`;
+            document.getElementById(itemCountBottomId).textContent = `Affichage de ${totalRows} ${rowClass === 'organisme-row' ? 'organismes' : 'formations'}`;
+            document.getElementById(pageInfoBottomId).textContent = `Page ${page} sur ${totalPages}`;
+            document.getElementById(prevBtnId).disabled = page === 1;
+            document.getElementById(nextBtnId).disabled = page === totalPages;
+            document.getElementById(prevBtnBottomId).disabled = page === 1;
+            document.getElementById(nextBtnBottomId).disabled = page === totalPages;
+        }
+
+        document.getElementById(itemsPerPageId).addEventListener('change', function() {
+            itemsPerPage = parseInt(this.value);
+            currentPage = 1;
+            update();
+        });
+        document.getElementById(prevBtnId).addEventListener('click', function() {
+            if (currentPage > 1) { currentPage--; update(); }
+        });
+        document.getElementById(nextBtnId).addEventListener('click', function() {
+            currentPage++; update();
+        });
+        document.getElementById(prevBtnBottomId).addEventListener('click', function() {
+            if (currentPage > 1) { currentPage--; update(); }
+        });
+        document.getElementById(nextBtnBottomId).addEventListener('click', function() {
+            currentPage++; update();
+        });
+
+        update();
+        return update;
+    }
+
+    // Voir/Cacher Organismes
+    const btnToggleOrganismes = document.getElementById('btnToggleOrganismes');
+    const tableOrganismes = document.getElementById('tableOrganismes');
+    const exportOrganismes = document.getElementById('exportOrganismes');
+    const paginationOrganismesTop = document.getElementById('paginationOrganismesTop');
+    const paginationOrganismesBottom = document.getElementById('paginationOrganismesBottom');
+    let organismesVisible = false;
+    let updateOrganismesPagination = null;
+
+    btnToggleOrganismes.addEventListener('click', function() {
+        organismesVisible = !organismesVisible;
+        tableOrganismes.style.display = organismesVisible ? '' : 'none';
+        exportOrganismes.style.display = organismesVisible ? '' : 'none';
+        paginationOrganismesTop.style.display = organismesVisible ? '' : 'none';
+        paginationOrganismesBottom.style.display = organismesVisible ? '' : 'none';
+        btnToggleOrganismes.innerHTML = organismesVisible ? '<i class="fas fa-eye-slash"></i> Cacher les organismes' : '<i class="fas fa-eye"></i> Voir les organismes';
+        if (organismesVisible && !updateOrganismesPagination) {
+            updateOrganismesPagination = setupPagination(
+                'tableOrganismes', 'paginationOrganismesTop', 'paginationOrganismesBottom', 'itemsPerPageOrganismes',
+                'organisme-row', 'itemCountOrganismes', 'pageInfoOrganismes', 'prevPageOrganismes', 'nextPageOrganismes',
+                'itemCountOrganismesBottom', 'pageInfoOrganismesBottom', 'prevPageOrganismesBottom', 'nextPageOrganismesBottom'
+            );
+        } else if (organismesVisible && updateOrganismesPagination) {
+            updateOrganismesPagination();
+        }
+    });
+
+    // Voir/Cacher Formations
+    const btnToggleFormations = document.getElementById('btnToggleFormations');
+    const tableFormations = document.getElementById('tableFormations');
+    const exportFormations = document.getElementById('exportFormations');
+    const paginationFormationsTop = document.getElementById('paginationFormationsTop');
+    const paginationFormationsBottom = document.getElementById('paginationFormationsBottom');
+    let formationsVisible = false;
+    let updateFormationsPagination = null;
+
+    btnToggleFormations.addEventListener('click', function() {
+        formationsVisible = !formationsVisible;
+        tableFormations.style.display = formationsVisible ? '' : 'none';
+        exportFormations.style.display = formationsVisible ? '' : 'none';
+        paginationFormationsTop.style.display = formationsVisible ? '' : 'none';
+        paginationFormationsBottom.style.display = formationsVisible ? '' : 'none';
+        btnToggleFormations.innerHTML = formationsVisible ? '<i class="fas fa-eye-slash"></i> Cacher les formations' : '<i class="fas fa-eye"></i> Voir les formations';
+        if (formationsVisible && !updateFormationsPagination) {
+            updateFormationsPagination = setupPagination(
+                'tableFormations', 'paginationFormationsTop', 'paginationFormationsBottom', 'itemsPerPageFormations',
+                'formation-row', 'itemCountFormations', 'pageInfoFormations', 'prevPageFormations', 'nextPageFormations',
+                'itemCountFormationsBottom', 'pageInfoFormationsBottom', 'prevPageFormationsBottom', 'nextPageFormationsBottom'
+            );
+        } else if (formationsVisible && updateFormationsPagination) {
+            updateFormationsPagination();
+        }
+    });
     </script>
 
     <!-- Ajouter les styles CSS -->
