@@ -1363,6 +1363,7 @@ input[type="file"] {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    pointer-events: none; /* pour pouvoir cliquer à travers le conteneur */
 }
 
 .flash-popup {
@@ -1373,10 +1374,46 @@ input[type="file"] {
     color: #fff;
     font-weight: 500;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    animation: fadein 0.5s, fadeout 0.5s 4.5s;
     position: relative;
-    opacity: 0;
-    animation-fill-mode: forwards;
+
+    /* ANIMATION: fade in puis fade out */
+    animation: flashLife 5s forwards;
+
+    /* Active les clics pendant l'affichage */
+    pointer-events: auto;
+}
+
+/* Animation combinée fadein + fadeout */
+@keyframes flashLife {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+        pointer-events: auto;
+    }
+    10% {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+    80% {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(20px);
+        pointer-events: none;
+    }
+}
+
+.flash-popup.fade-out {
+    pointer-events: none !important;
+    animation: fadeout 0.5s forwards;
+    position: absolute !important; /* facultatif : la popup n’occupe plus d’espace */
+}
+.flash-popup-container:empty {
+    display: none;
 }
 
 /* Animation keyframes */
@@ -1397,6 +1434,7 @@ input[type="file"] {
     right: 12px;
     cursor: pointer;
     font-size: 16px;
+    pointer-events: auto; /* Assure que le bouton de fermeture est cliquable */
 }
 
 /* Color variants */
@@ -2375,6 +2413,7 @@ input[type="file"] {
     margin-top: 30px;
     justify-content: flex-end;
 }
+
 
 /* Dans la section des filtres, ajoutez ou modifiez */
 .price-filters {

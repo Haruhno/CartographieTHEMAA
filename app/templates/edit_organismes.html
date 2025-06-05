@@ -245,9 +245,14 @@
                                         </td>
                                         <td>
                                             <select name="statut_{{ o.id_organisme }}" class="table-select" required>
-                                                {% for statut in statuts %}
-                                                <option value="{{ statut }}" {% if statut == o.statut %}selected{% endif %}>{{ statut }}</option>
-                                                {% endfor %}
+                                                <option value="">Sélectionnez un statut</option>
+                                                <option value="Association loi 1901" {% if o.statut == "Association loi 1901" %}selected{% endif %}>Association loi 1901</option>
+                                                <option value="Entreprise de droit privé" {% if o.statut == "Entreprise de droit privé" %}selected{% endif %}>Entreprise de droit privé (Micro entreprise, SARL...)</option>
+                                                <option value="Coopérative" {% if o.statut == "Coopérative" %}selected{% endif %}>Coopérative</option>
+                                                <option value="Etablissement public" {% if o.statut == "Etablissement public" %}selected{% endif %}>Etablissement public</option>
+                                                <option value="Collectivité" {% if o.statut == "Collectivité" %}selected{% endif %}>Collectivité</option>
+                                                <option value="Sans" {% if o.statut == "Sans" %}selected{% endif %}>Sans</option>
+                                                <option value="Autre" {% if o.statut == "Autre" %}selected{% endif %}>Autre</option>
                                             </select>
                                         </td>
                                         <td>

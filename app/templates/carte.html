@@ -71,30 +71,29 @@
         </div>
     </div>
     
+    <!-- Labels -->
     <div class="filter-group">
         <h4 class="filter-title">Labels</h4>
-        <div class="filter-options">
-            <label class="filter-checkbox">
-                <input type="checkbox" name="label" value="Qualiopi">
-                <span class="checkmark"></span>
-                <span class="filter-label">Qualiopi</span>
-            </label>
-            <label class="filter-checkbox">
-                <input type="checkbox" name="label" value="RNCP">
-                <span class="checkmark"></span>
-                <span class="filter-label">RNCP</span>
-            </label>
+        <div class="filter-options" id="labelsContainer">
+            <!-- Les labels seront ajoutés dynamiquement ici -->
         </div>
     </div>
-    
+
+    <!-- Financement -->
     <div class="filter-group">
         <h4 class="filter-title">Financement</h4>
         <select id="financementFilter" class="filter-select">
             <option value="">Tous les financements</option>
-            <option value="CPF">CPF</option>
-            <option value="OPCO">OPCO</option>
-            <option value="Pôle Emploi">Pôle Emploi</option>
-            <option value="Autofinancement">Autofinancement</option>
+            <!-- Les options seront ajoutées dynamiquement ici -->
+        </select>
+    </div>
+
+    <!-- Certification -->
+    <div class="filter-group">
+        <h4 class="filter-title">Certification</h4>
+        <select id="certificationFilter" class="filter-select">
+            <option value="">Toutes les certifications</option>
+            <!-- Les options seront ajoutées dynamiquement ici -->
         </select>
     </div>
     

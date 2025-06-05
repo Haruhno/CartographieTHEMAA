@@ -144,12 +144,28 @@ $(document).ready(function(){
 // Supprime les flashs automatiquement après 5 secondes
 document.addEventListener("DOMContentLoaded", () => {
     const flashMessages = document.querySelectorAll(".flash-popup");
+
     flashMessages.forEach((msg) => {
         setTimeout(() => {
-            msg.style.display = "none";
+            msg.classList.add("fade-out");
+
+            // Supprime vraiment du DOM après l'animation (0.5s = 500ms)
+            setTimeout(() => {
+                msg.remove();
+
+                // Supprime aussi le conteneur s’il est vide
+                const container = document.getElementById("flashPopupContainer");
+                if (container && container.children.length === 0) {
+                    container.remove();
+                }
+            }, 500);
         }, 4000);
     });
 });
+
+
+
+
 
 
 // Filtrage des formations

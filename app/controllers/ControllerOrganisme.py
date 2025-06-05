@@ -46,11 +46,18 @@ def get_all_organismes():
 @admin_required
 def edit_organismes():
     organismes = Organisme.query.all()
-    statuts = db.session.query(Organisme.statut).distinct().all()
+    
+    # Récupération des statuts uniques depuis la base de données
+    statuts_raw = db.session.query(Organisme.statut).distinct().filter(Organisme.statut.isnot(None)).all()
+    statuts = sorted([s[0] for s in statuts_raw if s[0] and s[0].strip()])
+    
+    # Récupération des labels
     labels = db.session.query(Organisme.label).distinct().all()
-    return render_template("edit_organismes.html", organismes=organismes,
-                           statuts=[s[0] for s in statuts if s[0]],
-                           labels=[l[0] for l in labels if l[0]])
+    
+    return render_template("edit_organismes.html", 
+                         organismes=organismes,
+                         statuts=statuts,
+                         labels=[l[0] for l in labels if l[0]])
 
 @organisme_bp.route("/update", methods=["POST"])
 @admin_required
