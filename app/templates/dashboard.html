@@ -190,6 +190,121 @@
                             <button class="btn" onclick="exportTable('tableFormations', 'json', 'formations')">Exporter JSON</button>
                         </div>
                     </section>
+
+                    <!-- Nouvelle section Options -->
+                    <section class="card">
+                        <h2><i class="fas fa-cog icon"></i> Gestion des options</h2>
+                        
+                        <div class="options-tabs">
+                            <div class="options-tab-buttons">
+                                <button class="tab-btn active" data-tab="labels">Labels</button>
+                                <button class="tab-btn" data-tab="certifications">Certifications</button>
+                                <button class="tab-btn" data-tab="financements">Financements</button>
+                                <button class="tab-btn" data-tab="statuts">Statuts</button>
+                            </div>
+                            
+                            <!-- Tab Labels -->
+                            <div class="options-tab-content active" id="labels-tab">
+                                <div class="options-list">
+                                    {% for label in labels %}
+                                        <div class="option-item">
+                                            <span>{{ label }}</span>
+                                            <div class="option-actions">
+                                                <button class="btn-edit-option" data-type="label" data-value="{{ label }}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn-delete-option" data-type="label" data-value="{{ label }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <form class="add-option-form" data-type="label">
+                                    <input type="text" placeholder="Nouveau label" required>
+                                    <button type="submit" class="btn btn-add">
+                                        <i class="fas fa-plus"></i> Ajouter
+                                    </button>
+                                </form>
+                            </div>
+                            
+                            <!-- Tab Certifications -->
+                            <div class="options-tab-content" id="certifications-tab">
+                                <div class="options-list">
+                                    {% for cert in certifications %}
+                                        <div class="option-item">
+                                            <span>{{ cert }}</span>
+                                            <div class="option-actions">
+                                                <button class="btn-edit-option" data-type="certification" data-value="{{ cert }}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn-delete-option" data-type="certification" data-value="{{ cert }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <form class="add-option-form" data-type="certification">
+                                    <input type="text" placeholder="Nouvelle certification" required>
+                                    <button type="submit" class="btn btn-add">
+                                        <i class="fas fa-plus"></i> Ajouter
+                                    </button>
+                                </form>
+                            </div>
+                            
+                            <!-- Tab Financements -->
+                            <div class="options-tab-content" id="financements-tab">
+                                <div class="options-list">
+                                    {% for financement in financements %}
+                                        <div class="option-item">
+                                            <span>{{ financement }}</span>
+                                            <div class="option-actions">
+                                                <button class="btn-edit-option" data-type="financement" data-value="{{ financement }}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn-delete-option" data-type="financement" data-value="{{ financement }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <form class="add-option-form" data-type="financement">
+                                    <input type="text" placeholder="Nouveau financement" required>
+                                    <button type="submit" class="btn btn-add">
+                                        <i class="fas fa-plus"></i> Ajouter
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Tab Statuts -->
+                            <div class="options-tab-content" id="statuts-tab">
+                                <div class="options-list">
+                                    {% for statut in statuts %}
+                                        <div class="option-item">
+                                            <span>{{ statut }}</span>
+                                            <div class="option-actions">
+                                                <button class="btn-edit-option" data-type="statuts" data-value="{{ statut }}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn-delete-option" data-type="statuts" data-value="{{ statut }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <form class="add-option-form" data-type="statuts">
+                                    <input type="text" placeholder="Nouveau statut" required>
+                                    <button type="submit" class="btn btn-add">
+                                        <i class="fas fa-plus"></i> Ajouter
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </section>
+
                 {% elif user.role == 'user' %}
                     <section class="user-dashboard">
                         <div class="user-welcome-card">
@@ -481,5 +596,143 @@
         background-color: #c82333;
     }
     </style>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gestion des onglets
+        const tabButtons = document.querySelectorAll('.options-tab-buttons .tab-btn');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                
+                // Désactive tous les onglets
+                document.querySelectorAll('.options-tab-content').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                tabButtons.forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Active l'onglet sélectionné
+                this.classList.add('active');
+                document.getElementById(`${tabId}-tab`).classList.add('active');
+            });
+        });
+        
+        // Gestion de l'ajout d'options
+        const addForms = document.querySelectorAll('.add-option-form');
+        addForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const type = this.getAttribute('data-type');
+                const value = this.querySelector('input').value.trim();
+
+                if (value) {
+                    fetch('/admin/add-option', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ type, value })
+                    })
+                    .then(async response => {
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            return response.json();
+                        } else {
+                            throw new Error('Réponse non JSON du serveur');
+                        }
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert('Erreur: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Une erreur est survenue: ' + error.message);
+                    });
+                }
+            });
+        });
+
+        // Gestion de la suppression d'options
+        document.querySelectorAll('.btn-delete-option').forEach(button => {
+            button.addEventListener('click', function() {
+                const type = this.getAttribute('data-type');
+                const value = this.getAttribute('data-value');
+
+                if (confirm(`Êtes-vous sûr de vouloir supprimer "${value}" ?`)) {
+                    fetch('/admin/delete-option', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ type, value })
+                    })
+                    .then(async response => {
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            return response.json();
+                        } else {
+                            throw new Error('Réponse non JSON du serveur');
+                        }
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert('Erreur: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Une erreur est survenue: ' + error.message);
+                    });
+                }
+            });
+        });
+
+        // Gestion de l'édition d'options
+        document.querySelectorAll('.btn-edit-option').forEach(button => {
+            button.addEventListener('click', function() {
+                const type = this.getAttribute('data-type');
+                const oldValue = this.getAttribute('data-value');
+                const newValue = prompt(`Modifier ${type} "${oldValue}" :`, oldValue);
+
+                if (newValue && newValue !== oldValue) {
+                    fetch('/admin/update-option', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ type, oldValue, newValue })
+                    })
+                    .then(async response => {
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            return response.json();
+                        } else {
+                            throw new Error('Réponse non JSON du serveur');
+                        }
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert('Erreur: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Une erreur est survenue: ' + error.message);
+                    });
+                }
+            });
+        });
+    });
+    </script>
 </body>
 </html>

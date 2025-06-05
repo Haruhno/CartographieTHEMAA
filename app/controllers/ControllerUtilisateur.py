@@ -10,6 +10,7 @@ import re
 from functools import wraps
 import requests
 from flask_mail import Mail, Message
+from models.ModelFormation import Formation
 
 utilisateur_bp = Blueprint("utilisateur", __name__, url_prefix="/utilisateur")
 
@@ -718,3 +719,106 @@ Cette demande a été envoyée depuis le formulaire de support THEMAA.
         current_app.logger.error(f"Erreur lors de l'envoi de la demande de support : {e}")
         flash("Une erreur est survenue lors de l'envoi de votre demande. Veuillez réessayer plus tard.", "error")
         return redirect(url_for('utilisateur.support'))
+
+@utilisateur_bp.route('/admin/add-option', methods=['POST'])
+@admin_required
+def add_option():
+    data = request.get_json()
+    type_map = {
+        "label": "label",
+        "certification": "certifications",
+        "financement": "financement",
+        "statuts": "etat"
+    }
+    type_ = type_map.get(data.get("type"))
+    value = data.get("value", "").strip()
+
+    if not type_:
+        return jsonify({"success": False, "message": "Type d'option invalide"}), 400
+
+    if not value:
+        return jsonify({"success": False, "message": "Valeur vide"}), 400
+
+    try:
+        dummy = Formation.query.first()
+        if not dummy:
+            dummy = Formation(nom="Temp", type="Temp", description="Temp", duree="1j", dates="2025", lieu="Temp", id_organisme=1)
+            db.session.add(dummy)
+            db.session.commit()
+
+        current = getattr(dummy, type_) or ""
+        values = [v.strip() for v in current.split(",") if v.strip()]
+        if value not in values:
+            values.append(value)
+            setattr(dummy, type_, ", ".join(values))
+            db.session.commit()
+
+        return jsonify({"success": True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@utilisateur_bp.route('/admin/delete-option', methods=['POST'])
+@admin_required
+def delete_option():
+    data = request.get_json()
+    type_map = {
+        "label": "label",
+        "certification": "certifications",
+        "financement": "financement",
+        "statuts": "etat"
+    }
+    type_ = type_map.get(data.get("type"))
+    value = data.get("value", "").strip()
+
+    if not type_:
+        return jsonify({"success": False, "message": "Type d'option invalide"}), 400
+
+    try:
+        formations = Formation.query.all()
+        for formation in formations:
+            current = getattr(formation, type_) or ""
+            values = [v.strip() for v in current.split(",") if v.strip()]
+            new_values = [v for v in values if v != value]
+            setattr(formation, type_, ", ".join(new_values))
+        db.session.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@utilisateur_bp.route('/admin/update-option', methods=['POST'])
+@admin_required
+def update_option():
+    data = request.get_json()
+    type_map = {
+        "label": "label",
+        "certification": "certifications",
+        "financement": "financement",
+        "statuts": "etat"
+    }
+    type_ = type_map.get(data.get("type"))
+    old_value = data.get("oldValue", "").strip()
+    new_value = data.get("newValue", "").strip()
+
+    if not type_:
+        return jsonify({"success": False, "message": "Type d'option invalide"}), 400
+
+    if not old_value or not new_value:
+        return jsonify({"success": False, "message": "Ancienne ou nouvelle valeur vide"}), 400
+
+    try:
+        formations = Formation.query.all()
+        for formation in formations:
+            current = getattr(formation, type_) or ""
+            values = [v.strip() for v in current.split(",") if v.strip()]
+            updated_values = [new_value if v == old_value else v for v in values]
+            setattr(formation, type_, ", ".join(updated_values))
+        db.session.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "message": str(e)}), 500
+
+
+
