@@ -123,7 +123,7 @@ def get_all_formations():
 
     return jsonify(resultats)
 
-@formation_bp.route('/edit/<int:id>', methods=["GET", "POST"],  endpoint="preview_formation")
+@formation_bp.route('/edit/<int:id>', methods=["GET", "POST"], endpoint="preview_formation")
 @admin_required
 def handle_formation(id):
     if request.method == "POST":
@@ -150,20 +150,36 @@ def handle_formation(id):
         db.session.commit()
         return redirect(url_for("formation.edit_formations"))
     else:
-        # Code de preview_formation
-        formation = Formation.query.get(id)
+        formation = Formation.query.get_or_404(id)
         if not formation:
             flash("Formation non trouvée", "error")
             return redirect(url_for("formation.edit_formations"))
+        
+        # Récupérer tous les labels existants
+        labels_from_db = db.session.query(Formation.label).distinct().filter(Formation.label != None).all()
+        labels_set = set()
+        
+        # Labels par défaut
+        default_labels = ["Qualiopi", "RNCP", "Erasmus+"]
+        labels_set.update(default_labels)
+        
+        # Ajouter les labels de la base de données
+        for label_row in labels_from_db:
+            if label_row[0]:
+                labels_set.update([l.strip() for l in label_row[0].split(',') if l.strip()])
+        
         organismes = Organisme.query.all()
-        return render_template('preview_formation.html', formation=formation, organismes=organismes)
+        return render_template('preview_formation.html', 
+                            formation=formation, 
+                            organismes=organismes,
+                            labels=sorted(list(labels_set)))  # Liste triée de tous les labels
 
 @formation_bp.route("/update/<int:id>", methods=["POST"])
 @admin_required
 def update_formation_by_id(id):
-    formation = Formation.query.get_or_404(id)
-    
     try:
+        formation = Formation.query.get_or_404(id)
+        
         if request.is_json:
             data = request.get_json()
             
@@ -187,7 +203,11 @@ def update_formation_by_id(id):
             labels = data.get("labels", [])
             formation.label = ','.join(labels) if labels else None
             
-            formation.certifications = data.get("certifications")
+            # Utiliser la valeur courte pour la certification
+            certification_value = request.form.get('certification_value')
+            if certification_value:
+                formation.certifications = certification_value
+            
             formation.id_organisme = data.get("id_organisme")
             formation.etat = data.get("etat")
             
@@ -223,7 +243,22 @@ def update_formation_by_id(id):
             labels = request.form.getlist("labels[]")
             formation.label = ','.join(labels) if labels else None
             
-            formation.certifications = request.form.get("certifications")
+            # Gestion spéciale des certifications
+            certification_input = request.form.get("certifications")
+            if certification_input:
+                # Mapping des certifications complètes vers leurs versions courtes
+                certification_mapping = {
+                    "DE (Diplôme d'État)": "DE",
+                    "DNSP (Diplôme National Supérieur Professionnel)": "DNSP",
+                    "RS (Répertoire Spécifique)": "RS",
+                    "Formation Certifiante": "Formation Certifiante",
+                    "Formation Non Certifiante": "Formation Non Certifiante"
+                }
+                # Utiliser la version courte si elle existe, sinon garder la valeur saisie
+                formation.certifications = certification_mapping.get(certification_input, certification_input)
+            else:
+                formation.certifications = None
+
             formation.id_organisme = request.form.get("id_organisme")
             formation.etat = request.form.get("etat")
 

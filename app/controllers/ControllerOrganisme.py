@@ -42,25 +42,32 @@ def get_all_organismes():
 
     return jsonify(resultats)
 
-@organisme_bp.route("/edit", methods=["GET"])
+@organisme_bp.route("/edit")
 @admin_required
 def edit_organismes():
     organismes = Organisme.query.all()
     
-    # Récupération des labels
-    labels_raw = db.session.query(Organisme.label).distinct().all()
-    labels_set = set()
-    for label_row in labels_raw:
-        if label_row[0]:
-            # Diviser les labels par virgule
-            for label in label_row[0].split(','):
-                label = label.strip()
-                if label and label.lower() != 'none':
-                    labels_set.add(label)
+    # Récupérer tous les statuts distincts depuis la base de données
+    statuts = db.session.query(Organisme.statut).distinct().filter(Organisme.statut.isnot(None)).all()
+    statuts = [statut[0] for statut in statuts] # Convertir en liste simple
     
-    return render_template("edit_organismes.html", 
-                         organismes=organismes,
-                         labels=sorted(list(labels_set)))
+    # Récupérer tous les labels distincts depuis la base de données
+    labels = []
+    labels_records = db.session.query(Organisme.label).distinct().filter(Organisme.label.isnot(None)).all()
+    for label_record in labels_records:
+        if label_record[0]:  # Si le label n'est pas None
+            # Split les labels (car ils sont stockés avec des virgules)
+            label_list = [l.strip() for l in label_record[0].split(',')]
+            labels.extend(label_list)
+    # Supprimer les doublons et trier
+    labels = sorted(list(set(labels)))
+
+    return render_template(
+        "edit_organismes.html",
+        organismes=organismes,
+        statuts=statuts,
+        labels=labels
+    )
 
 @organisme_bp.route("/update", methods=["POST"])
 @admin_required

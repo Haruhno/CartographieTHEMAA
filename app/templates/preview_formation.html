@@ -181,10 +181,6 @@
                                 <label>Financement</label>
                                 <input type="text" name="financement" value="{{ formation.financement }}">
                             </div>
-                            <div class="form-group">
-                                <label>Label</label>
-                                <input type="text" name="label" value="{{ formation.label }}">
-                            </div>
                             {% set lien_value = formation.lien_inscription %}
                             {% if lien_value and not lien_value.startswith('http') %}
                                 {% set lien_value = 'https://' + lien_value %}
@@ -214,21 +210,30 @@
                                 <div class="form-group">
                                     <label>Labels</label>
                                     <select name="labels[]" class="select2-multiple" multiple>
-                                        <option value="Qualiopi" {% if 'Qualiopi' in (formation.label or '').split(',') %}selected{% endif %}>Qualiopi</option>
-                                        <option value="RNCP" {% if 'RNCP' in (formation.label or '').split(',') %}selected{% endif %}>RNCP</option>
-                                        <option value="Erasmus+" {% if 'Erasmus+' in (formation.label or '').split(',') %}selected{% endif %}>Erasmus+</option>
+                                        {% for label in labels %}
+                                            <option value="{{ label }}" {% if label in (formation.label or '').split(',') %}selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
                                     </select>
                                 </div>
                                 <div class="form-group">
                                     <label>Certification</label>
-                                    <select name="certifications" class="form-select" required>
-                                        <option value="">Sélectionnez une certification</option>
-                                        <option value="DE" {% if 'DE' in (formation.certifications or '') %}selected{% endif %}>DE (Diplôme d'État)</option>
-                                        <option value="DNSP" {% if 'DNSP' in (formation.certifications or '') %}selected{% endif %}>DNSP</option>
-                                        <option value="RS" {% if 'RS' in (formation.certifications or '') %}selected{% endif %}>RS (Répertoire Spécifique)</option>
-                                        <option value="Formation Certifiante" {% if 'Formation Certifiante' in (formation.certifications or '') %}selected{% endif %}>Formation Certifiante</option>
-                                        <option value="Formation Non Certifiante" {% if 'Formation Non Certifiante' in (formation.certifications or '') %}selected{% endif %}>Formation Non Certifiante</option>
-                                    </select>
+                                    <input type="text" 
+                                           name="certifications" 
+                                           list="certification-options"
+                                           value="{{ formation.certifications }}"
+                                           class="form-input"
+                                           id="certification-input"
+                                           placeholder="Sélectionnez ou saisissez une certification">
+                                    <datalist id="certification-options">
+                                        <option data-value="DE" value="DE (Diplôme d'État)">
+                                        <option data-value="DNSP" value="DNSP (Diplôme National Supérieur Professionnel)">
+                                        <option data-value="RS" value="RS (Répertoire Spécifique)">
+                                        <option data-value="Formation Certifiante" value="Formation Certifiante">
+                                        <option data-value="Formation Non Certifiante" value="Formation Non Certifiante">
+                                    </datalist>
+                                    <input type="hidden" name="certification_value" id="certification-value">
                                 </div>
                             </div>
                         </div>
@@ -308,6 +313,27 @@
                     this.value = intPart + (decPart ? '.' + decPart.substring(0,1) : '');
                 }
             });
+        }
+
+        // Gestion des certifications
+        const certificationInput = document.getElementById('certification-input');
+        if (certificationInput) {
+            const certificationMap = {
+                'DE': 'DE (Diplôme d\'État)',
+                'DNSP': 'DNSP (Diplôme National Supérieur Professionnel)',
+                'RS': 'RS (Répertoire Spécifique)',
+                'Formation Certifiante': 'Formation Certifiante',
+                'Formation Non Certifiante': 'Formation Non Certifiante'
+            };
+
+            // Au chargement, convertir la valeur courte en valeur d'affichage
+            const currentValue = certificationInput.value;
+            for (const [short, long] of Object.entries(certificationMap)) {
+                if (currentValue === short) {
+                    certificationInput.value = long;
+                    break;
+                }
+            }
         }
     });
 </script>

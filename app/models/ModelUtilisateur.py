@@ -8,11 +8,11 @@ class Utilisateur(db.Model, UserMixin):
     __tablename__ = "Utilisateur"
 
     id_utilisateur = db.Column(db.Integer, primary_key=True)
-    nom = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(100), nullable=False, unique=True)
+    nom = db.Column(db.String(150), nullable=False)
+    email = db.Column(db.String(200), nullable=False, unique=True)
     mot_de_passe = db.Column(db.String(255), nullable=False)
     role = db.Column(db.Enum('visiteur', 'user', 'admin'), nullable=False, default='visiteur')
-    num_adherent = db.Column(db.String(50))
+    num_adherent = db.Column(db.String(150))
     id_organisme = db.Column(db.Integer, db.ForeignKey('Organisme.id_organisme'))
     photo_profil = db.Column(db.String(255))  # Chemin vers l'image
     reset_token = db.Column(db.String(100))

@@ -82,6 +82,84 @@ html {
 }
 
 /* =========================
+   404 PAGE
+========================= */
+
+.error-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    text-align: center;
+}
+
+.error-content {
+    max-width: 600px;
+    padding: 40px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+.error-code {
+    font-size: 6rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    line-height: 1;
+}
+
+.error-title {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--dark-color);
+}
+
+.error-message {
+    margin-bottom: 2rem;
+    color: #666;
+}
+
+.error-image {
+    max-width: 300px;
+    margin: 0 auto 2rem;
+}
+
+.error-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+footer {
+    text-align: center;
+    padding: 1.5rem;
+    background-color: white;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .error-code {
+        font-size: 4rem;
+    }
+    
+    .error-title {
+        font-size: 1.5rem;
+    }
+    
+    .error-actions {
+        flex-direction: column;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+}
+
+/* =========================
    LAYOUT
 ========================= */
 .admin-container {
@@ -3318,4 +3396,47 @@ input[type="file"] {
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 4px;
+}
+
+/* Dans la section style du même fichier */
+.help-icon {
+    color: #ffc107;
+    font-size: 0.9em;
+    margin-left: 5px;
+    cursor: help;
+    position: relative;
+}
+
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 100%;
+    width: 250px;
+    padding: 10px;
+    border-radius: 6px;
+    background: #333;
+    color: #fff;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    z-index: 100;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    white-space: normal;
+    text-align: center;
+}
+
+[data-tooltip]:hover::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 100%;
+    border: 6px solid transparent;
+    border-top-color: #333;
+    margin-bottom: -12px;
 }

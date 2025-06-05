@@ -27,6 +27,43 @@
         outline: none;
         box-shadow: 0 0 3px rgba(0,123,255,.25);
     }
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 30px;
+    }
+
+    .suggestions-list {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #ddd;
+        border-top: none;
+        border-radius: 0 0 4px 4px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .suggestions-list li {
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .suggestions-list li:hover {
+        background-color: #f5f5f5;
+    }
+
+    .form-group {
+        position: relative;
+    }
 </style>
 <body>
     <div class="admin-container">
@@ -201,6 +238,13 @@
                                 </div>
                                 <div id="labels-error" class="error-message" style="display:none;"></div>
                             </div>
+
+                            <div style="margin: 25px 0; padding: 15px; background: #f8f9fa; border-left: 4px solid var(--primary-color); border-radius: 6px; color: #333; font-size: 1rem;">
+                                Si l'agrément ou le label éventuellement liés à votre structure ne figure pas dans la liste proposée, veuillez d'abord soumettre votre organisme. Ensuite, vous pourrez contacter l'équipe THEMAA via 
+                                <a href="{{ url_for('utilisateur.support') }}" style="color: var(--primary-color); text-decoration: underline;">le formulaire de support</a> 
+                                en précisant le ou les labels manquants, ou par email à 
+                                <a href="mailto:adm@themaa-marionnettes.com" style="color: var(--primary-color); text-decoration: underline;">adm@themaa-marionnettes.com</a>.
+                            </div>
                             
                             <div class="form-actions">
                                 <button type="button" class="btn btn-secondary prev-tab" data-prev="2">
@@ -287,16 +331,6 @@
                     if (cpInput) {
                         if (!/^\d{5}$/.test(cpInput.value.trim())) {
                             showError(cpInput, "Le code postal doit contenir exactement 5 chiffres");
-                            isValid = false;
-                        }
-                    }
-
-                    // Validation Ville
-                    const villeInput = tab.querySelector('input[name="ville"]');
-                    if (villeInput) {
-                        const villeRegex = /^[A-Za-zÀ-ÿ\s\-']+$/;
-                        if (!villeRegex.test(villeInput.value.trim())) {
-                            showError(villeInput, "La ville ne doit contenir que des lettres, espaces, tirets et apostrophes");
                             isValid = false;
                         }
                     }
