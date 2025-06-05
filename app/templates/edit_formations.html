@@ -165,6 +165,17 @@
                             </select>
                         </div>
 
+                        <!-- Ajouter après le filtre label dans la section des filtres -->
+                        <div class="filter-group">
+                            <label for="certificationFilter">Certification :</label>
+                            <select id="certificationFilter" class="filter-select">
+                                <option value="tous">Toutes</option>
+                                {% for certification in certifications %}
+                                    <option value="{{ certification }}">{{ certification }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
 
                         <div class="filter-group price-filter">
                             <label>Prix :</label>
@@ -212,11 +223,13 @@
                                 </thead>
                                 <tbody>
                                     {% for f in formations %}
-                                    <tr class="formation-row" data-id="{{ f.id_formation }}" 
+                                    <tr class="formation-row" 
+                                        data-id="{{ f.id_formation }}" 
                                         data-type="{{ f.type }}" 
                                         data-etat="{{ f.etat }}"
                                         data-label="{{ f.label }}"
-                                        data-prix="{{ f.prix or 0 }}">
+                                        data-prix="{{ f.prix or 0 }}"
+                                        data-certification="{{ f.certifications }}">
                                         <td>{{ f.id_formation }}</td>
                                         <td>
                                             <input type="text" name="nom_{{ f.id_formation }}" value="{{ f.nom }}" class="table-input" required>
@@ -317,6 +330,9 @@
                                                     <label>Lien d'inscription</label>
                                                     <input type="text" name="lien_inscription_{{ f.id_formation }}" value="{{ f.lien_inscription }}" class="table-input" placeholder="https://...">
                                                 </div>
+                                                <input type="hidden" 
+                                                       name="certifications_{{ f.id_formation }}" 
+                                                       value="{{ f.certifications if f.certifications and f.certifications != 'None' else '' }}">
                                             </div>
                                         </td>
                                     </tr>
@@ -425,6 +441,7 @@
         const etatFilter = document.getElementById('etatFilter');
         const typeFilter = document.getElementById('typeFilter');
         const labelFilter = document.getElementById('labelFilter');
+        const certificationFilter = document.getElementById('certificationFilter');
         const minPriceInput = document.getElementById('minPrice');
         const maxPriceInput = document.getElementById('maxPrice');
         const resetFiltersBtn = document.getElementById('resetFilters');
@@ -439,6 +456,7 @@
             const selectedEtat = etatFilter.value;
             const selectedType = typeFilter.value;
             const selectedLabel = labelFilter.value;
+            const selectedCertification = certificationFilter.value;
             const minPrice = parseFloat(minPriceInput.value) || 0;
             const maxPrice = parseFloat(maxPriceInput.value) || Infinity;
 
@@ -475,8 +493,23 @@
                 // Filtre par label
                 const labelInput = row.querySelector('td:nth-child(6) input');
                 const labelValue = labelInput ? labelInput.value.trim() : '';
-                if (selectedLabel !== 'tous' && labelValue.toLowerCase() !== selectedLabel.toLowerCase()) {
-                    return false;
+                if (selectedLabel !== 'tous') {
+                    // Diviser les labels de la formation en tableau
+                    const formationLabels = labelValue.split(',').map(l => l.trim().toLowerCase());
+                    // Vérifier si le label sélectionné est présent dans le tableau
+                    if (!formationLabels.includes(selectedLabel.toLowerCase())) {
+                        return false;
+                    }
+                }
+
+                // Filtre par certification
+                const selectedCertification = certificationFilter.value;
+                if (selectedCertification !== 'tous') {
+                    // Récupérer la certification de la ligne depuis l'attribut data-certification
+                    const certificationValue = row.getAttribute('data-certification');
+                    if (!certificationValue || certificationValue.trim() !== selectedCertification) {
+                        return false;
+                    }
                 }
 
 
@@ -541,6 +574,11 @@
             updatePagination();
         });
 
+        certificationFilter.addEventListener('change', function() {
+            currentPage = 1;
+            updatePagination();
+        });
+
         minPriceInput.addEventListener('input', function() {
             currentPage = 1;
             updatePagination();
@@ -558,6 +596,7 @@
             etatFilter.value = 'tous';
             typeFilter.value = 'tous';
             labelFilter.value = 'tous';
+            certificationFilter.value = 'tous';
             minPriceInput.value = '';
             maxPriceInput.value = '';
             currentPage = 1;
@@ -629,6 +668,7 @@
                     etat: document.querySelector(`input[name="etat_${id}"]`).value,
                     description: document.querySelector(`textarea[name="description_${id}"]`)?.value || '',
                     duree: document.querySelector(`input[name="duree_${id}"]`)?.value || '',
+                    duree_heures: document.querySelector(`input[name="duree_heures_${id}"]`)?.value || '',
                     dates: document.querySelector(`input[name="dates_${id}"]`)?.value || '',
                     lieu: document.querySelector(`input[name="lieu_${id}"]`)?.value || '',
                     prix: document.querySelector(`input[name="prix_${id}"]`)?.value || '',
@@ -636,7 +676,8 @@
                     financement: document.querySelector(`input[name="financement_${id}"]`)?.value || '',
                     presentation_intervenants: document.querySelector(`textarea[name="presentation_intervenants_${id}"]`)?.value || '',
                     lien_inscription: document.querySelector(`input[name="lien_inscription_${id}"]`)?.value || '',
-                    label: document.querySelector(`input[name="label_${id}"]`)?.value || ''
+                    label: document.querySelector(`input[name="label_${id}"]`)?.value || '',
+                    certifications: document.querySelector(`input[name="certifications_${id}"]`)?.value || ''
                 };
 
                 // Mettre à jour l'attribut data-prix pour le filtre
@@ -656,14 +697,12 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Afficher un message de succès
                         const flashContainer = document.getElementById('flashPopupContainer');
                         const flashMsg = document.createElement('div');
                         flashMsg.className = 'flash-popup flash-success';
                         flashMsg.innerHTML = data.message + '<span class="close-btn">&times;</span>';
                         flashContainer.appendChild(flashMsg);
                         
-                        // Fermer le message après 5s
                         setTimeout(() => flashMsg.remove(), 5000);
                     }
                 })

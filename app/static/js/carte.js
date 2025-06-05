@@ -43,6 +43,12 @@ var currentFilters = {
 };
 
 // Ajouter aux variables globales
+let availableFilters = {
+    labels: [],
+    financements: [],
+    certifications: []
+};
+
 var organismeRegions = {};  // Pour stocker les régions des organismes
 let currentRegionLayer = null; // Pour stocker le layer de la région actuelle
 let minHours = 0;
@@ -508,6 +514,12 @@ function initFilters() {
         applyFilters();
     });
     
+    // Écouteurs pour le filtre de certification
+    document.getElementById('certificationFilter').addEventListener('change', function() {
+        currentFilters.certification = this.value;
+        applyFilters();
+    });
+    
     // Initialiser le slider d'heures
     initHoursSlider();
 }
@@ -594,11 +606,17 @@ function applyFiltersToFormations(formations) {
         // Filtre par type
         if (!currentFilters.types.has(formation.type)) return false;
         
-        // Filtre par label
-        if (formation.label && currentFilters.labels.size > 0) {
-            if (!currentFilters.labels.has(formation.label)) return false;
+        // Filtre par label (correction pour les labels multiples)
+        if (currentFilters.labels.size > 0) {
+            if (!formation.label) return false;
+            const formationLabels = formation.label.split(',').map(l => l.trim());
+            // Vérifier si AU MOINS UN des labels sélectionnés est présent
+            const hasMatchingLabel = Array.from(currentFilters.labels).some(selectedLabel => 
+                formationLabels.some(formationLabel => formationLabel === selectedLabel)
+            );
+            if (!hasMatchingLabel) return false;
         }
-        
+
         // Filtre par financement
         if (currentFilters.financement) {
             if (!formation.financement) return false;
@@ -633,6 +651,14 @@ function applyFiltersToFormations(formations) {
         if (currentFilters.hours && currentFilters.hours > 0) {
             const formationHours = formation.duree_heures;
             if (formationHours === null || formationHours < currentFilters.hours) {
+                return false;
+            }
+        }
+
+        // Filtre par certification (corriger la vérification)
+        if (currentFilters.certification) {
+            if (!formation.certifications || 
+                formation.certifications.trim() !== currentFilters.certification) {
                 return false;
             }
         }
@@ -703,6 +729,8 @@ function resetFilters() {
     document.getElementById('prixMin').value = '';
     document.getElementById('prixMax').value = '';
     document.getElementById('regionFilter').value = ''; // Réinitialiser le select de région
+    document.getElementById('certificationFilter').value = '';
+    currentFilters.certification = '';
     
     // Supprimer le contour de la région
     if (currentRegionLayer) {
@@ -844,6 +872,9 @@ Promise.all([
         }
     });
     
+    // Charger les données des filtres
+    loadFilterData();
+    
     initSearch();
     initFilters();
     
@@ -958,4 +989,112 @@ function showRegionBoundaries(regionName) {
                 map.fitBounds(currentRegionLayer.getBounds());
             }
         });
+}
+
+// Ajouter cette fonction pour charger les données des filtres
+function loadFilterData() {
+    fetch('/formations/get-filters-data')
+        .then(response => response.json())
+        .then(data => {
+            availableFilters = data;
+            updateFilterUI();
+        })
+        .catch(error => console.error('Erreur lors du chargement des filtres:', error));
+}
+
+// Fonction pour mettre à jour l'interface des filtres
+function updateFilterUI() {
+    // Mise à jour des labels
+    const labelsContainer = document.getElementById('labelsContainer');
+    labelsContainer.innerHTML = availableFilters.labels.map(label => `
+        <label class="filter-checkbox">
+            <input type="checkbox" name="label" value="${label}">
+            <span class="checkmark"></span>
+            <span class="filter-label">${label}</span>
+        </label>
+    `).join('');
+
+    // Mise à jour des financements
+    const financementSelect = document.getElementById('financementFilter');
+    financementSelect.innerHTML = `
+        <option value="">Tous les financements</option>
+        ${availableFilters.financements.map(f => `
+            <option value="${f}">${f}</option>
+        `).join('')}
+    `;
+
+    // Mise à jour des certifications
+    const certificationSelect = document.getElementById('certificationFilter');
+    certificationSelect.innerHTML = `
+        <option value="">Toutes les certifications</option>
+        ${availableFilters.certifications.map(c => `
+            <option value="${c}">${c}</option>
+        `).join('')}
+    `;
+
+    // Réinitialiser les écouteurs d'événements
+    initFilterListeners();
+}
+
+// Modifier la gestion des événements des labels
+function initFilterListeners() {
+    // Écouteurs pour les types
+    document.querySelectorAll('input[name="type"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                currentFilters.types.add(this.value);
+            } else {
+                currentFilters.types.delete(this.value);
+            }
+            applyFilters();
+        });
+    });
+    
+    // Écouteurs pour les labels
+    document.querySelectorAll('input[name="label"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                currentFilters.labels.add(this.value);
+            } else {
+                currentFilters.labels.delete(this.value);
+            }
+            applyFilters();
+        });
+    });
+
+    // Écouteur pour le financement
+    document.getElementById('financementFilter').addEventListener('change', function() {
+        currentFilters.financement = this.value;
+        applyFilters();
+    });
+    
+    // Écouteur pour la durée
+    document.getElementById('dureeFilter').addEventListener('change', function() {
+        currentFilters.duree = this.value;
+        applyFilters();
+    });
+    
+    // Écouteurs pour les filtres de prix
+    document.getElementById('prixMin').addEventListener('change', function() {
+        currentFilters.prixMin = this.value ? parseFloat(this.value) : null;
+        applyFilters();
+    });
+    
+    document.getElementById('prixMax').addEventListener('change', function() {
+        currentFilters.prixMax = this.value ? parseFloat(this.value) : null;
+        applyFilters();
+    });
+    
+    // Écouteurs pour le filtre de région
+    document.getElementById('regionFilter').addEventListener('change', function() {
+        currentFilters.region = this.value;
+        showRegionBoundaries(this.value);
+        applyFilters();
+    });
+    
+    // Écouteur pour la certification
+    document.getElementById('certificationFilter').addEventListener('change', function() {
+        currentFilters.certification = this.value;
+        applyFilters();
+    });
 }

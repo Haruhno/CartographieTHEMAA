@@ -12,7 +12,7 @@ formation_bp = Blueprint("formation", __name__, url_prefix="/formations")
 
 def get_formulaire_context():
     organismes = Organisme.query.all()
-
+    
     # ---------- Financements ----------
     financement_set = set()
     all_financements_raw = db.session.query(Formation.financement).filter(Formation.financement != None).all()
@@ -55,34 +55,30 @@ def get_formulaire_context():
     labels = sorted(label_set)
 
     # ---------- Certifications ----------
-    BASE_CERTIFICATIONS = [
+    # Définir le mapping des certifications
+    CERTIFICATION_MAPPING = {
+        "DE": "DE (Diplôme d'État)",
+        "DNSP": "DNSP (Diplôme National Supérieur Professionnel)",
+        "RS": "RS (Répertoire Spécifique)",
+        "Formation Certifiante": "Formation Certifiante",
+        "Formation Non Certifiante": "Formation Non Certifiante"
+    }
+    
+    # Pour l'affichage dans le formulaire
+    certifications = [
         "DE (Diplôme d'État)",
         "DNSP (Diplôme National Supérieur Professionnel)",
         "RS (Répertoire Spécifique)",
         "Formation Certifiante",
         "Formation Non Certifiante"
     ]
-    all_certs_raw = db.session.query(Formation.certifications).filter(Formation.certifications != None).all()
-    cert_set = set()
-    for row in all_certs_raw:
-        if row[0]:
-            for c in str(row[0]).split(','):
-                c = c.strip()
-                # Mapping BDD value to display value
-                if c.lower() == "certifiante":
-                    cert_set.add("Formation Certifiante")
-                elif c.lower() == "non certifiante":
-                    cert_set.add("Formation Non Certifiante")
-                elif c:
-                    cert_set.add(c)
-    cert_set.update(BASE_CERTIFICATIONS)
-    certifications = sorted(cert_set)
 
     return {
         "organismes": organismes,
         "financements": financements,
         "labels": labels,
-        "certifications": certifications
+        "certifications": certifications,
+        "certification_mapping": CERTIFICATION_MAPPING
     }
 
 def organisme_required(f):
@@ -167,58 +163,78 @@ def handle_formation(id):
 def update_formation_by_id(id):
     formation = Formation.query.get_or_404(id)
     
-    if request.is_json:
-        data = request.get_json()
-        
-        formation.nom = data.get("nom")
-        formation.type = data.get("type")
-        formation.description = data.get("description")
-        formation.duree = data.get("duree")
-        duree_heures = data.get("duree_heures")
-        formation.duree_heures = float(duree_heures) if duree_heures else None
-        formation.dates = data.get("dates")
-        formation.lieu = data.get("lieu")
-        prix = data.get("prix")
-        formation.prix = float(prix) if prix else None
-        formation.conditions_acces = data.get("conditions_acces")
-        formation.financement = data.get("financement")
-        formation.presentation_intervenants = data.get("presentation_intervenants")
-        formation.lien_inscription = data.get("lien_inscription")
-        if formation.lien_inscription and not formation.lien_inscription.startswith("http://") and not formation.lien_inscription.startswith("https://"):
-            formation.lien_inscription = "https://" + formation.lien_inscription
-        formation.label = data.get("label")
-        formation.certifications = data.get("certifications")
-        formation.id_organisme = data.get("id_organisme")
-        formation.etat = data.get("etat")
-    else:
-        # Garder l'ancienne version pour la compatibilité
-        formation.nom = request.form["nom"]
-        formation.type = request.form["type"]
-        formation.description = request.form["description"]
-        formation.duree = request.form["duree"]
-        duree_heures = data.get("duree_heures")
-        formation.duree_heures = float(duree_heures) if duree_heures else None
-        formation.duree_heures = request.form.get("duree_heures")
-        formation.lieu = request.form["lieu"]
-        prix = request.form.get("prix")
-        formation.prix = float(prix) if prix else None
-        formation.conditions_acces = request.form.get("conditions_acces")
-        formation.financement = request.form.get("financement")
-        formation.presentation_intervenants = request.form.get("presentation_intervenants")
-        
-        lien_inscription = request.form.get("lien_inscription")
-        if lien_inscription and not lien_inscription.startswith("http://") and not lien_inscription.startswith("https://"):
-            lien_inscription = "https://" + lien_inscription
-        formation.lien_inscription = lien_inscription
+    try:
+        if request.is_json:
+            data = request.get_json()
+            
+            formation.nom = data.get("nom")
+            formation.type = data.get("type")
+            formation.description = data.get("description")
+            # Utiliser directement la durée pour la vue liste
+            formation.duree = data.get("duree") or formation.duree  # Garde l'ancienne valeur si pas de nouvelle
+            duree_heures = data.get("duree_heures")
+            formation.duree_heures = float(duree_heures) if duree_heures else None
+            formation.dates = data.get("dates")
+            formation.lieu = data.get("lieu")
+            prix = data.get("prix")
+            formation.prix = float(prix) if prix else None
+            formation.conditions_acces = data.get("conditions_acces")
+            formation.financement = data.get("financement")
+            formation.presentation_intervenants = data.get("presentation_intervenants")
+            formation.lien_inscription = data.get("lien_inscription")
+            
+            # Gestion des labels multiples
+            labels = data.get("labels", [])
+            formation.label = ','.join(labels) if labels else None
+            
+            formation.certifications = data.get("certifications")
+            formation.id_organisme = data.get("id_organisme")
+            formation.etat = data.get("etat")
+            
+            db.session.commit()
+            flash("Formation mise à jour avec succès!", "success")
+            return redirect(url_for("formation.edit_formations"))
+            
+        else:
+            # Pour les soumissions de formulaire (preview_formation.html)
+            duree_valeur = request.form.get("duree_valeur")
+            duree_unite = request.form.get("duree_unite")
+            formation.duree = f"{duree_valeur} {duree_unite}" if duree_valeur and duree_unite else formation.duree
+            
+            formation.nom = request.form.get("nom")
+            formation.type = request.form.get("type")
+            formation.description = request.form.get("description")
+            duree_heures = request.form.get("duree_heures")
+            formation.duree_heures = float(duree_heures) if duree_heures else None
+            formation.dates = request.form.get("dates")
+            formation.lieu = request.form.get("lieu")
+            prix = request.form.get("prix")
+            formation.prix = float(prix) if prix else None
+            formation.conditions_acces = request.form.get("conditions_acces")
+            formation.financement = request.form.get("financement")
+            formation.presentation_intervenants = request.form.get("presentation_intervenants")
+            
+            lien_inscription = request.form.get("lien_inscription")
+            if lien_inscription and not lien_inscription.startswith(("http://", "https://")):
+                lien_inscription = "https://" + lien_inscription
+            formation.lien_inscription = lien_inscription
+            
+            # Gestion des labels multiples depuis le formulaire
+            labels = request.form.getlist("labels[]")
+            formation.label = ','.join(labels) if labels else None
+            
+            formation.certifications = request.form.get("certifications")
+            formation.id_organisme = request.form.get("id_organisme")
+            formation.etat = request.form.get("etat")
 
-        formation.label = request.form.get("label")
-        formation.certifications = request.form.get("certifications")
-        formation.id_organisme = request.form["id_organisme"]
-        formation.etat = request.form.get("etat")
-
-    db.session.commit()
-    flash("Formation mise à jour avec succès.", "success")
-    return redirect(url_for("formation.edit_formations"))
+            db.session.commit()
+            flash("Formation mise à jour avec succès!", "success")
+            return redirect(url_for("formation.edit_formations"))
+            
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Erreur lors de la mise à jour: {str(e)}", "error")
+        return redirect(url_for("formation.edit_formations"))
 
 @formation_bp.route("/edit", methods=["GET"])
 @admin_required
@@ -226,14 +242,28 @@ def edit_formations():
     formations = Formation.query.all()
     organismes = Organisme.query.all()
 
-    # Récupérer les labels distincts (non vides, non null)
-    labels = db.session.query(Formation.label).distinct().all()
-    labels = [l[0] for l in labels if l[0] and l[0].strip().lower() != 'none']
+    # Récupérer les labels distincts
+    labels_raw = db.session.query(Formation.label).distinct().all()
+    labels_set = set()
+    for label_row in labels_raw:
+        if label_row[0] and label_row[0].strip().lower() != 'none':
+            individual_labels = [l.strip() for l in label_row[0].split(',')]
+            labels_set.update(individual_labels)
+    labels = sorted([l for l in labels_set if l])
+
+    # Récupérer les certifications distinctes
+    certifications_raw = db.session.query(Formation.certifications).distinct().all()
+    certifications_set = set()
+    for cert_row in certifications_raw:
+        if cert_row[0] and cert_row[0].strip().lower() != 'none':
+            certifications_set.add(cert_row[0].strip())
+    certifications = sorted([c for c in certifications_set if c])
 
     return render_template("edit_formations.html",
-                           formations=formations,
-                           organismes=organismes,
-                           labels=labels)
+                         formations=formations,
+                         organismes=organismes,
+                         labels=labels,
+                         certifications=certifications)
 
 @formation_bp.route("/update", methods=["POST"])
 @admin_required
@@ -392,6 +422,12 @@ def submit_formation():
             flash("Merci de remplir tous les champs obligatoires du formulaire.", "danger")
             return redirect(url_for('formation.formulaire'))
 
+        # Combiner adresse + code postal + ville
+        adresse = request.form.get('adresse', '')
+        code_postal = request.form.get('code_postal', '')
+        ville = request.form.get('ville', '')
+        lieu_complet = f"{adresse}, {code_postal} {ville}".strip()
+        
         nouvelle_formation = Formation(
             nom=nom,
             type=type_formation,
@@ -400,7 +436,7 @@ def submit_formation():
             duree=duree,
             duree_heures=duree_heures,
             dates=dates,
-            lieu=lieu,
+            lieu=lieu_complet,  # Utiliser l'adresse complète
             prix=prix,
             conditions_acces=conditions_acces,
             financement=financement,
@@ -544,5 +580,45 @@ def get_duree_heures_range():
     return jsonify({
         "min": min(durees),
         "max": max(durees)
+    })
+
+@formation_bp.route("/get-filters-data", methods=["GET"])
+def get_filters_data():
+    # Récupérer uniquement les formations validées
+    formations_validees = Formation.query.filter_by(etat="valide")
+
+    # Récupérer les labels distincts des formations validées
+    labels_raw = formations_validees.with_entities(Formation.label).distinct().filter(Formation.label != None).all()
+    labels_set = set()
+    for label_row in labels_raw:
+        if label_row[0]:
+            for l in str(label_row[0]).split(','):
+                l = l.strip()
+                if l:
+                    labels_set.add(l)
+    
+    # Récupérer les financements distincts des formations validées
+    financements_raw = formations_validees.with_entities(Formation.financement).distinct().filter(Formation.financement != None).all()
+    financements_set = set()
+    for financement_row in financements_raw:
+        if financement_row[0]:
+            for f in str(financement_row[0]).split(','):
+                f = f.strip()
+                if f:
+                    financements_set.add(f)
+    
+    # Récupérer les certifications distinctes des formations validées
+    certifications_raw = formations_validees.with_entities(Formation.certifications).distinct().filter(Formation.certifications != None).all()
+    certifications_set = set()
+    for cert_row in certifications_raw:
+        if cert_row[0]:
+            cert = cert_row[0].strip()
+            if cert:
+                certifications_set.add(cert)
+
+    return jsonify({
+        'labels': sorted(list(labels_set)),
+        'financements': sorted(list(financements_set)),
+        'certifications': sorted(list(certifications_set))
     })
 

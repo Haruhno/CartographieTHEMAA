@@ -6,6 +6,49 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@x.x.x/dist/select2-bootstrap4.min.css" rel="stylesheet">
+    <style>
+        /* Styles pour les détails pratiques */
+        .duree-container {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .duree-input {
+            width: 80px !important;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        /* Amélioration du style des sections */
+        .form-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        
+        .section-title {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+    </style>
 </head>
 <body>
 <div class="admin-container">
@@ -84,24 +127,39 @@
 
                         <div class="form-section">
                             <h3 class="section-title">Détails pratiques</h3>
+                            <!-- Première ligne : Dates et Lieu -->
                             <div class="form-row">
                                 <div class="form-group">
                                     <label>Dates</label>
-                                    <input type="text" name="dates" value="{{ formation.dates }}">
+                                    <input type="text" name="dates" id="dates-input" value="{{ formation.dates }}" required>
                                 </div>
-                                <div class="form-group">
-                                    <label>Durée (jours, semaines, mois, années)</label>
-                                    <input type="text" name="duree" value="{{ formation.duree }}">
-                                </div>
-                                <div class="form-group">
-                                    <label>Durée (heures)</label>
-                                    <input type="number" name="duree_heures" value="{{ formation.duree_heures }}">
-                                </div>
-                            </div>
-                            <div class="form-row">
                                 <div class="form-group">
                                     <label>Lieu</label>
                                     <input type="text" name="lieu" value="{{ formation.lieu }}">
+                                </div>
+                            </div>
+                            <!-- Deuxième ligne : Durée et Prix -->
+                            <div class="form-row">
+                                <div class="form-group" style="flex:1;">
+                                    <label>Durée</label>
+                                    <div class="duree-container">
+                                        <input type="text" 
+                                               name="duree_valeur" 
+                                               class="duree-input"
+                                               value="{{ formation.duree.split(' ')[0] if formation.duree else '1' }}"
+                                               required
+                                               pattern="^\d+([.]\d{0,1})?$">
+                                        <select name="duree_unite" required>
+                                            <option value="jours" {% if 'jour' in (formation.duree or '') %}selected{% endif %}>jour(s)</option>
+                                            <option value="semaines" {% if 'semaine' in (formation.duree or '') %}selected{% endif %}>semaine(s)</option>
+                                            <option value="mois" {% if 'mois' in (formation.duree or '') %}selected{% endif %}>mois</option>
+                                            <option value="annees" {% if 'année' in (formation.duree or '') or 'an' in (formation.duree or '') %}selected{% endif %}>année(s)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Durée (heures)</label>
+                                    <input type="number" name="duree_heures" value="{{ formation.duree_heures }}" step="0.1">
                                 </div>
                                 <div class="form-group">
                                     <label>Prix</label>
@@ -148,6 +206,32 @@
                                 <textarea name="presentation_intervenants" rows="3">{{ formation.presentation_intervenants }}</textarea>
                             </div>
                         </div>
+
+                        <!-- Nouvelle section pour les certifications et labels -->
+                        <div class="form-section">
+                            <h3 class="section-title">Certifications et Labels</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Labels</label>
+                                    <select name="labels[]" class="select2-multiple" multiple>
+                                        <option value="Qualiopi" {% if 'Qualiopi' in (formation.label or '').split(',') %}selected{% endif %}>Qualiopi</option>
+                                        <option value="RNCP" {% if 'RNCP' in (formation.label or '').split(',') %}selected{% endif %}>RNCP</option>
+                                        <option value="Erasmus+" {% if 'Erasmus+' in (formation.label or '').split(',') %}selected{% endif %}>Erasmus+</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Certification</label>
+                                    <select name="certifications" class="form-select" required>
+                                        <option value="">Sélectionnez une certification</option>
+                                        <option value="DE" {% if 'DE' in (formation.certifications or '') %}selected{% endif %}>DE (Diplôme d'État)</option>
+                                        <option value="DNSP" {% if 'DNSP' in (formation.certifications or '') %}selected{% endif %}>DNSP</option>
+                                        <option value="RS" {% if 'RS' in (formation.certifications or '') %}selected{% endif %}>RS (Répertoire Spécifique)</option>
+                                        <option value="Formation Certifiante" {% if 'Formation Certifiante' in (formation.certifications or '') %}selected{% endif %}>Formation Certifiante</option>
+                                        <option value="Formation Non Certifiante" {% if 'Formation Non Certifiante' in (formation.certifications or '') %}selected{% endif %}>Formation Non Certifiante</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-actions">
@@ -180,6 +264,10 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
     // Mise à jour du bouton d'état
     document.getElementById('etatBtn')?.addEventListener('click', function () {
@@ -187,6 +275,40 @@
         this.setAttribute('data-state', newState);
         this.textContent = newState === 'valide' ? 'Validé' : 'En attente';
         document.getElementById('etatInput').value = newState;
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialiser flatpickr pour les dates
+        flatpickr("#dates-input", {
+            mode: "range",
+            dateFormat: "d/m/Y",
+            locale: "fr",
+            allowInput: true,
+            showMonths: 1
+        });
+
+        // Initialisation de Select2 pour les labels multiples
+        $('.select2-multiple').select2({
+            theme: 'bootstrap4',
+            width: '100%',
+            placeholder: 'Sélectionnez un ou plusieurs labels',
+            allowClear: true,
+            language: 'fr',
+            closeOnSelect: false,
+            tags: true // Permet d'ajouter de nouveaux labels
+        });
+
+        // Gestion de la durée
+        const dureeInput = document.querySelector('input[name="duree_valeur"]');
+        if(dureeInput) {
+            dureeInput.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9.]/g, '');
+                if(this.value.includes('.')) {
+                    const [intPart, decPart] = this.value.split('.');
+                    this.value = intPart + (decPart ? '.' + decPart.substring(0,1) : '');
+                }
+            });
+        }
     });
 </script>
 </body>
