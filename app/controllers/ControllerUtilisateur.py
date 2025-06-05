@@ -724,10 +724,16 @@ Cette demande a été envoyée depuis le formulaire de support THEMAA.
 @admin_required
 def add_option():
     data = request.get_json()
-    type_ = data.get("type")
+    type_map = {
+        "label": "label",
+        "certification": "certifications",
+        "financement": "financement",
+        "statuts": "etat"
+    }
+    type_ = type_map.get(data.get("type"))
     value = data.get("value", "").strip()
 
-    if type_ not in ['label', 'certifications', 'financement']:
+    if not type_:
         return jsonify({"success": False, "message": "Type d'option invalide"}), 400
 
     if not value:
@@ -751,15 +757,21 @@ def add_option():
     except Exception as e:
         db.session.rollback()
         return jsonify({"success": False, "message": str(e)}), 500
-    
+
 @utilisateur_bp.route('/admin/delete-option', methods=['POST'])
 @admin_required
 def delete_option():
     data = request.get_json()
-    type_ = data.get("type")
+    type_map = {
+        "label": "label",
+        "certification": "certifications",
+        "financement": "financement",
+        "statuts": "etat"
+    }
+    type_ = type_map.get(data.get("type"))
     value = data.get("value", "").strip()
 
-    if type_ not in ['label', 'certifications', 'financement']:
+    if not type_:
         return jsonify({"success": False, "message": "Type d'option invalide"}), 400
 
     try:
@@ -779,11 +791,17 @@ def delete_option():
 @admin_required
 def update_option():
     data = request.get_json()
-    type_ = data.get("type")
+    type_map = {
+        "label": "label",
+        "certification": "certifications",
+        "financement": "financement",
+        "statuts": "etat"
+    }
+    type_ = type_map.get(data.get("type"))
     old_value = data.get("oldValue", "").strip()
     new_value = data.get("newValue", "").strip()
 
-    if type_ not in ['label', 'certifications', 'financement']:
+    if not type_:
         return jsonify({"success": False, "message": "Type d'option invalide"}), 400
 
     if not old_value or not new_value:
@@ -803,5 +821,4 @@ def update_option():
         return jsonify({"success": False, "message": str(e)}), 500
 
 
-        
-    
+

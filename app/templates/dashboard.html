@@ -200,6 +200,7 @@
                                 <button class="tab-btn active" data-tab="labels">Labels</button>
                                 <button class="tab-btn" data-tab="certifications">Certifications</button>
                                 <button class="tab-btn" data-tab="financements">Financements</button>
+                                <button class="tab-btn" data-tab="statuts">Statuts</button>
                             </div>
                             
                             <!-- Tab Labels -->
@@ -271,6 +272,31 @@
                                 </div>
                                 <form class="add-option-form" data-type="financement">
                                     <input type="text" placeholder="Nouveau financement" required>
+                                    <button type="submit" class="btn btn-add">
+                                        <i class="fas fa-plus"></i> Ajouter
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Tab Statuts -->
+                            <div class="options-tab-content" id="statuts-tab">
+                                <div class="options-list">
+                                    {% for statut in statuts %}
+                                        <div class="option-item">
+                                            <span>{{ statut }}</span>
+                                            <div class="option-actions">
+                                                <button class="btn-edit-option" data-type="statuts" data-value="{{ statut }}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn-delete-option" data-type="statuts" data-value="{{ statut }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <form class="add-option-form" data-type="statuts">
+                                    <input type="text" placeholder="Nouveau statut" required>
                                     <button type="submit" class="btn btn-add">
                                         <i class="fas fa-plus"></i> Ajouter
                                     </button>
