@@ -46,8 +46,6 @@ function exportTable(tableId, format, type) {
     }
 }
 
-
-
 function download(filename, blobContent) {
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blobContent);

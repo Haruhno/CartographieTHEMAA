@@ -8,7 +8,7 @@ class Formation(db.Model):
     type = db.Column(db.Enum('initiale', 'continue'), nullable=False)
     description = db.Column(db.Text, nullable=False)
     duree = db.Column(db.String(50), nullable=False)
-    duree_heures = db.Column(db.Float, nullable=True)  # Ajout du nouveau champ
+    duree_heures = db.Column(db.Float, nullable=True)
     dates = db.Column(db.String(100), nullable=False)
     duree_heures = db.Column(db.Float, nullable=True)
     lieu = db.Column(db.String(100), nullable=False)

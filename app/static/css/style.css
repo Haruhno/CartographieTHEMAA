@@ -1722,7 +1722,6 @@ input[type="file"] {
    POPUPS MAP
 ========================= */
 
-/* Dans votre fichier CSS */
 .popup-container {
     font-family: 'Poppins', sans-serif;
     max-width: 280px;
@@ -3121,4 +3120,83 @@ input[type="file"] {
     .summary-label {
         margin-bottom: 3px;
     }
+}
+
+/* Styles pour la section Options du dashboard */
+.options-tabs {
+    margin-top: 20px;
+}
+
+.options-tab-buttons {
+    display: flex;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+}
+
+.options-tab-buttons .tab-btn {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-weight: 500;
+    color: #666;
+}
+
+.options-tab-buttons .tab-btn.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.options-tab-content {
+    display: none;
+}
+
+.options-tab-content.active {
+    display: block;
+}
+
+.options-list {
+    margin-bottom: 20px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.option-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    border: 1px solid #eee;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+
+.option-item:hover {
+    background-color: #f9f9f9;
+}
+
+.option-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-left: 10px;
+    color: #666;
+}
+
+.option-actions button:hover {
+    color: var(--primary-color);
+}
+
+.add-option-form {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.add-option-form input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
 }
