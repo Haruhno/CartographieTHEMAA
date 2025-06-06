@@ -39,7 +39,7 @@ var currentFilters = {
     prixMin: null,
     prixMax: null,
     duree: '',
-    region: '', // Ajouter la région aux filtres actuels
+    region: '',
 };
 
 // Ajouter aux variables globales
@@ -524,7 +524,7 @@ function initFilters() {
     initHoursSlider();
 }
 
-// Ajouter cette nouvelle fonction
+// Fonction pour initialiser le slider d'heures
 function initHoursSlider() {
     const slider = document.getElementById('hoursSlider');
     const input = document.getElementById('hoursInput');
@@ -545,7 +545,7 @@ function initHoursSlider() {
     });
 }
 
-// Ajouter cette nouvelle fonction pour calculer les durées min/max des formations filtrées
+// Fonction pour calculer les durées min/max des formations filtrées
 function calculateHoursRange(formations) {
     const durees = formations
         .map(f => f.duree_heures)
@@ -561,7 +561,7 @@ function calculateHoursRange(formations) {
     };
 }
 
-// Ajouter cette fonction pour mettre à jour le slider
+// Fonction pour mettre à jour le slider
 function updateHoursSlider(min, max, currentValue) {
     const slider = document.getElementById('hoursSlider');
     const input = document.getElementById('hoursInput');
@@ -606,7 +606,7 @@ function applyFiltersToFormations(formations) {
         // Filtre par type
         if (!currentFilters.types.has(formation.type)) return false;
         
-        // Filtre par label (correction pour les labels multiples)
+        // Filtre par label
         if (currentFilters.labels.size > 0) {
             if (!formation.label) return false;
             const formationLabels = formation.label.split(',').map(l => l.trim());
@@ -956,7 +956,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// Ajouter cette fonction dans carte.js
+// Fonction pour afficher les frontières d'une région
 function showRegionBoundaries(regionName) {
     // Si un layer existe déjà, on le supprime
     if (currentRegionLayer) {
@@ -991,7 +991,7 @@ function showRegionBoundaries(regionName) {
         });
 }
 
-// Ajouter cette fonction pour charger les données des filtres
+// Fonction pour charger les données des filtres
 function loadFilterData() {
     fetch('/formations/get-filters-data')
         .then(response => response.json())

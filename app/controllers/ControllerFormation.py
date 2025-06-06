@@ -46,7 +46,7 @@ def get_formulaire_context():
         if row[0]:
             for l in str(row[0]).split(','):
                 l = l.strip()
-                # Mapping BDD value to display value
+                # Mapper la valeur BDD "RNCP" vers le label complet pour l'affichage
                 if l.upper() == "RNCP":
                     label_set.add("RNCP (Répertoire National des Certifications Professionnelles)")
                 elif l:
@@ -421,7 +421,6 @@ def submit_formation():
         except ValueError:
             id_organisme = None
         description = request.form.get('description')
-        # Correction: reconstituer la durée complète
         duree_heures = request.form.get('duree_heures')
         try:
             duree_heures = float(duree_heures) if duree_heures else None
@@ -439,7 +438,7 @@ def submit_formation():
             duree = f"{duree_valeur} {duree_unite}"
 
         dates = request.form.get('dates')
-        lieu = request.form.get('adresse')  # Correction: champ "adresse" dans le formulaire HTML
+        lieu = request.form.get('adresse')
         prix = request.form.get('prix')
         prix = float(prix) if prix else None
         conditions_acces = request.form.get('conditions_acces')
@@ -450,7 +449,6 @@ def submit_formation():
             lien_inscription = "https://" + lien_inscription
         label = request.form.get('label')
         certifications = request.form.get('certifications')
-        # num_adherent n'est PAS un champ du modèle Formation, donc on ne le passe pas au constructeur
 
         # Vérification des champs obligatoires pour éviter les erreurs d'intégrité
         if not nom or not type_formation or not id_organisme or not description or not duree or not dates or not lieu:
@@ -471,7 +469,7 @@ def submit_formation():
             duree=duree,
             duree_heures=duree_heures,
             dates=dates,
-            lieu=lieu_complet,  # Utiliser l'adresse complète
+            lieu=lieu_complet,
             prix=prix,
             conditions_acces=conditions_acces,
             financement=financement,
@@ -525,7 +523,7 @@ def get_formations_valides():
             "lien_inscription": f.lien_inscription,
             "label": f.label,
             "id_organisme": f.id_organisme,
-            "duree_heures": float(f.duree_heures) if f.duree_heures is not None else None  # Ajout de cette ligne
+            "duree_heures": float(f.duree_heures) if f.duree_heures is not None else None
         })
 
     return jsonify(resultats)
@@ -589,7 +587,7 @@ def delete_with_reason():
 @admin_required
 def delete_reason(id):
     formation = Formation.query.get_or_404(id)
-    formation.raison = None  # Effacer la raison
+    formation.raison = None
     db.session.commit()
     
     flash("Raison supprimée avec succès.", "success")

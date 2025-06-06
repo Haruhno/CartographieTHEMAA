@@ -101,7 +101,7 @@
                         </span>
                     </div>
                     <input type="hidden" id="next_url" name="next_url">
-                    <!-- Remplacer la section organisme par -->
+                    <!-- Section organisme -->
                     {% if user.role == 'user' %}
                         <div class="form-group" id="organisme-section">
                             <label>Organisme</label>
@@ -127,7 +127,7 @@
 
                     <button type="submit" class="btn">Mettre à jour le profil</button>
 
-                    <!-- Remplacer la div danger-zone existante par celle-ci -->
+                    <!-- Section danger-zone -->
                     <div class="form-group danger-zone">
                         <h3>Zone dangereuse</h3>
                         <p class="danger-description">Attention : cette action est irréversible. Une fois votre compte supprimé, toutes vos données seront perdues.</p>
@@ -164,7 +164,7 @@
     </div>
 </div>
 
-<!-- Ajouter le modal de contact -->
+<!-- Modal de contact -->
 <div id="organismeContactModal" class="modal-overlay" style="display: none;">
     <div class="modal-box">
         <h3>Contacter un administrateur</h3>

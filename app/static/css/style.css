@@ -2573,7 +2573,7 @@ input[type="file"] {
 }
 
 
-/* Dans la section des filtres, ajoutez ou modifiez */
+/* Dans la section des filtres */
 .price-filters {
     display: flex;
     gap: 10px;
@@ -2966,7 +2966,7 @@ input[type="file"] {
     }
 }
 
-/* Ajouter dans la section des styles du formulaire de profil */
+/* Styles du formulaire de profil */
 .danger-zone {
     margin-top: 2.5rem !important;
     padding: 1.5rem;
