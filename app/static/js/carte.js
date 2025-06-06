@@ -54,6 +54,12 @@ let currentRegionLayer = null; // Pour stocker le layer de la région actuelle
 let minHours = 0;
 let maxHours = 100;
 
+// Ajouter ces variables globales au début du fichier
+let lastRequestTime = 0;
+const minDelayBetweenRequests = 100; // Délai minimum entre les requêtes en ms
+let currentDelay = 100; // Délai initial
+const maxDelay = 2000; // Délai maximum
+
 // =====================
 // HIGHLIGHT D'UNE FORMATION
 // =====================
@@ -103,33 +109,64 @@ function resetAllFormationItems() {
 // =====================
 // GÉOCODAGE D'ADRESSE
 // =====================
-function geocodeAddress(address, callback) {
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Remplacer la fonction geocodeAddress existante
+async function geocodeAddress(address, callback) {
     const cleanedAddress = address.replace(/,/g, '');
     const url = `https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(cleanedAddress)}&limit=1`;
 
-    fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data && data.features && data.features.length > 0) {
-                const coords = data.features[0].geometry.coordinates;
-                callback({
-                    lat: coords[1],
-                    lng: coords[0]
-                });
-            } else {
-                console.error('Adresse non trouvée:', cleanedAddress);
-                callback(null);
-            }
-        })
-        .catch(error => {
-            console.error('Erreur de géocodage:', error);
+    try {
+        // Calculer le temps à attendre
+        const now = Date.now();
+        const timeSinceLastRequest = now - lastRequestTime;
+        const waitTime = Math.max(0, currentDelay - timeSinceLastRequest);
+        
+        if (waitTime > 0) {
+            await delay(waitTime);
+        }
+
+        lastRequestTime = Date.now();
+        const response = await fetch(url);
+
+        if (response.status === 429) {
+            // Augmenter le délai en cas d'erreur 429
+            currentDelay = Math.min(currentDelay * 2, maxDelay);
+            await delay(currentDelay);
+            // Réessayer la requête
+            return geocodeAddress(address, callback);
+        }
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Réduire progressivement le délai en cas de succès
+        currentDelay = Math.max(minDelayBetweenRequests, currentDelay * 0.8);
+
+        const data = await response.json();
+        if (data && data.features && data.features.length > 0) {
+            const coords = data.features[0].geometry.coordinates;
+            callback({
+                lat: coords[1],
+                lng: coords[0]
+            });
+        } else {
+            console.error('Adresse non trouvée:', cleanedAddress);
             callback(null);
-        });
+        }
+    } catch (error) {
+        if (error.message.includes('429')) {
+            // Réessayer avec un délai plus long en cas d'erreur 429
+            currentDelay = Math.min(currentDelay * 2, maxDelay);
+            await delay(currentDelay);
+            return geocodeAddress(address, callback);
+        }
+        console.error('Erreur de géocodage:', error);
+        callback(null);
+    }
 }
 
 
@@ -712,7 +749,7 @@ function resetFilters() {
         prixMin: null,
         prixMax: null,
         duree: '',
-        region: '', // Réinitialiser le filtre de région
+        region: '',
     };
     
     // Mettre à jour l'UI
@@ -728,15 +765,23 @@ function resetFilters() {
     document.getElementById('dureeFilter').value = '';
     document.getElementById('prixMin').value = '';
     document.getElementById('prixMax').value = '';
-    document.getElementById('regionFilter').value = ''; // Réinitialiser le select de région
+    document.getElementById('regionFilter').value = '';
     document.getElementById('certificationFilter').value = '';
     currentFilters.certification = '';
     
-    // Supprimer le contour de la région
+    // Supprimer tous les layers de région
     if (currentRegionLayer) {
         map.removeLayer(currentRegionLayer);
         currentRegionLayer = null;
     }
+    map.eachLayer((layer) => {
+        if (layer.options && layer.options.style && layer.options.style.color === '#1e90a2') {
+            map.removeLayer(layer);
+        }
+    });
+    
+    // Réinitialiser la vue de la carte
+    map.setView([46.603354, 1.888334], 6);
     
     // Réinitialiser le slider et l'input des heures
     const hoursRange = calculateHoursRange(allFormations);
@@ -855,7 +900,7 @@ Promise.all([
     fetch('/organismes/all').then(res => res.json()),
     fetch('/formations/valides').then(res => res.json())
 ])
-.then(([organismes, formations]) => {
+.then(async ([organismes, formations]) => {
     allFormations = formations.map(f => ({
         ...f,
         duree_heures: f.duree_heures ? parseFloat(f.duree_heures) : null
@@ -880,64 +925,8 @@ Promise.all([
     
     updateDisplayedFormations(allFormations);
     
-    organismes.forEach(org => {
-        if (!org.adresse || markersDict[org.id]) return;
-        
-        geocodeAddress(org.adresse, coords => {
-            if (!coords) return;
-
-            const marker = L.marker([coords.lat, coords.lng]).addTo(map);
-            markersDict[org.id] = marker;
-            
-            const orgFormations = allFormations.filter(f => f.id_organisme === org.id);
-
-            let popupContent = `
-                <div class="popup-container">
-                    <h3 class="popup-title">${org.nom}</h3>
-                    <div class="popup-info">
-                        <p><i class="fas fa-map-marker-alt"></i> ${org.adresse}</p>
-                        <p><i class="fas fa-phone"></i> ${org.telephone}</p>
-                        <p><i class="fas fa-envelope"></i> <a href="mailto:${org.email}">${org.email}</a></p>
-                    </div>
-                    <div class="popup-formations-count">
-                        ${orgFormations.length} formation(s) disponible(s)
-                    </div>
-                    <a href="/formations/informations/${org.id}" class="popup-button">
-                        <i class="fas fa-graduation-cap"></i> Découvrir
-                    </a>
-                </div>
-            `;
-
-            orgFormations.forEach(ff => {
-                popupContent += `- ${ff.nom} (${ff.type})<br>`;
-            });
-
-            marker.bindPopup(popupContent);
-
-            marker.on('click', () => {
-                const firstFormation = orgFormations[0];
-                if (firstFormation) {
-                    highlightFormationItem(firstFormation.id, true);
-                    const container = document.getElementById('formations-container');
-                    const item = formationItemsDict[firstFormation.id];
-                    if (item && container.firstChild !== item) {
-                        container.removeChild(item);
-                        container.insertBefore(item, container.firstChild);
-                        container.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-                }
-            });
-
-            marker.on('popupopen', () => {
-                const firstFormation = orgFormations[0];
-                if (firstFormation) highlightFormationItem(firstFormation.id);
-            });
-            
-            marker.on('popupclose', () => {
-                if (currentlyHighlighted) highlightFormationItem(null);
-            });
-        });
-    });
+    // Remplacer la boucle forEach par l'appel à processOrganismes
+    await processOrganismes(organismes);
 })
 .catch(error => console.error('Erreur:', error));
 
@@ -957,14 +946,23 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // Fonction pour afficher les frontières d'une région
+// Modifier la fonction showRegionBoundaries
 function showRegionBoundaries(regionName) {
-    // Si un layer existe déjà, on le supprime
+    // Nettoyer TOUS les layers de région existants
     if (currentRegionLayer) {
         map.removeLayer(currentRegionLayer);
         currentRegionLayer = null;
     }
+    map.eachLayer((layer) => {
+        if (layer.options && layer.options.style && layer.options.style.color === '#1e90a2') {
+            map.removeLayer(layer);
+        }
+    });
 
-    if (!regionName) return;
+    // Si pas de région sélectionnée, on s'arrête là
+    if (!regionName) {
+        return;
+    }
 
     // Charger les données GeoJSON des régions
     fetch('/static/data/regions-france.geojson')
@@ -978,10 +976,10 @@ function showRegionBoundaries(regionName) {
             if (region) {
                 currentRegionLayer = L.geoJSON(region, {
                     style: {
-                        color: '#1e90a2', // Couleur du contour
-                        weight: 3, // Épaisseur du contour
-                        fillOpacity: 0, // Transparence du remplissage
-                        opacity: 1 // Opacité du contour
+                        color: '#1e90a2',
+                        weight: 3,
+                        fillOpacity: 0,
+                        opacity: 1
                     }
                 }).addTo(map);
 
@@ -1097,4 +1095,91 @@ function initFilterListeners() {
         currentFilters.certification = this.value;
         applyFilters();
     });
+}
+
+// Modifier la fonction de chargement des organismes pour traiter les adresses séquentiellement
+async function processOrganismes(organismes) {
+    const loadingScreen = document.getElementById('loading-screen');
+    let firstMarkerPlaced = false;
+    
+    const batchSize = 10;
+    const batches = [];
+    
+    for (let i = 0; i < organismes.length; i += batchSize) {
+        const batch = organismes.slice(i, i + batchSize)
+            .filter(org => org.adresse && !markersDict[org.id])
+            .map(org => new Promise(resolve => {
+                geocodeAddress(org.adresse, coords => {
+                    if (coords) {
+                        const marker = createMarker(org, coords);
+                        markersDict[org.id] = marker;
+                        
+                        // Cacher l'écran de chargement après le premier marqueur
+                        if (!firstMarkerPlaced) {
+                            firstMarkerPlaced = true;
+                            loadingScreen.classList.add('fade-out');
+                            setTimeout(() => {
+                                loadingScreen.style.display = 'none';
+                            }, 500);
+                        }
+                    }
+                    resolve();
+                });
+            }));
+        
+        await Promise.all(batch);
+        await delay(500);
+    }
+}
+
+// Nouvelle fonction pour créer un marqueur
+function createMarker(org, coords) {
+    const marker = L.marker([coords.lat, coords.lng]).addTo(map);
+    const orgFormations = allFormations.filter(f => f.id_organisme === org.id);
+    
+    const popupContent = `
+        <div class="popup-container">
+            <h3 class="popup-title">${org.nom}</h3>
+            <div class="popup-info">
+                <p><i class="fas fa-map-marker-alt"></i> ${org.adresse}</p>
+                <p><i class="fas fa-phone"></i> ${org.telephone}</p>
+                <p><i class="fas fa-envelope"></i> <a href="mailto:${org.email}">${org.email}</a></p>
+            </div>
+            <div class="popup-formations-count">
+                ${orgFormations.length} formation(s) disponible(s)
+            </div>
+            <a href="/formations/informations/${org.id}" class="popup-button">
+                <i class="fas fa-graduation-cap"></i> Découvrir
+            </a>
+        </div>
+        ${orgFormations.map(ff => `- ${ff.nom} (${ff.type})`).join('<br>')}
+    `;
+
+    marker.bindPopup(popupContent);
+
+    // Événements du marqueur
+    marker.on('click', () => {
+        const firstFormation = orgFormations[0];
+        if (firstFormation) {
+            highlightFormationItem(firstFormation.id, true);
+            const container = document.getElementById('formations-container');
+            const item = formationItemsDict[firstFormation.id];
+            if (item && container.firstChild !== item) {
+                container.removeChild(item);
+                container.insertBefore(item, container.firstChild);
+                container.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+    });
+
+    marker.on('popupopen', () => {
+        const firstFormation = orgFormations[0];
+        if (firstFormation) highlightFormationItem(firstFormation.id);
+    });
+
+    marker.on('popupclose', () => {
+        if (currentlyHighlighted) highlightFormationItem(null);
+    });
+
+    return marker;
 }

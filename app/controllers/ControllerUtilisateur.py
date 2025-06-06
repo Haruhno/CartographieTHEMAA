@@ -46,23 +46,32 @@ def admin_required(f):
 def connexion():
     """
     Gère la connexion des utilisateurs.
-    Si la méthode est POST, vérifie les identifiants et connecte l'utilisateur.
-    Si la méthode est GET, affiche le formulaire de connexion.
     """
-    if request.method == "POST":
-        email = request.form.get("email")
-        password = request.form.get("password")
+    try:
+        if request.method == "POST":
+            email = request.form.get("email")
+            password = request.form.get("password")
+            
+            if not email or not password:
+                flash("Veuillez remplir tous les champs", "danger")
+                return render_template("connexion.html")
+            
+            user = Utilisateur.query.filter_by(email=email).first()
+            
+            if user and user.check_password(password):
+                login_user(user)
+                flash("Connexion réussie!", "success")
+                return redirect(url_for("dashboard"))
+            else:
+                flash("Email ou mot de passe incorrect", "danger")
+                return render_template("connexion.html")
         
-        user = Utilisateur.query.filter_by(email=email).first()
+        return render_template("connexion.html")
         
-        if user and user.check_password(password):
-            login_user(user)
-            flash("Connexion réussie!", "success")
-            return redirect(url_for("dashboard"))
-        else:
-            flash("Email ou mot de passe incorrect", "danger")
-    
-    return render_template("connexion.html")
+    except Exception as e:
+        current_app.logger.error(f"Erreur lors de la connexion: {str(e)}")
+        flash("Une erreur est survenue lors de la connexion", "danger")
+        return render_template("connexion.html"), 500
 
 @utilisateur_bp.route("/deconnexion")
 @login_required

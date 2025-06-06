@@ -13,7 +13,7 @@ class Utilisateur(db.Model, UserMixin):
         nom (str) : Nom de l'utilisateur.
         email (str) : Adresse email de l'utilisateur (doit être unique).
         mot_de_passe (str) : Mot de passe haché de l'utilisateur.
-        role (Enum) : Rôle de l'utilisateur ('visiteur', 'user', 'admin').
+        role (Enum) : Rôle de l'utilisateur ('user', 'admin').
         num_adherent (str) : Numéro d'adhérent de l'utilisateur (optionnel).
         id_organisme (int) : Clé étrangère vers l'organisme associé.
         photo_profil (str) : Chemin vers la photo de profil de l'utilisateur (optionnel).
@@ -30,7 +30,6 @@ class Utilisateur(db.Model, UserMixin):
         get_id() : Retourne l'identifiant de l'utilisateur sous forme de chaîne.
         is_admin() : Retourne True si l'utilisateur a le rôle 'admin'.
         is_user() : Retourne True si l'utilisateur a le rôle 'user'.
-        is_visiteur() : Retourne True si l'utilisateur a le rôle 'visiteur'.
         generate_reset_token() : Génère un jeton de réinitialisation du mot de passe et définit son expiration.
         verify_reset_token(token) : Vérifie la validité d'un jeton de réinitialisation.
     """
@@ -40,7 +39,7 @@ class Utilisateur(db.Model, UserMixin):
     nom = db.Column(db.String(150), nullable=False)
     email = db.Column(db.String(200), nullable=False, unique=True)
     mot_de_passe = db.Column(db.String(255), nullable=False)
-    role = db.Column(db.Enum('visiteur', 'user', 'admin'), nullable=False, default='visiteur')
+    role = db.Column(db.Enum('user', 'admin'), nullable=False, default='user')
     num_adherent = db.Column(db.String(150))
     id_organisme = db.Column(db.Integer, db.ForeignKey('Organisme.id_organisme'))
     photo_profil = db.Column(db.String(255))  # Chemin vers l'image
@@ -79,12 +78,6 @@ class Utilisateur(db.Model, UserMixin):
         Vérifie si l'utilisateur a le rôle 'user'.
         """
         return self.role == 'user'
-
-    def is_visiteur(self):
-        """
-        Vérifie si l'utilisateur a le rôle 'visiteur'.
-        """
-        return self.role == 'visiteur'
 
     def generate_reset_token(self):
         """

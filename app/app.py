@@ -10,7 +10,7 @@ from models.ModelOrganisme import Organisme
 from database import *
 import os
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, timezone
 import csv
 import io
 import json
@@ -71,7 +71,7 @@ def dashboard():
 
 @app.context_processor
 def inject_now():
-    return {'now': datetime.utcnow()}
+    return {'now': datetime.now(timezone.utc)}
 
 @app.errorhandler(404)
 def page_not_found(e):
