@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : db
--- Généré le : ven. 06 juin 2025 à 16:31
+-- Généré le : ven. 06 juin 2025 à 18:04
 -- Version du serveur : 8.3.0
 -- Version de PHP : 8.2.28
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de données : `themaa_db`
+-- Base de données : `themapp_db`
 --
 
 -- --------------------------------------------------------
@@ -128,7 +128,7 @@ CREATE TABLE `Organisme` (
 --
 
 INSERT INTO `Organisme` (`id_organisme`, `nom`, `adresse`, `email`, `telephone`, `site_web`, `presentation`, `num_adherent`, `statut`, `label`) VALUES
-(1, 'École Nationale Supérieure des Arts de la Marionnette', '16 avenue Jean Jaurès, 08000 Charleville-Mézières', 'institut@marionnette.com', '0324337250', 'https://marionnette.com', 'L’ESNAM forme des artistes-marionnettistes professionnels dans un cadre d’enseignement supérieur artistique reconnu.', 'A12345', 'Établissement public', 'Qualiopi'),
+(1, 'École Nationale Supérieure des Arts de la Marionnette', '16 Av. Jean Jaurès, 08000 Charleville-Mézières', 'institut@marionnette.com', '0324337250', 'https://marionnette.com', 'L’ESNAM forme des artistes-marionnettistes professionnels dans un cadre d’enseignement supérieur artistique reconnu.', 'A12345', 'Établissement public', 'Qualiopi'),
 (2, 'École des Marionnettes de Paris', '10 Avenue des Champs-Élysées, 75008 Paris', 'contact@ecole-marionnettes-paris.com', '0234567890', 'https://marionnette.com/esnam-formations/esnam/ecole/', 'École spécialisée dans les arts de la marionnette et du théâtre d\'objets.', 'B67890', 'Entreprise de droit privé', 'RNCP'),
 (3, 'Compagnie des Marionnettes de Paris', '3A Rue du 22 Novembre, 67000 Strasbourg', 'contact@compagnie-marionnettes-paris.com', '0345678901', 'https://marionnette.com/esnam-formations/esnam/ecole/', 'Compagnie de théâtre de marionnettes et de spectacles pour enfants.', 'C54321', 'Coopérative', 'Erasmus+'),
 (4, 'Atelier des Marionnettes de Paris', '103 Rue de Vesle, 51100 Reims', 'contact@atelier-marionnettes-paris.com', '0456789012', 'https://marionnette.com/esnam-formations/esnam/ecole/', 'Atelier de création et de formation aux marionnettes.', 'D98765', 'Etablissement public', 'Qualiopi'),
@@ -190,7 +190,7 @@ CREATE TABLE `Utilisateur` (
   `nom` varchar(150) DEFAULT NULL,
   `email` varchar(200) DEFAULT NULL,
   `mot_de_passe` varchar(255) NOT NULL,
-  `role` enum('visiteur','user','admin') NOT NULL DEFAULT 'visiteur',
+  `role` enum('user','admin') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'user',
   `num_adherent` varchar(150) DEFAULT NULL,
   `id_organisme` int DEFAULT NULL,
   `photo_profil` varchar(255) DEFAULT NULL,
@@ -203,10 +203,8 @@ CREATE TABLE `Utilisateur` (
 --
 
 INSERT INTO `Utilisateur` (`id_utilisateur`, `nom`, `email`, `mot_de_passe`, `role`, `num_adherent`, `id_organisme`, `photo_profil`, `reset_token`, `reset_token_expiration`) VALUES
-(1, 'Admin THEMAA', 'admin@admin.com', '$2b$12$SOMEHASHEDPASSWORD1', 'admin', NULL, NULL, NULL, NULL, NULL),
-(2, 'Jean Dupont', 'jean@exemple.com', '$2b$12$SOMEHASHEDPASSWORD2', 'user', NULL, NULL, NULL, NULL, NULL),
-(3, 'Utilisateur THEMAA', 'user@themaa.fr', '$2b$12$SOMEHASHEDPASSWORD3', 'user', NULL, NULL, NULL, NULL, NULL),
-(4, 'Compagnie des Songes', 'contact@cie-songes.fr', '$2b$12$SOMEHASHEDPASSWORD4', 'user', NULL, NULL, NULL, NULL, NULL);
+(1, 'Jane Doe', 'jane.doe@gmail.com', 'scrypt:32768:8:1$xGXevxKqAWljHmiH$c1339ed602a258250107d09cc062bc6cad71bd4e401b156e5264f7c933aa461f4e2f320f57df38c0819ee405586bcdb430e051af5ad8023e6929393091653845', 'user', NULL, NULL, NULL, NULL, NULL),
+(2, 'admin', 'admin@admin.com', 'scrypt:32768:8:1$e0SsJDoovhSDO3mr$d4d75eeb469cf835491f9cda3857358d0fd900dc3a0c5698f12cbb4c8ab815cdf7f6635a5c25bafc1ad5bd36a1db19781c9edad1503b7dcd761e54f0a6528b1e', 'admin', NULL, NULL, NULL, NULL, NULL);
 
 --
 -- Index pour les tables déchargées
@@ -253,7 +251,7 @@ ALTER TABLE `Organisme`
 -- AUTO_INCREMENT pour la table `Utilisateur`
 --
 ALTER TABLE `Utilisateur`
-  MODIFY `id_utilisateur` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_utilisateur` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Contraintes pour les tables déchargées
