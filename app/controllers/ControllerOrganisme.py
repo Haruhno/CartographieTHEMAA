@@ -299,7 +299,6 @@ def update_organisme_by_id(id):
     """
     organisme = Organisme.query.get_or_404(id)
 
-    # Si c'est une requête JSON (depuis JavaScript)
     if request.is_json:
         data = request.get_json()
         if not data:
@@ -309,32 +308,14 @@ def update_organisme_by_id(id):
         organisme.email = data.get('email', organisme.email)
         organisme.telephone = data.get('telephone', organisme.telephone)
         organisme.statut = data.get('statut', organisme.statut)
-        
-        # Gestion des labels
-        labels = data.get('labels', [])
-        organisme.label = ','.join(labels) if labels else None
+        organisme.label = data.get('label')  # Directement prendre la valeur formatée
+        organisme.adresse = data.get('adresse', organisme.adresse)
+        organisme.presentation = data.get('presentation', organisme.presentation)
+        organisme.num_adherent = data.get('num_adherent', organisme.num_adherent)
 
         db.session.commit()
-        return jsonify({"success": True, "message": "Organisme mis à jour avec succès."})
-
-    # Sinon, c'est un POST HTML classique (formulaire dans `preview`)
-    else:
-        organisme.nom = request.form.get('nom')
-        organisme.statut = request.form.get('statut')
-        organisme.email = request.form.get('email')
-        organisme.telephone = request.form.get('telephone')
-        organisme.adresse = request.form.get('adresse')
-        
-        site_web = normalize_website_url(request.form.get("site_web"))
-        organisme.site_web = site_web
-
-        organisme.presentation = request.form.get('presentation')
-        organisme.num_adherent = request.form.get('num_adherent')
-        
-        # Gestion des labels multiples
-        labels = request.form.getlist('labels[]')
-        organisme.label = ','.join(labels) if labels else None
-
-        db.session.commit()
-        flash("Organisme mis à jour avec succès!", "success")
-        return redirect(url_for("organisme.edit_organismes", id=organisme.id_organisme))
+        return jsonify({
+            "success": True, 
+            "message": "Organisme mis à jour avec succès.",
+            "label": organisme.label  # Renvoyer le label mis à jour
+        })

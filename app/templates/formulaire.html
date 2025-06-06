@@ -169,27 +169,28 @@
                                 <div class="form-row" style="align-items: flex-end; margin-bottom: 0; gap: 24px;">
                                     <div class="form-group" style="flex:1;">
                                         <label class="required-field" style="display:block;">Durée (heures)</label>
-                                        <input type="text" name="duree_heures" required
-                                            inputmode="decimal"
-                                            step="0.1"
-                                            min="0"
-                                            style="width:100%;"
-                                            oninput="
-                                                // Remplacer la virgule par un point
-                                                this.value = this.value.replace(',', '.');
-
-                                                // Supprimer tout sauf chiffres et point
-                                                this.value = this.value.replace(/[^0-9.]/g, '');
-
-                                                // Limiter à un seul point et un chiffre après
-                                                if (this.value.includes('.')) {
-                                                    const [intPart, decPart] = this.value.split('.');
-                                                    this.value = intPart + '.' + (decPart ? decPart.substring(0, 1) : '');
-                                                }
-                                            "
-                                            maxlength="6"
-                                            placeholder="ex : 75.0"
-                                        />
+                                        <input type="text" 
+                                               name="duree_heures" 
+                                               required
+                                               inputmode="decimal"
+                                               min="0"
+                                               style="width:100%;"
+                                               oninput="
+                                                   const inputValue = this.value;
+                                                   // Remplacer la virgule par un point
+                                                   let cleanValue = inputValue.replace(',', '.');
+                                                   // Ne garder que les chiffres et le point
+                                                   cleanValue = cleanValue.replace(/[^\d.]/g, '');
+                                                   // Ne garder que le premier point et limiter les décimales
+                                                   const [entier, decimales] = cleanValue.split('.');
+                                                   if (decimales !== undefined) {
+                                                       cleanValue = entier + '.' + decimales.slice(0, 2);
+                                                   }
+                                                   this.value = cleanValue;
+                                               "
+                                               maxlength="8"
+                                               placeholder="ex : 75.50"
+                                        >
                                     </div>
                                     <div class="form-group" style="flex:1; position: relative;">
                                         <label class="required-field" style="display:block;">Durée (jour(s), semaine(s), mois, année(s))</label>
@@ -255,24 +256,27 @@
                                 <div class="form-row" style="gap: 24px;">
                                     <div class="form-group">
                                         <label>Prix (€)</label>
-                                        <input type="text" name="prix" inputmode="decimal" pattern="^\d{1,5}([,.]\d{0,2})?$" 
-                                            oninput="
-                                                // Remplacer les points par des virgules
-                                                this.value = this.value.replace('.', ',');
-                                                // Supprimer tout sauf chiffres et virgule
-                                                this.value = this.value.replace(/[^0-9,]/g, '');
-                                                // Limiter à une seule virgule
-                                                const partsPrix = this.value.split(',');
-                                                if (partsPrix.length > 2) {
-                                                    this.value = partsPrix[0] + ',' + partsPrix[1];
-                                                }
-                                                // Limiter à 2 décimales
-                                                if (partsPrix[1] && partsPrix[1].length > 2) {
-                                                    this.value = partsPrix[0] + ',' + partsPrix[1].slice(0,2);
-                                                }
-                                            "
-                                            maxlength="5"
-                                            placeholder="ex : 125.00"
+                                        <input type="text" 
+                                               name="prix" 
+                                               inputmode="decimal" 
+                                               pattern="^\d{1,5}([,.]\d{0,2})?$" 
+                                               oninput="
+                                                   // Autoriser uniquement les chiffres et un seul séparateur décimal
+                                                   this.value = this.value.replace(/[^0-9.,]/g, '');
+                                                   // Remplacer la virgule par un point pour le stockage
+                                                   this.value = this.value.replace(',', '.');
+                                                   // Limiter à un seul point
+                                                   const priceParts = this.value.split('.');
+                                                   if (priceParts.length > 2) {
+                                                       this.value = priceParts[0] + '.' + priceParts[1];
+                                                   }
+                                                   // Limiter à 2 décimales
+                                                   if (priceParts[1] && priceParts[1].length > 2) {
+                                                       this.value = priceParts[0] + '.' + priceParts[1].slice(0,2);
+                                                   }
+                                               "
+                                               maxlength="8"
+                                               placeholder="ex : 123.30"
                                         >
                                     </div>
                                 </div>

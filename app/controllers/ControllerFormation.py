@@ -491,15 +491,14 @@ def submit_formation():
         else:
             return redirect(url_for('dashboard'))
 
+    except ValueError as e:
+        db.session.rollback()
+        flash("Erreur de format : Veuillez vérifier le format des nombres (ex: 123.30)", 'danger')
+        return redirect(url_for('formation.formulaire'))
     except Exception as e:
-        import traceback; print(traceback.format_exc())
         db.session.rollback()
         flash(f"Une erreur s'est produite lors de la soumission du formulaire: {str(e)}", 'danger')
-        # Redirection selon le rôle même en cas d'erreur
-        if hasattr(current_user, "is_admin") and current_user.is_admin:
-            return redirect(url_for('formation.edit_formations'))
-        else:
-            return redirect(url_for('dashboard'))
+        return redirect(url_for('formation.formulaire'))
 
 @formation_bp.route("/valides", methods=["GET"])
 def get_formations_valides():
