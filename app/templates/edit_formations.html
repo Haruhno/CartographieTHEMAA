@@ -658,34 +658,34 @@
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
                 const id = this.getAttribute('data-id');
+                const row = document.querySelector(`.formation-row[data-id="${id}"]`);
                 
-                // Récupérer toutes les données du formulaire pour cette formation
+                // Récupérer toutes les données de la ligne
                 const data = {
                     nom: document.querySelector(`input[name="nom_${id}"]`).value,
                     type: document.querySelector(`select[name="type_${id}"]`).value,
                     id_organisme: document.querySelector(`select[name="id_organisme_${id}"]`).value,
                     etat: document.querySelector(`input[name="etat_${id}"]`).value,
-                    description: document.querySelector(`textarea[name="description_${id}"]`)?.value || '',
-                    duree: document.querySelector(`input[name="duree_${id}"]`)?.value || '',
-                    duree_heures: document.querySelector(`input[name="duree_heures_${id}"]`)?.value || '',
-                    dates: document.querySelector(`input[name="dates_${id}"]`)?.value || '',
-                    lieu: document.querySelector(`input[name="lieu_${id}"]`)?.value || '',
-                    prix: document.querySelector(`input[name="prix_${id}"]`)?.value || '',
-                    conditions_acces: document.querySelector(`textarea[name="conditions_acces_${id}"]`)?.value || '',
-                    financement: document.querySelector(`input[name="financement_${id}"]`)?.value || '',
-                    presentation_intervenants: document.querySelector(`textarea[name="presentation_intervenants_${id}"]`)?.value || '',
-                    lien_inscription: document.querySelector(`input[name="lien_inscription_${id}"]`)?.value || '',
-                    label: document.querySelector(`input[name="label_${id}"]`)?.value || '',
-                    certifications: document.querySelector(`input[name="certifications_${id}"]`)?.value || ''
+                    prix: document.querySelector(`input[name="prix_${id}"]`).value || null,
+                    label: document.querySelector(`input[name="label_${id}"]`).value || null,
+                    description: document.querySelector(`textarea[name="description_${id}"]`)?.value || null,
+                    duree: document.querySelector(`input[name="duree_${id}"]`)?.value || null,
+                    dates: document.querySelector(`input[name="dates_${id}"]`)?.value || null,
+                    lieu: document.querySelector(`input[name="lieu_${id}"]`)?.value || null,
+                    conditions_acces: document.querySelector(`textarea[name="conditions_acces_${id}"]`)?.value || null,
+                    financement: document.querySelector(`input[name="financement_${id}"]`)?.value || null,
+                    presentation_intervenants: document.querySelector(`textarea[name="presentation_intervenants_${id}"]`)?.value || null,
+                    lien_inscription: document.querySelector(`input[name="lien_inscription_${id}"]`)?.value || null,
+                    certifications: document.querySelector(`input[name="certifications_${id}"]`)?.value || null
                 };
 
-                // Mettre à jour l'attribut data-prix pour le filtre
-                const row = document.querySelector(`.formation-row[data-id="${id}"]`);
-                if (row) {
-                    row.setAttribute('data-prix', data.prix || 0);
-                }
+                // Afficher l'indicateur de chargement
+                const loadingIndicator = document.createElement('div');
+                loadingIndicator.className = 'loading-indicator';
+                loadingIndicator.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sauvegarde en cours...';
+                document.body.appendChild(loadingIndicator);
 
-                // Envoyer les données via fetch
+                // Envoyer les données
                 fetch(`/formations/update/${id}`, {
                     method: 'POST',
                     headers: {
@@ -696,16 +696,31 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
+                        // Afficher le message de succès
                         const flashContainer = document.getElementById('flashPopupContainer');
                         const flashMsg = document.createElement('div');
                         flashMsg.className = 'flash-popup flash-success';
-                        flashMsg.innerHTML = data.message + '<span class="close-btn">&times;</span>';
+                        flashMsg.innerHTML = 'Formation mise à jour avec succès <span class="close-btn">&times;</span>';
                         flashContainer.appendChild(flashMsg);
                         
+                        // Supprimer le message après 5 secondes
                         setTimeout(() => flashMsg.remove(), 5000);
+                    } else {
+                        throw new Error(data.message);
                     }
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    console.error('Error:', error);
+                    const flashContainer = document.getElementById('flashPopupContainer');
+                    const flashMsg = document.createElement('div');
+                    flashMsg.className = 'flash-popup flash-error';
+                    flashMsg.innerHTML = `Erreur lors de la sauvegarde: ${error.message} <span class="close-btn">&times;</span>`;
+                    flashContainer.appendChild(flashMsg);
+                })
+                .finally(() => {
+                    // Supprimer l'indicateur de chargement
+                    document.querySelector('.loading-indicator')?.remove();
+                });
             });
         });
 

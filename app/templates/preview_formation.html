@@ -76,7 +76,8 @@
         </header>
 
         <div class="content">
-            <form method="POST" action="{{ url_for('formation.update_formation_by_id', id=formation.id_formation) }}">
+            <!-- Remplacer l'action du formulaire par # -->
+            <form method="POST" action="#" id="formationForm">
                 <section class="card">
                     <div class="card-header">
                         <h2><i class="fas fa-graduation-cap icon"></i> Fiche Formation</h2>
@@ -335,6 +336,54 @@
                 }
             }
         }
+
+        // Gérer la soumission du formulaire
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formationId = '{{ formation.id_formation }}';
+            const formData = {
+                nom: form.querySelector('[name="nom"]').value,
+                type: form.querySelector('[name="type"]').value,
+                description: form.querySelector('[name="description"]').value,
+                duree: `${form.querySelector('[name="duree_valeur"]').value} ${form.querySelector('[name="duree_unite"]').value}`,
+                duree_heures: form.querySelector('[name="duree_heures"]').value || null,
+                dates: form.querySelector('[name="dates"]').value,
+                lieu: form.querySelector('[name="lieu"]').value,
+                prix: form.querySelector('[name="prix"]').value || null,
+                conditions_acces: form.querySelector('[name="conditions_acces"]').value,
+                financement: form.querySelector('[name="financement"]').value,
+                presentation_intervenants: form.querySelector('[name="presentation_intervenants"]').value,
+                lien_inscription: form.querySelector('[name="lien_inscription"]').value,
+                id_organisme: form.querySelector('[name="id_organisme"]').value,
+                etat: document.getElementById('etatInput').value,
+                certifications: form.querySelector('[name="certifications"]').value,
+                label: Array.from(form.querySelectorAll('.select2-multiple option:checked')).map(opt => opt.value).join(',')
+            };
+
+            fetch(`/formations/update/${formationId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Redirection directe vers edit_formations
+                    window.location.href = '/formations/edit';
+                } else {
+                    throw new Error(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Redirection avec un message d'erreur
+                window.location.href = '/formations/edit';
+            });
+        });
     });
 </script>
 </body>

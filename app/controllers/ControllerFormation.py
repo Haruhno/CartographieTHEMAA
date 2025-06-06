@@ -194,104 +194,51 @@ def handle_formation(id):
 @formation_bp.route("/update/<int:id>", methods=["POST"])
 @admin_required
 def update_formation_by_id(id):
-    """
-    Met à jour une formation existante.
-    Si la requête est en JSON, met à jour les champs de la formation avec les données fournies.
-    Si la requête est un formulaire, met à jour les champs de la formation avec les données du formulaire.
-    """
     try:
         formation = Formation.query.get_or_404(id)
+        data = request.get_json()
         
-        if request.is_json:
-            data = request.get_json()
-            
-            formation.nom = data.get("nom")
-            formation.type = data.get("type")
-            formation.description = data.get("description")
-            # Utiliser directement la durée pour la vue liste
-            formation.duree = data.get("duree") or formation.duree  # Garde l'ancienne valeur si pas de nouvelle
-            duree_heures = data.get("duree_heures")
-            formation.duree_heures = float(duree_heures) if duree_heures else None
-            formation.dates = data.get("dates")
-            formation.lieu = data.get("lieu")
+        # Mise à jour des champs
+        formation.nom = data.get("nom", formation.nom)
+        formation.type = data.get("type", formation.type)
+        formation.description = data.get("description", formation.description)
+        formation.duree = data.get("duree", formation.duree)
+        formation.dates = data.get("dates", formation.dates)
+        formation.lieu = data.get("lieu", formation.lieu)
+        
+        # Gestion spéciale des champs numériques
+        try:
             prix = data.get("prix")
-            formation.prix = float(prix) if prix else None
-            formation.conditions_acces = data.get("conditions_acces")
-            formation.financement = data.get("financement")
-            formation.presentation_intervenants = data.get("presentation_intervenants")
-            formation.lien_inscription = data.get("lien_inscription")
+            formation.prix = float(prix) if prix and prix != "None" else None
+        except (ValueError, TypeError):
+            formation.prix = None
             
-            # Gestion des labels multiples
-            labels = data.get("labels", [])
-            formation.label = ','.join(labels) if labels else None
-            
-            # Utiliser la valeur courte pour la certification
-            certification_value = request.form.get('certification_value')
-            if certification_value:
-                formation.certifications = certification_value
-            
-            formation.id_organisme = data.get("id_organisme")
-            formation.etat = data.get("etat")
-            
-            db.session.commit()
-            flash("Formation mise à jour avec succès!", "success")
-            return redirect(url_for("formation.edit_formations"))
-            
-        else:
-            # Pour les soumissions de formulaire (preview_formation.html)
-            duree_valeur = request.form.get("duree_valeur")
-            duree_unite = request.form.get("duree_unite")
-            formation.duree = f"{duree_valeur} {duree_unite}" if duree_valeur and duree_unite else formation.duree
-            
-            formation.nom = request.form.get("nom")
-            formation.type = request.form.get("type")
-            formation.description = request.form.get("description")
-            duree_heures = request.form.get("duree_heures")
-            formation.duree_heures = float(duree_heures) if duree_heures else None
-            formation.dates = request.form.get("dates")
-            formation.lieu = request.form.get("lieu")
-            prix = request.form.get("prix")
-            formation.prix = float(prix) if prix else None
-            formation.conditions_acces = request.form.get("conditions_acces")
-            formation.financement = request.form.get("financement")
-            formation.presentation_intervenants = request.form.get("presentation_intervenants")
-            
-            lien_inscription = request.form.get("lien_inscription")
-            if lien_inscription and not lien_inscription.startswith(("http://", "https://")):
-                lien_inscription = "https://" + lien_inscription
-            formation.lien_inscription = lien_inscription
-            
-            # Gestion des labels multiples depuis le formulaire
-            labels = request.form.getlist("labels[]")
-            formation.label = ','.join(labels) if labels else None
-            
-            # Gestion spéciale des certifications
-            certification_input = request.form.get("certifications")
-            if certification_input:
-                # Mapping des certifications complètes vers leurs versions courtes
-                certification_mapping = {
-                    "DE (Diplôme d'État)": "DE",
-                    "DNSP (Diplôme National Supérieur Professionnel)": "DNSP",
-                    "RS (Répertoire Spécifique)": "RS",
-                    "Formation Certifiante": "Formation Certifiante",
-                    "Formation Non Certifiante": "Formation Non Certifiante"
-                }
-                # Utiliser la version courte si elle existe, sinon garder la valeur saisie
-                formation.certifications = certification_mapping.get(certification_input, certification_input)
-            else:
-                formation.certifications = None
+        formation.conditions_acces = data.get("conditions_acces")
+        formation.financement = data.get("financement")
+        formation.presentation_intervenants = data.get("presentation_intervenants")
+        formation.lien_inscription = data.get("lien_inscription")
+        formation.label = data.get("label")
+        formation.certifications = data.get("certifications")
+        formation.id_organisme = data.get("id_organisme", formation.id_organisme)
+        formation.etat = data.get("etat", formation.etat)
 
-            formation.id_organisme = request.form.get("id_organisme")
-            formation.etat = request.form.get("etat")
+        db.session.commit()
+        
+        # Ajouter le message flash
+        flash("Formation mise à jour avec succès", "success")
+        
+        return jsonify({
+            "success": True,
+            "message": "Formation mise à jour avec succès"
+        })
 
-            db.session.commit()
-            flash("Formation mise à jour avec succès!", "success")
-            return redirect(url_for("formation.edit_formations"))
-            
     except Exception as e:
         db.session.rollback()
-        flash(f"Erreur lors de la mise à jour: {str(e)}", "error")
-        return redirect(url_for("formation.edit_formations"))
+        flash("Erreur lors de la mise à jour de la formation", "error")
+        return jsonify({
+            "success": False,
+            "message": f"Erreur lors de la mise à jour: {str(e)}"
+        }), 400
 
 @formation_bp.route("/edit", methods=["GET"])
 @admin_required
