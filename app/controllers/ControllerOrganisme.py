@@ -26,7 +26,7 @@ def get_labels_for_organisme():
     # Labels par défaut
     BASE_LABELS = [
         "Qualiopi",
-        "RNCP",
+        "RNCP (Répertoire National des Certifications Professionnelles)",
         "Erasmus+"
     ]
     # Récupérer tous les labels distincts de la BDD
