@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, render_template, request, redirect, url_for, flash
 from models.ModelOrganisme import Organisme
 from models.ModelUtilisateur import Utilisateur
+from models.ModelFormation import Formation
 from database import db
 from flask_login import current_user, login_required
 from .ControllerUtilisateur import admin_required
@@ -20,6 +21,25 @@ def normalize_website_url(site_web):
     if site_web and not site_web.startswith("http://") and not site_web.startswith("https://"):
         return "https://" + site_web
     return site_web
+
+def get_labels_for_organisme():
+    # Labels par défaut
+    BASE_LABELS = [
+        "Qualiopi",
+        "RNCP",
+        "Erasmus+"
+    ]
+    # Récupérer tous les labels distincts de la BDD
+    all_labels_raw = db.session.query(Formation.label).filter(Formation.label != None).all()
+    label_set = set()
+    for row in all_labels_raw:
+        if row[0]:
+            for l in str(row[0]).split(','):
+                l = l.strip()
+                if l:
+                    label_set.add(l)
+    label_set.update(BASE_LABELS)
+    return sorted(label_set)
 
 @organisme_bp.route("/all", methods=["GET"])
 def get_all_organismes():
@@ -189,7 +209,8 @@ def new_organisme_user():
     Récupère les statuts distincts depuis la base de données pour les afficher dans le formulaire.
     """
     statuts = db.session.query(Organisme.statut).distinct().all()
-    return render_template("formulaire_organisme.html", statuts=[s[0] for s in statuts if s[0]])
+    labels = get_labels_for_organisme()
+    return render_template("formulaire_organisme.html", statuts=[s[0] for s in statuts if s[0]], labels=labels)
 
 @organisme_bp.route("/create/user", methods=["POST"])
 @login_required
@@ -257,7 +278,7 @@ def preview_organisme(id):
     # Labels de base à toujours proposer
     BASE_LABELS = [
         "Qualiopi",
-        "RNCP",
+        "RNCP (Répertoire National des Certifications Professionnelles)",
         "Erasmus+"
     ]
     labels_set.update(BASE_LABELS)

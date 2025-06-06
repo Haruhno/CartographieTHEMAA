@@ -217,26 +217,20 @@
                             </div>
                             
                             <div class="form-section">
-                                <h3 class="section-title"><i class="fas fa-tag"></i> Agréments / Labels</h3>
+                                <h3 class="section-title required-field"><i class="fas fa-tag"></i> Agréments / Labels</h3>
                                 <div class="checkbox-group" id="labels-group">
-                                    <div class="checkbox-item">
-                                        <input type="checkbox" id="label_1" name="labels" value="Qualiopi">
-                                        <label for="label_1">Qualiopi</label>
-                                    </div>
-                                    <div class="checkbox-item">
-                                        <input type="checkbox" id="label_2" name="labels" value="RNCP">
-                                        <label for="label_2">RNCP (Répertoire National des Certifications Professionnelles)</label>
-                                    </div>
-                                    <div class="checkbox-item">
-                                        <input type="checkbox" id="label_3" name="labels" value="Erasmus+">
-                                        <label for="label_3">Erasmus+</label>
-                                    </div>
+                                    {% for label in labels %}
+                                        <div class="checkbox-item">
+                                            <input type="checkbox" id="label_{{ loop.index }}" name="labels" value="{{ label }}">
+                                            <label for="label_{{ loop.index }}">{{ label }}</label>
+                                        </div>
+                                    {% endfor %}
                                     <div class="checkbox-item">
                                         <input type="checkbox" id="aucun_label" name="labels" value="aucun">
                                         <label for="aucun_label">Ni label / ni agrément</label>
                                     </div>
                                 </div>
-                                <div id="labels-error" class="error-message" style="display:none;"></div>
+                                <div id="labels-error" class="error-message" style="display:none; color: var(--danger-color); font-size: 0.8rem; margin-top: 5px;">Veuillez sélectionner au moins un label ou cochez « Ni label / ni agrément ».</div>
                             </div>
 
                             <div style="margin: 25px 0; padding: 15px; background: #f8f9fa; border-left: 4px solid var(--primary-color); border-radius: 6px; color: #333; font-size: 1rem;">
@@ -508,7 +502,22 @@
             document.querySelectorAll('#labels-group input[type="checkbox"]').forEach(checkbox => {
                 checkbox.addEventListener('change', collectLabels);
             });
+
+            // Ajout validation obligatoire pour les labels
+            document.querySelector('form').addEventListener('submit', function(e) {
+                const labelsGroup = document.getElementById('labels-group');
+                const labelsError = document.getElementById('labels-error');
+                const checked = labelsGroup.querySelectorAll('input[type="checkbox"]:checked');
+                if (checked.length === 0) {
+                    labelsError.style.display = '';
+                    e.preventDefault();
+                    labelsGroup.scrollIntoView({behavior: "smooth", block: "center"});
+                } else {
+                    labelsError.style.display = 'none';
+                }
+            });
         });
+
     </script>
     
     <script>

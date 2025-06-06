@@ -293,8 +293,8 @@
                                         <textarea name="conditions_acces" rows="2" placeholder="Conditions d'accès (ex : prérequis, public visé, etc.)"></textarea>
                                     </div>
                                     <div class="form-group" style="flex:1;">
-                                        <label>Présentation des intervenants</label>
-                                        <textarea name="presentation_intervenants" rows="2" placeholder="Présentation des intervenants (ex : expérience, spécialités, etc.)"></textarea>
+                                        <label>Présentation des intervenant·es</label>
+                                        <textarea name="presentation_intervenants" rows="2" placeholder="Présentation des intervenant·es (ex : expérience, spécialités, etc.)"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -344,7 +344,7 @@
                                         </div>
                                     {% endfor %}
                                 </div>
-                                <div id="certifications-error" class="error-message" style="display:none;"></div>
+                                <div id="certifications-error" class="error-message" style="display:none; color: var(--danger-color); font-size: 0.8rem; margin-top: 5px;">Veuillez sélectionner au moins une certification.</div>
                             </div>
 
                             <div class="form-section">
@@ -971,7 +971,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         <div>
                             <div class="summary-item">
-                                <span class="summary-label">Intervenants :</span>
+                                <span class="summary-label">Intervenant·es :</span>
                                 <span class="summary-value">${presentation_intervenants || '<em>Non renseigné</em>'}</span>
                             </div>
                         </div>
