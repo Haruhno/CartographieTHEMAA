@@ -317,24 +317,35 @@
         }
 
         // Gestion des certifications
+        // Mapping des certifications (version courte -> version longue)
+        const certificationMap = {
+            'DE': 'DE (Diplôme d\'État)',
+            'DNSP': 'DNSP (Diplôme National Supérieur Professionnel)', 
+            'RS': 'RS (Répertoire Spécifique)',
+            'Formation Certifiante': 'Formation Certifiante',
+            'Formation Non Certifiante': 'Formation Non Certifiante'
+        };
+
+        // Au chargement, convertir la valeur courte en valeur d'affichage
         const certificationInput = document.getElementById('certification-input');
         if (certificationInput) {
-            const certificationMap = {
-                'DE': 'DE (Diplôme d\'État)',
-                'DNSP': 'DNSP (Diplôme National Supérieur Professionnel)',
-                'RS': 'RS (Répertoire Spécifique)',
-                'Formation Certifiante': 'Formation Certifiante',
-                'Formation Non Certifiante': 'Formation Non Certifiante'
-            };
-
-            // Au chargement, convertir la valeur courte en valeur d'affichage
-            const currentValue = certificationInput.value;
-            for (const [short, long] of Object.entries(certificationMap)) {
-                if (currentValue === short) {
-                    certificationInput.value = long;
-                    break;
-                }
+            const currentValue = certificationInput.value; // Valeur courte de la BDD
+            // Chercher la version longue correspondante
+            const longVersion = certificationMap[currentValue];
+            if (longVersion) {
+                certificationInput.value = longVersion;
             }
+
+            // Lors de la soumission du formulaire, reconvertir en version courte
+            document.querySelector('form').addEventListener('submit', function(e) {
+                // Trouver la version courte correspondant à la valeur affichée
+                for (const [short, long] of Object.entries(certificationMap)) {
+                    if (certificationInput.value === long) {
+                        certificationInput.value = short; // Stocker la version courte
+                        break;
+                    }
+                }
+            });
         }
 
         // Gérer la soumission du formulaire

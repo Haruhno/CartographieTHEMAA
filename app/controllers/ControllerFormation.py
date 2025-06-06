@@ -218,14 +218,22 @@ def update_formation_by_id(id):
         formation.presentation_intervenants = data.get("presentation_intervenants")
         formation.lien_inscription = data.get("lien_inscription")
         formation.label = data.get("label")
-        formation.certifications = data.get("certifications")
-        formation.id_organisme = data.get("id_organisme", formation.id_organisme)
-        formation.etat = data.get("etat", formation.etat)
-
-        db.session.commit()
         
-        # Ajouter le message flash
-        flash("Formation mise à jour avec succès", "success")
+        # Conversion des certifications en format court pour la BDD
+        certifications = data.get("certifications")
+        if certifications:
+            # Mapping des versions longues vers les versions courtes
+            cert_mapping = {
+                'DE (Diplôme d\'État)': 'DE',
+                'DNSP (Diplôme National Supérieur Professionnel)': 'DNSP',
+                'RS (Répertoire Spécifique)': 'RS',
+                'Formation Certifiante': 'Formation Certifiante',
+                'Formation Non Certifiante': 'Formation Non Certifiante'
+            }
+            # Convertir en version courte si une correspondance existe
+            formation.certifications = cert_mapping.get(certifications, certifications)
+        
+        db.session.commit()
         
         return jsonify({
             "success": True,
@@ -234,7 +242,6 @@ def update_formation_by_id(id):
 
     except Exception as e:
         db.session.rollback()
-        flash("Erreur lors de la mise à jour de la formation", "error")
         return jsonify({
             "success": False,
             "message": f"Erreur lors de la mise à jour: {str(e)}"
@@ -404,7 +411,7 @@ def formulaire():
     return render_template("formulaire.html", **context)
 
 @formation_bp.route("/submit", methods=["POST"])
-@login_required
+@login_required  # On utilise seulement login_required au lieu de admin_required
 def submit_formation():
     """
     Soumet le formulaire de création d'une nouvelle formation.
@@ -485,11 +492,12 @@ def submit_formation():
 
         flash('Votre formation a été soumise avec succès et est en attente de validation.', 'success')
 
-        # Redirection selon le rôle
+        # Redirection uniquement pour les admins vers la page d'édition
         if hasattr(current_user, "is_admin") and current_user.is_admin:
             return redirect(url_for('formation.edit_formations', filtre='en_attente'))
-        else:
-            return redirect(url_for('dashboard'))
+        
+        # Pour les utilisateurs normaux, redirection vers le dashboard
+        return redirect(url_for('dashboard'))
 
     except ValueError as e:
         db.session.rollback()
@@ -560,30 +568,77 @@ def modify_with_reason():
     Soumet le formulaire de modification d'une formation existante.
     Met à jour les champs de la formation et met son état à "en_attente" avec une raison de modification.
     """
-    formation = Formation.query.get_or_404(request.form['id'])
-    
-    # Mettre à jour les champs de la formation
-    formation.nom = request.form['nom']
-    formation.type = request.form['type']
-    formation.description = request.form['description']
-    formation.duree = request.form['duree']
-    formation.dates = request.form['dates']
-    formation.lieu = request.form['lieu']
-    prix = request.form.get('prix')
-    formation.prix = float(prix) if prix else None
-    formation.conditions_acces = request.form['conditions_acces']
-    formation.financement = request.form['financement']
-    formation.presentation_intervenants = request.form['presentation_intervenants']
-    formation.lien_inscription = request.form['lien_inscription']
-    
-    # Mettre en attente avec la raison
-    formation.etat = 'en_attente'
-    formation.raison = f"Modifier:{request.form['reason']}"
-    
-    db.session.commit()
-    
-    flash("Modification soumise avec succès et en attente de validation.", "success")
-    return redirect(url_for("dashboard"))
+    try:
+        formation_id = request.form.get('id')
+        if not formation_id:
+            raise ValueError("ID de formation manquant")
+
+        formation = Formation.query.get_or_404(formation_id)
+        
+        # Mettre à jour les champs de la formation
+        formation.nom = request.form.get('nom')
+        formation.type = request.form.get('type')
+        formation.description = request.form.get('description')
+        
+        # Gestion de la durée
+        duree_heures = request.form.get('duree_heures')
+        if duree_heures:
+            try:
+                formation.duree_heures = float(duree_heures.replace(',', '.'))
+            except (ValueError, TypeError):
+                formation.duree_heures = None
+
+        duree_valeur = request.form.get('duree_valeur')
+        duree_unite = request.form.get('duree_unite')
+        if duree_valeur and duree_unite:
+            formation.duree = f"{duree_valeur} {duree_unite}"
+        
+        formation.dates = request.form.get('dates')
+        formation.lieu = request.form.get('lieu')
+        
+        # Gestion du prix
+        prix = request.form.get('prix')
+        if prix:
+            try:
+                formation.prix = float(prix.replace(',', '.'))
+            except (ValueError, TypeError):
+                formation.prix = None
+        else:
+            formation.prix = None
+            
+        formation.conditions_acces = request.form.get('conditions_acces')
+        formation.financement = request.form.get('financement')
+        formation.presentation_intervenants = request.form.get('presentation_intervenants')
+        
+        # Gestion du lien d'inscription
+        lien_inscription = request.form.get('lien_inscription')
+        if lien_inscription:
+            if not lien_inscription.startswith(('http://', 'https://')):
+                lien_inscription = 'https://' + lien_inscription
+            formation.lien_inscription = lien_inscription
+        
+        # Validation de la raison
+        reason = request.form.get('reason')
+        if not reason:
+            raise ValueError("Une raison de modification est requise")
+        
+        # Mettre en attente avec la raison
+        formation.etat = 'en_attente'
+        formation.raison = f"Modifier:{reason}"
+        
+        db.session.commit()
+        
+        flash("Modification soumise avec succès et en attente de validation.", "success")
+        return redirect(url_for("dashboard"))
+
+    except ValueError as e:
+        db.session.rollback()
+        flash(f"Erreur de validation : {str(e)}", "danger")
+        return redirect(url_for('formation.modify_formation', id=formation_id))
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Une erreur s'est produite lors de la modification : {str(e)}", "danger")
+        return redirect(url_for('formation.modify_formation', id=formation_id))
 
 @formation_bp.route('/delete_with_reason', methods=["POST"])
 def delete_with_reason():

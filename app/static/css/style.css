@@ -566,10 +566,21 @@ header h1 {
     align-items: center;
 }
 
+/* Ajout des styles pour gérer l'overflow */
 .user-formation-header h3 {
     margin: 0;
     font-size: 1.3rem;
     flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;         /* Limite à 2 lignes */
+    line-clamp: 2;                 /* Standard property for compatibility */
+    -webkit-box-orient: vertical;
+    overflow: hidden;              /* Cache le contenu qui dépasse */
+    text-overflow: ellipsis;       /* Ajoute les points de suspension */
+    word-break: break-word;        /* Permet la coupure des mots longs */
+    padding-right: 15px;           /* Espace pour éviter que l'ellipsis ne touche le type */
+    min-height: 3.2em;             /* Hauteur minimale pour 2 lignes */
+    line-height: 1.6;             /* Espacement des lignes */
 }
 
 .user-formation-type {
@@ -579,6 +590,7 @@ header h1 {
     font-weight: 600;
     text-transform: uppercase;
     margin-left: 15px;
+    flex-shrink: 0;            /* Empêche le badge de se rétrécir */
 }
 
 .user-formation-type.initiale {

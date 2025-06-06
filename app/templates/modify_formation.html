@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
     <div class="admin-container">
@@ -59,17 +60,68 @@
                         <!-- Durée et dates -->
                         <div class="form-section">
                             <h2 class="section-title"><i class="fas fa-clock"></i> Durée et dates</h2>
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label for="duree" class="required-field">Durée</label>
-                                    <input type="text" id="duree" name="duree" value="{{ formation.duree }}" required 
-                                           class="form-control" placeholder="Ex: 3 semaines">
+                            <div class="form-group" style="margin-bottom: 10px;">
+                                <label class="required-field" style="display:block;">Plage de date</label>
+                                <input type="text" name="dates" id="dates-input" value="{{ formation.dates }}" required>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 18px;">
+                                <div class="checkbox-item" style="align-items: center;">
+                                    <input type="checkbox" id="dates_futures" name="dates_futures" style="margin:0 8px 0 0; vertical-align: middle;">
+                                    <label for="dates_futures" style="color: #222; font-weight: 400; cursor: pointer; display: inline-block; vertical-align: middle; margin:0;">Dates à venir (non encore déterminées)</label>
                                 </div>
-
-                                <div class="form-group">
-                                    <label for="dates" class="required-field">Dates</label>
-                                    <input type="text" id="dates" name="dates" value="{{ formation.dates }}" required 
-                                           class="form-control" placeholder="Ex: Du 1er au 30 septembre 2024">
+                            </div>
+                            <div class="form-row" style="align-items: flex-end; margin-bottom: 0; gap: 24px;">
+                                <div class="form-group" style="flex:1;">
+                                    <label class="required-field" style="display:block;">Durée (heures)</label>
+                                    <input type="text" 
+                                           name="duree_heures" 
+                                           value="{{ formation.duree_heures }}"
+                                           required
+                                           inputmode="decimal"
+                                           min="0"
+                                           style="width:100%;"
+                                           oninput="
+                                               const inputValue = this.value;
+                                               let cleanValue = inputValue.replace(',', '.');
+                                               cleanValue = cleanValue.replace(/[^\d.]/g, '');
+                                               const [entier, decimales] = cleanValue.split('.');
+                                               if (decimales !== undefined) {
+                                                   cleanValue = entier + '.' + decimales.slice(0, 2);
+                                               }
+                                               this.value = cleanValue;
+                                           "
+                                           maxlength="8"
+                                           placeholder="ex : 75.50"
+                                    >
+                                </div>
+                                <div class="form-group" style="flex:1; position: relative;">
+                                    <label class="required-field" style="display:block;">Durée</label>
+                                    <div style="display: flex; gap: 10px; align-items: flex-end;">
+                                        <input type="text" name="duree_valeur" style="width: 80px;" required
+                                            inputmode="decimal"
+                                            pattern="^\d+([.]\d{0,1})?$"
+                                            value="{{ formation.duree.split(' ')[0] if formation.duree else '' }}"
+                                            oninput="
+                                                this.value = this.value.replace(',', '.');
+                                                this.value = this.value.replace(/[^0-9.]/g, '');
+                                                const dureePartsInput = this.value.split('.');
+                                                if (dureePartsInput.length > 2) {
+                                                    this.value = dureePartsInput[0] + '.' + dureePartsInput[1];
+                                                }
+                                                if (dureePartsInput[1] && dureePartsInput[1].length > 1) {
+                                                    this.value = dureePartsInput[0] + '.' + dureePartsInput[1].slice(0,1);
+                                                }
+                                            "
+                                            maxlength="6"
+                                            placeholder="ex : 10"
+                                        />
+                                        <select name="duree_unite" required>
+                                            <option value="jours" {% if 'jour' in formation.duree %}selected{% endif %}>jour(s)</option>
+                                            <option value="semaines" {% if 'semaine' in formation.duree %}selected{% endif %}>semaine(s)</option>
+                                            <option value="mois" {% if 'mois' in formation.duree %}selected{% endif %}>mois</option>
+                                            <option value="annees" {% if 'année' in formation.duree %}selected{% endif %}>année(s)</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -77,18 +129,32 @@
                         <!-- Lieu et prix -->
                         <div class="form-section">
                             <h2 class="section-title"><i class="fas fa-map-marker-alt"></i> Lieu et tarif</h2>
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label for="lieu" class="required-field">Lieu</label>
-                                    <input type="text" id="lieu" name="lieu" value="{{ formation.lieu }}" required 
-                                           class="form-control" placeholder="Adresse complète">
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="prix">Prix</label>
-                                    <input type="number" id="prix" name="prix" value="{{ formation.prix }}" step="0.01" 
-                                           class="form-control" placeholder="Prix en euros">
-                                </div>
+                            <div class="form-group">
+                                <label class="required-field">Lieu</label>
+                                <input type="text" id="lieu" name="lieu" value="{{ formation.lieu }}" required 
+                                       class="form-control" placeholder="Adresse complète">
+                            </div>
+                            <div class="form-group">
+                                <label>Prix (€)</label>
+                                <input type="text" 
+                                       name="prix" 
+                                       value="{{ formation.prix }}"
+                                       inputmode="decimal" 
+                                       pattern="^\d{1,5}([,.]\d{0,2})?$" 
+                                       class="form-control"
+                                       oninput="
+                                           this.value = this.value.replace(/[^0-9.,]/g, '');
+                                           this.value = this.value.replace(',', '.');
+                                           const priceParts = this.value.split('.');
+                                           if (priceParts.length > 2) {
+                                               this.value = priceParts[0] + '.' + priceParts[1];
+                                           }
+                                           if (priceParts[1] && priceParts[1].length > 2) {
+                                               this.value = priceParts[0] + '.' + priceParts[1].slice(0,2);
+                                           }
+                                       "
+                                       maxlength="8"
+                                       placeholder="ex : 123.30">
                             </div>
                         </div>
 
@@ -121,6 +187,24 @@
                                        pattern="https?://.+"
                                        placeholder="https://exemple.com"
                                        title="L'URL doit commencer par http:// ou https://">
+                            </div>
+                        </div>
+
+                        <!-- Labels et Certifications -->
+                        <div class="form-section">
+                            <h2 class="section-title"><i class="fas fa-tag"></i> Labels et Certifications</h2>
+                            <div class="alert alert-info" style="margin-bottom: 20px;">
+                                <i class="fas fa-info-circle"></i>
+                                Pour ajouter ou modifier un label ou une certification, veuillez contacter un administrateur via 
+                                <a href="{{ url_for('utilisateur.support') }}" style="color: var(--primary-color); text-decoration: underline;">le formulaire de support</a>.
+                            </div>
+                            <div class="form-group">
+                                <label>Labels actuels</label>
+                                <input type="text" value="{{ formation.label }}" class="form-control" readonly disabled>
+                            </div>
+                            <div class="form-group">
+                                <label>Certifications actuelles</label>
+                                <input type="text" value="{{ formation.certifications }}" class="form-control" readonly disabled>
                             </div>
                         </div>
 
@@ -158,6 +242,8 @@
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
     <script>
         $(document).ready(function() {
             // Validation du formulaire
@@ -218,6 +304,131 @@
                     $('#reasonModal').hide();
                 }
             });
+        });
+
+        // Gestion checkbox dates futures
+        const datesFutures = document.getElementById('dates_futures');
+        const datesInput = document.getElementById('dates-input');
+
+        if (datesFutures && datesInput) {
+            // Initialiser l'état de l'input de dates
+            let datePicker = null;
+            
+            // Configuration de base de Flatpickr
+            function initializeDatePicker() {
+                datePicker = flatpickr("#dates-input", {
+                    mode: "range",
+                    dateFormat: "d/m/Y",
+                    locale: "fr",
+                    minDate: "today",
+                    allowInput: false,
+                    enableTime: false,
+                    disableMobile: true
+                });
+            }
+
+            // Initialiser le datepicker
+            initializeDatePicker();
+
+            // Gérer le changement d'état de la checkbox
+            datesFutures.addEventListener('change', function() {
+                if (this.checked) {
+                    // Désactiver et nettoyer le datepicker
+                    if (datePicker) {
+                        datePicker.destroy();
+                    }
+                    datesInput.value = 'Dates à venir';
+                    datesInput.readOnly = true;
+                    datesInput.style.backgroundColor = '#f5f5f5';
+                    datesInput.style.cursor = 'not-allowed';
+                } else {
+                    // Réactiver le datepicker
+                    datesInput.value = '';
+                    datesInput.readOnly = false;
+                    datesInput.style.backgroundColor = '';
+                    datesInput.style.cursor = '';
+                    initializeDatePicker();
+                }
+            });
+
+            // Si la page se charge avec "Dates à venir" déjà coché
+            if (datesFutures.checked) {
+                datesInput.value = 'Dates à venir';
+                datesInput.readOnly = true;
+                datesInput.style.backgroundColor = '#f5f5f5';
+                datesInput.style.cursor = 'not-allowed';
+                if (datePicker) {
+                    datePicker.destroy();
+                }
+            }
+        }
+
+        flatpickr("#dates-input", {
+            mode: "range",
+            dateFormat: "d/m/Y",
+            locale: "fr",
+            minDate: "today",
+            allowInput: false,
+            enableTime: false,
+            disableMobile: true,
+            defaultDate: "{{ formation.dates }}"
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const lieuInput = document.getElementById('lieu');
+            let timeoutId = null;
+
+            lieuInput.addEventListener('input', function() {
+                if (timeoutId) clearTimeout(timeoutId);
+                
+                const searchText = this.value.trim();
+                if (searchText.length < 3) return;
+
+                timeoutId = setTimeout(() => {
+                    const url = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(searchText)}&limit=5`;
+                    
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.features && data.features.length > 0) {
+                                showLieuSuggestions(data.features, lieuInput);
+                            }
+                        })
+                        .catch(error => console.error('Erreur:', error));
+                }, 300);
+            });
+        });
+
+        function showLieuSuggestions(features, lieuInput) {
+            let suggestionList = document.getElementById('lieu-suggestions');
+            if (suggestionList) {
+                suggestionList.remove();
+            }
+
+            suggestionList = document.createElement('ul');
+            suggestionList.id = 'lieu-suggestions';
+            suggestionList.className = 'suggestions-list';
+
+            features.forEach(feature => {
+                const li = document.createElement('li');
+                li.textContent = feature.properties.label;
+                li.addEventListener('click', () => {
+                    lieuInput.value = feature.properties.label;
+                    suggestionList.remove();
+                });
+                suggestionList.appendChild(li);
+            });
+
+            lieuInput.parentNode.style.position = 'relative';
+            lieuInput.parentNode.appendChild(suggestionList);
+        }
+
+        // Fermer les suggestions quand on clique ailleurs
+        document.addEventListener('click', (e) => {
+            const suggestionList = document.getElementById('lieu-suggestions');
+            if (suggestionList && !suggestionList.contains(e.target) && e.target.id !== 'lieu') {
+                suggestionList.remove();
+            }
         });
     </script>
 
@@ -298,6 +509,44 @@
         .required-field::after {
             content: " *";
             color: var(--danger-color);
+        }
+
+        /* Styles pour l'autocomplétion */
+        .suggestions-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .suggestions-list li {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s ease;
+        }
+
+        .suggestions-list li:last-child {
+            border-bottom: none;
+        }
+
+        .suggestions-list li:hover {
+            background-color: #f5f5f5;
+        }
+
+        .form-group {
+            position: relative;
         }
 
         @media (max-width: 768px) {
