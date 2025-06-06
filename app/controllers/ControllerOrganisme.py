@@ -45,6 +45,10 @@ def get_all_organismes():
 @organisme_bp.route("/edit")
 @admin_required
 def edit_organismes():
+    """
+    Affiche le formulaire d'édition des organismes.
+    Récupère tous les organismes, statuts et labels distincts depuis la base de données.
+    """
     organismes = Organisme.query.all()
     
     # Récupérer tous les statuts distincts depuis la base de données
@@ -72,6 +76,11 @@ def edit_organismes():
 @organisme_bp.route("/update", methods=["POST"])
 @admin_required
 def update_organismes():
+    """
+    Met à jour les informations des organismes.
+    Si un organisme est supprimé, il est retiré de la base de données.
+    Si des informations sont modifiées, elles sont mises à jour dans la base de données.
+    """
     if "delete" in request.form:
         id_ = request.form["delete"]
         organisme = Organisme.query.get_or_404(int(id_))
@@ -101,12 +110,21 @@ def update_organismes():
 @organisme_bp.route("/new", methods=["GET"])
 @admin_required
 def new_organisme():
+    """
+    Affiche le formulaire de création d'un nouvel organisme.
+    Récupère les statuts distincts depuis la base de données pour les afficher dans le formulaire.
+    """
     statuts = db.session.query(Organisme.statut).distinct().all()
     return render_template("new_organisme.html", statuts=[s[0] for s in statuts if s[0]])
 
 @organisme_bp.route("/create", methods=["POST"])
 @admin_required
 def create_organisme():
+    """
+    Crée un nouvel organisme.
+    Récupère les informations du formulaire, crée un nouvel objet Organisme et l'ajoute à la base de données.
+    Si l'URL du site web n'est pas complète, elle est normalisée en ajoutant "https://".
+    """
     nom = request.form["nom"]
     adresse = request.form["adresse"]
     email = request.form["email"]
@@ -136,6 +154,11 @@ def create_organisme():
 @organisme_bp.route("/delete/<int:id>", methods=["POST"])
 @admin_required
 def delete_organisme(id):
+    """
+    Supprime un organisme de la base de données.
+    Récupère l'ID de l'organisme à supprimer depuis l'URL, le cherche dans la base de données,
+    et le supprime si trouvé. Affiche un message de succès après la suppression.
+    """
     organisme = Organisme.query.get_or_404(id)
     db.session.delete(organisme)
     db.session.commit()
@@ -161,12 +184,22 @@ def choose_organisme():
 @organisme_bp.route("/new/user", methods=["GET"])
 @login_required
 def new_organisme_user():
+    """
+    Affiche le formulaire de création d'un nouvel organisme.
+    Récupère les statuts distincts depuis la base de données pour les afficher dans le formulaire.
+    """
     statuts = db.session.query(Organisme.statut).distinct().all()
     return render_template("formulaire_organisme.html", statuts=[s[0] for s in statuts if s[0]])
 
 @organisme_bp.route("/create/user", methods=["POST"])
 @login_required
 def create_organisme_user():
+    """
+    Crée un nouvel organisme.
+    Récupère les informations du formulaire, crée un nouvel objet Organisme et l'associe à l'utilisateur connecté.
+    Si l'URL du site web n'est pas complète, elle est normalisée en ajoutant "https://".
+    Si l'utilisateur a déjà un organisme associé, il est mis à jour avec les nouvelles informations.
+    """
     nom = request.form["nom"]
     adresse = request.form["adresse"]
     email = request.form["email"]
@@ -202,6 +235,10 @@ def create_organisme_user():
 @organisme_bp.route("/preview/<int:id>", methods=["GET"])
 @admin_required
 def preview_organisme(id):
+    """
+    Affiche un aperçu des informations d'un organisme spécifique.
+    Récupère les détails de l'organisme, les statuts distincts et les labels associés.
+    """
     organisme = Organisme.query.get_or_404(id)
     statuts = db.session.query(Organisme.statut).distinct().all()
     formations = organisme.formations if hasattr(organisme, 'formations') else []
@@ -234,6 +271,11 @@ def preview_organisme(id):
 @organisme_bp.route("/update/<int:id>", methods=["POST"])
 @admin_required
 def update_organisme_by_id(id):
+    """
+    Met à jour les informations d'un organisme spécifique.
+    Récupère l'ID de l'organisme depuis l'URL, cherche l'organisme dans la base de données,
+    et met à jour ses informations en fonction des données reçues dans la requête.
+    """
     organisme = Organisme.query.get_or_404(id)
 
     # Si c'est une requête JSON (depuis JavaScript)

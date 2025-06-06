@@ -10,7 +10,11 @@ from flask_login import login_required, current_user
 
 formation_bp = Blueprint("formation", __name__, url_prefix="/formations")
 
+
 def get_formulaire_context():
+    """
+    Récupère le contexte pour le formulaire de création de formation.
+    """
     organismes = Organisme.query.all()
     
     # ---------- Financements ----------
@@ -82,6 +86,10 @@ def get_formulaire_context():
     }
 
 def organisme_required(f):
+    """ 
+    Vérifie si l'utilisateur est lié à un organisme. 
+    Si l'utilisateur n'est pas authentifié, il est redirigé vers la page de connexion.
+    Si l'utilisateur est un admin, il peut passer."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
@@ -98,6 +106,10 @@ def organisme_required(f):
 
 @formation_bp.route("/all", methods=["GET"])
 def get_all_formations():
+    """
+    Récupère toutes les formations de la base de données.
+    Retourne les données au format JSON.
+    """
     formations = Formation.query.all()
     resultats = []
 
@@ -126,6 +138,11 @@ def get_all_formations():
 @formation_bp.route('/edit/<int:id>', methods=["GET", "POST"], endpoint="preview_formation")
 @admin_required
 def handle_formation(id):
+    """
+    Gère l'affichage et la mise à jour d'une formation spécifique.
+    Si la méthode est GET, affiche le formulaire de prévisualisation de la formation.
+    Si la méthode est POST, met à jour la formation avec les données du formulaire.
+    """
     if request.method == "POST":
         # Code de update_formation_by_id
         formation = Formation.query.get_or_404(id)
@@ -177,6 +194,11 @@ def handle_formation(id):
 @formation_bp.route("/update/<int:id>", methods=["POST"])
 @admin_required
 def update_formation_by_id(id):
+    """
+    Met à jour une formation existante.
+    Si la requête est en JSON, met à jour les champs de la formation avec les données fournies.
+    Si la requête est un formulaire, met à jour les champs de la formation avec les données du formulaire.
+    """
     try:
         formation = Formation.query.get_or_404(id)
         
@@ -274,6 +296,11 @@ def update_formation_by_id(id):
 @formation_bp.route("/edit", methods=["GET"])
 @admin_required
 def edit_formations():
+    """
+    Affiche la page d'édition des formations.
+    Récupère toutes les formations, organismes, labels et certifications distincts.
+    Permet à l'administrateur de modifier les formations existantes.
+    """
     formations = Formation.query.all()
     organismes = Organisme.query.all()
 
@@ -303,6 +330,10 @@ def edit_formations():
 @formation_bp.route("/update", methods=["POST"])
 @admin_required
 def update_formations():
+    """
+    Met à jour les formations existantes.
+    Gère les boutons de suppression et de sauvegarde.
+    """
     # Gérer les boutons delete et save
     if "delete" in request.form:
         id_ = request.form["delete"]
@@ -341,6 +372,11 @@ def update_formations():
 @formation_bp.route("/new", methods=["GET"])
 @admin_required
 def new_formation():
+    """
+    Affiche le formulaire de création d'une nouvelle formation.
+    Récupère le contexte nécessaire pour le formulaire, y compris les organismes, financements, labels et certifications.
+    Redirige vers la page de création de formation.
+    """
     context = get_formulaire_context()
     return render_template("formulaire.html", **context)
 
@@ -348,6 +384,11 @@ def new_formation():
 @formation_bp.route("/create", methods=["POST"])
 @admin_required
 def create_formation():
+    """
+    Crée une nouvelle formation.
+    Récupère les données du formulaire, crée une instance de Formation et l'ajoute à la base de données.
+    Redirige vers la page d'édition des formations avec un message de succès.
+    """
     nom = request.form["nom"]
     type_ = request.form["type"]
     description = request.form["description"]
@@ -390,27 +431,39 @@ def create_formation():
     flash("Formation créée avec succès.", "success")
     return redirect(url_for("formation.edit_formations"))
 
-
     
 @formation_bp.route("/delete/<int:id>", methods=["POST"])
 @admin_required
 def delete_formation(id):
+    """
+    Supprime une formation existante.
+    Récupère l'ID de la formation à supprimer, la supprime de la base de données et redirige vers la page d'édition des formations avec un message de succès.
+    """
     formation = Formation.query.get_or_404(id)
     db.session.delete(formation)
     db.session.commit()
     flash("Formation supprimée avec succès.", "success")
     return redirect(url_for("formation.edit_formations"))
 
-
 @formation_bp.route("/formulaire", methods=["GET"])
 @organisme_required
 def formulaire():
+    """
+    Affiche le formulaire de création d'une nouvelle formation.
+    Récupère le contexte nécessaire pour le formulaire, y compris les organismes, financements, labels et certifications.
+    Redirige vers la page de création de formation.
+    """
     context = get_formulaire_context()
     return render_template("formulaire.html", **context)
 
 @formation_bp.route("/submit", methods=["POST"])
 @login_required
 def submit_formation():
+    """
+    Soumet le formulaire de création d'une nouvelle formation.
+    Récupère les données du formulaire, crée une instance de Formation et l'ajoute à la base de données.
+    Redirige vers la page d'édition des formations avec un message de succès.
+    """
     try:
         # Récupérer les données du formulaire
         nom = request.form.get('nom')
@@ -503,6 +556,10 @@ def submit_formation():
 
 @formation_bp.route("/valides", methods=["GET"])
 def get_formations_valides():
+    """
+    Récupère toutes les formations validées.
+    Retourne les données au format JSON.
+    """
     formations = Formation.query.filter_by(etat="valide").all()
     resultats = []
 
@@ -530,6 +587,10 @@ def get_formations_valides():
 
 @formation_bp.route("/informations/<int:organisme_id>", methods=["GET"])
 def formation_informations(organisme_id):
+    """
+    Affiche les informations d'une formation pour un organisme donné.
+    Récupère l'organisme et les formations associées, puis les affiche dans le template.
+    """
     organisme = Organisme.query.get_or_404(organisme_id)
     formations = Formation.query.filter_by(id_organisme=organisme_id, etat="valide").all()
     
@@ -540,11 +601,19 @@ def formation_informations(organisme_id):
 
 @formation_bp.route('/modify/<int:id>', methods=['GET'])
 def modify_formation(id):
+    """
+    Affiche le formulaire de modification d'une formation existante.
+    Récupère la formation par son ID et l'affiche dans le template de modification.
+    """
     formation = Formation.query.get_or_404(id)
     return render_template('modify_formation.html', formation=formation)
 
 @formation_bp.route('/modify_with_reason', methods=['POST'])
 def modify_with_reason():
+    """
+    Soumet le formulaire de modification d'une formation existante.
+    Met à jour les champs de la formation et met son état à "en_attente" avec une raison de modification.
+    """
     formation = Formation.query.get_or_404(request.form['id'])
     
     # Mettre à jour les champs de la formation
@@ -572,6 +641,10 @@ def modify_with_reason():
 
 @formation_bp.route('/delete_with_reason', methods=["POST"])
 def delete_with_reason():
+    """
+    Soumet une demande de suppression d'une formation existante.
+    Met à jour l'état de la formation à "en_attente" avec une raison de suppression.
+    """
     formation = Formation.query.get_or_404(request.form['id'])
     
     # Mettre en attente avec la raison au lieu de supprimer
@@ -586,6 +659,10 @@ def delete_with_reason():
 @formation_bp.route('/delete_reason/<int:id>', methods=['POST'])
 @admin_required
 def delete_reason(id):
+    """
+    Supprime la raison de suppression d'une formation.
+    Récupère la formation par son ID, supprime la raison et met à jour l'état de la formation.
+    """
     formation = Formation.query.get_or_404(id)
     formation.raison = None
     db.session.commit()
@@ -595,6 +672,10 @@ def delete_reason(id):
 
 @formation_bp.route("/duree-heures-range", methods=["GET"])
 def get_duree_heures_range():
+    """
+    Récupère la plage de durées en heures des formations.
+    Retourne un JSON avec les valeurs minimales et maximales.
+    """
     # Récupérer les valeurs non nulles
     durees = db.session.query(Formation.duree_heures)\
         .filter(Formation.duree_heures != None)\
@@ -617,6 +698,10 @@ def get_duree_heures_range():
 
 @formation_bp.route("/get-filters-data", methods=["GET"])
 def get_filters_data():
+    """
+    Récupère les données de filtrage pour les formations.
+    Retourne un JSON avec les labels, financements et certifications distincts des formations validées.
+    """
     # Récupérer uniquement les formations validées
     formations_validees = Formation.query.filter_by(etat="valide")
 

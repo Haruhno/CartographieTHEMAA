@@ -22,14 +22,20 @@ UPLOAD_FOLDER = 'static/uploads/profils'
 mail = Mail()
 
 def allowed_file(filename):
+    """
+    Vérifie si le fichier a une extension autorisée.
+    """
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-# Ajoutez ce décorateur si vous n'avez pas créé le fichier de décorateurs séparé
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        """
+        Vérifie si l'utilisateur est authentifié et a le rôle d'administrateur.
+        Si ce n'est pas le cas, redirige vers le tableau de bord avec un message d'erreur.
+        """
         if not current_user.is_authenticated or current_user.role != 'admin':
             flash("Accès refusé : vous n'avez pas les permissions nécessaires", "error")
             return redirect(url_for('dashboard'))
@@ -38,6 +44,11 @@ def admin_required(f):
 
 @utilisateur_bp.route("/connexion", methods=["GET", "POST"])
 def connexion():
+    """
+    Gère la connexion des utilisateurs.
+    Si la méthode est POST, vérifie les identifiants et connecte l'utilisateur.
+    Si la méthode est GET, affiche le formulaire de connexion.
+    """
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
@@ -56,12 +67,20 @@ def connexion():
 @utilisateur_bp.route("/deconnexion")
 @login_required
 def deconnexion():
+    """
+    Gère la déconnexion des utilisateurs.
+    """
     logout_user()
     flash("Vous avez été déconnecté", "info")
     return redirect(url_for("carte"))
 
 @utilisateur_bp.route("/inscription", methods=["GET", "POST"])
 def inscription():
+    """
+    Gère l'inscription des nouveaux utilisateurs.
+    Si la méthode est POST, vérifie les données du formulaire, valide le captcha, et crée un nouvel utilisateur.
+    Si la méthode est GET, affiche le formulaire d'inscription.
+    """
     if request.method == "POST":
         # Vérification du captcha
         recaptcha_response = request.form.get('g-recaptcha-response')
@@ -130,6 +149,11 @@ def inscription():
 @utilisateur_bp.route('/profil', methods=['GET', 'POST'])
 @login_required
 def profil():
+    """
+    Gère le profil de l'utilisateur.
+    Si la méthode est POST, traite les mises à jour du profil, y compris la photo de profil, le mot de passe, et les informations personnelles.
+    Si la méthode est GET, affiche le formulaire de profil.
+    """
     if request.method == 'POST':
         # Réinitialisation de la photo de profil
         if 'reset_photo' in request.form:
@@ -278,6 +302,9 @@ def profil():
 @utilisateur_bp.route('/delete_account', methods=['POST'])
 @login_required
 def delete_account():
+    """
+    Gère la suppression du compte utilisateur.
+    Vérifie le mot de passe avant de supprimer le compte et la photo de profil."""
     password = request.form.get('password')
     
     if not current_user.check_password(password):
@@ -312,6 +339,11 @@ def delete_account():
 
 @utilisateur_bp.route('/reset_password_request', methods=['GET', 'POST'])
 def reset_password_request():
+    """
+    Gère la demande de réinitialisation du mot de passe.
+    Si la méthode est POST, envoie un email avec les instructions de réinitialisation.
+    Si la méthode est GET, affiche le formulaire de demande de réinitialisation.
+    """
     if request.method == 'POST':
         email = request.form.get('email')
         user = Utilisateur.query.filter_by(email=email).first()
@@ -362,6 +394,11 @@ Ceci est un message automatique, merci de ne pas y répondre.
 
 @utilisateur_bp.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
+    """
+    Gère la réinitialisation du mot de passe.
+    Si la méthode est POST, met à jour le mot de passe de l'utilisateur.
+    Si la méthode est GET, vérifie le token et affiche le formulaire de réinitialisation.
+    """
     user = Utilisateur.query.filter_by(reset_token=token).first()
     
     if not user or not user.verify_reset_token(token):
@@ -393,6 +430,10 @@ def reset_password(token):
 @utilisateur_bp.route("/new", methods=["GET"])
 @admin_required
 def new_utilisateur():
+    """
+    Affiche le formulaire de création d'un nouvel utilisateur.
+    Récupère la liste des organismes pour les afficher dans le formulaire.
+    """
     try:
         organismes = Organisme.query.all()  # Récupérer les organismes
         return render_template(
@@ -408,6 +449,10 @@ def new_utilisateur():
 @utilisateur_bp.route("/edit", methods=["GET"])
 @admin_required
 def edit_utilisateurs():
+    """
+    Affiche la liste des utilisateurs pour les administrateurs.
+    Récupère tous les utilisateurs et les organismes pour les afficher dans le formulaire d'édition.
+    """
     try:
         utilisateurs = Utilisateur.query.all()
         organismes = Organisme.query.all()
@@ -427,6 +472,11 @@ def edit_utilisateurs():
 @utilisateur_bp.route("/update", methods=["POST"])
 @admin_required
 def update_utilisateurs():
+    """
+    Met à jour les informations des utilisateurs.
+    Si un utilisateur est supprimé, il est retiré de la base de données.
+    Si des informations sont modifiées, elles sont mises à jour dans la base de données.
+    """
     if "delete" in request.form:
         id_ = request.form["delete"]
         utilisateur = Utilisateur.query.get_or_404(int(id_))
@@ -455,6 +505,10 @@ def update_utilisateurs():
 @utilisateur_bp.route('/preview/<int:id>', methods=['GET'])
 @admin_required
 def preview_utilisateur(id):
+    """
+    Affiche les détails d'un utilisateur.
+    Récupère l'utilisateur par son ID et affiche ses informations dans un template.
+    """
     utilisateur = Utilisateur.query.get_or_404(id)
     organismes = Organisme.query.all()
     roles = ['admin', 'user']
@@ -466,6 +520,11 @@ def preview_utilisateur(id):
 @utilisateur_bp.route("/update/<int:id>", methods=["POST"])
 @admin_required
 def update_utilisateur_by_id(id):
+    """
+    Met à jour les informations d'un utilisateur.
+    Gère la réinitialisation de la photo de profil, le retrait d'organisme, et les mises à jour des informations utilisateur.
+    Si la requête est en JSON, elle traite les données JSON pour mettre à jour l'utilisateur.
+    """
     utilisateur = Utilisateur.query.get_or_404(id)
     
     try:
@@ -559,6 +618,12 @@ def update_utilisateur_by_id(id):
 @utilisateur_bp.route("/delete/<int:id>", methods=["POST"])
 @admin_required
 def delete_utilisateur(id):
+    """
+    Supprime un utilisateur.
+    Vérifie si l'utilisateur à supprimer n'est pas l'utilisateur actuel.
+    Si c'est le cas, affiche un message d'erreur.
+    Supprime également la photo de profil si elle existe.
+    """
     utilisateur = Utilisateur.query.get_or_404(id)
     if utilisateur.id_utilisateur == current_user.id_utilisateur:
         flash("Vous ne pouvez pas supprimer votre propre compte.", "error")
@@ -586,6 +651,10 @@ def delete_utilisateur(id):
 @utilisateur_bp.route("/create", methods=["POST"])
 @admin_required
 def create_utilisateur():
+    """
+    Crée un nouvel utilisateur.
+    Vérifie les champs obligatoires, l'unicité de l'email, et crée un nouvel utilisateur dans la base de données.
+    """
     try:
         nom = request.form.get("nom")
         email = request.form.get("email")
@@ -625,6 +694,11 @@ def create_utilisateur():
 @utilisateur_bp.route('/contact_admin_organisme', methods=['POST'])
 @login_required
 def contact_admin_organisme():
+    """
+    Gère les demandes de modification d'organisme.
+    Si la méthode est POST, envoie un email aux administrateurs avec les détails de la demande.
+    Si la méthode est GET, affiche le formulaire de demande de modification d'organisme.
+    """
     try:
         request_type = request.form.get('request_type')
         message = request.form.get('message')
@@ -665,11 +739,19 @@ Cet email a été envoyé automatiquement depuis le site THEMAA.
 @utilisateur_bp.route('/support', methods=['GET', 'POST'])
 @login_required
 def support():
+    """
+    Affiche la page de support pour les utilisateurs.
+    """
     return render_template('support.html', user=current_user)
 
 @utilisateur_bp.route('/contact_support', methods=['POST'])
 @login_required
 def contact_support():
+    """
+    Gère les demandes de support des utilisateurs.
+    Si la méthode est POST, envoie un email aux administrateurs avec les détails de la demande.
+    Si la méthode est GET, affiche le formulaire de demande de support.
+    """
     try:
         subject = request.form.get('subject')
         priority = request.form.get('priority')

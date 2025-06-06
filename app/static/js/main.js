@@ -615,7 +615,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
 
-            // Ajouter les événements
             document.getElementById('prevPageUser')?.addEventListener('click', () => {
                 if (currentPageUser > 1) {
                     currentPageUser--;

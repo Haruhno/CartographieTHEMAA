@@ -322,7 +322,7 @@ function zoomToFormation(formationId) {
         const originalLatLng = marker.getLatLng();
 
         // Décalage en latitude (vers le haut sur la carte)
-        const offsetLat = 0.01; // À ajuster selon ton niveau de zoom et le rendu visuel
+        const offsetLat = 0.01; // À ajuster selon le niveau de zoom et le rendu visuel
         const offsetLatLng = L.latLng(originalLatLng.lat + offsetLat, originalLatLng.lng);
 
         map.setView(offsetLatLng, 14);
@@ -381,7 +381,7 @@ function searchOrganisme(organismeId) {
         const originalLatLng = marker.getLatLng();
 
         // Décalage en latitude (vers le haut sur la carte)
-        const offsetLat = 0.01; // À ajuster selon ton niveau de zoom et le rendu visuel
+        const offsetLat = 0.01; // À ajuster selon le niveau de zoom et le rendu visuel
         const offsetLatLng = L.latLng(originalLatLng.lat + offsetLat, originalLatLng.lng);
 
         map.setView(offsetLatLng, 14);
@@ -813,7 +813,7 @@ function updateDisplayedFormations(filteredFormations) {
                     const originalLatLng = marker.getLatLng();
 
                     // Décalage en latitude (vers le haut sur la carte)
-                    const offsetLat = 0.01; // À ajuster selon ton niveau de zoom et le rendu visuel
+                    const offsetLat = 0.01; // À ajuster selon le niveau de zoom et le rendu visuel
                     const offsetLatLng = L.latLng(originalLatLng.lat + offsetLat, originalLatLng.lng);
 
                     map.setView(offsetLatLng, 14);

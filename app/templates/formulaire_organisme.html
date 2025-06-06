@@ -217,7 +217,7 @@
                             </div>
                             
                             <div class="form-section">
-                                <h3 class="section-title"><i class="fas fa-tag"></i> Labels</h3>
+                                <h3 class="section-title"><i class="fas fa-tag"></i> Agréments / Labels</h3>
                                 <div class="checkbox-group" id="labels-group">
                                     <div class="checkbox-item">
                                         <input type="checkbox" id="label_1" name="labels" value="Qualiopi">
@@ -504,7 +504,7 @@
                 }
             }
 
-            // Ajouter les écouteurs d'événements
+            // Écouteurs d'événements pour les cases à cocher des labels
             document.querySelectorAll('#labels-group input[type="checkbox"]').forEach(checkbox => {
                 checkbox.addEventListener('change', collectLabels);
             });

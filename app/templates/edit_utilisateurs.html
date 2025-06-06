@@ -107,7 +107,7 @@
 
         .user-avatar {
             object-fit: cover;
-            border: 1px solid #ced4da; /* Ajouter une bordure légère */
+            border: 1px solid #ced4da; /* Bordure légère */
         }
 
         .user-avatar-placeholder {
@@ -340,7 +340,6 @@
         </div>
     </div>
 
-    <!-- Ajouter le modal de confirmation avant la fermeture du body -->
     <div id="deleteModal" class="modal-overlay">
         <div class="modal-box">
             <h3>Confirmation de suppression</h3>
@@ -586,7 +585,7 @@
             }
         });
 
-        // Ajouter ces fonctions pour gérer le modal
+        // Fonctions pour gérer le modal de suppression
         window.openDeleteModal = function(utilisateurId) {
             const modal = document.getElementById('deleteModal');
             const form = document.getElementById('deleteForm');

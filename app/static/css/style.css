@@ -1899,8 +1899,8 @@ input[type="file"] {
     transition: background-color 0.3s;
 }
 .leaflet-popup-content a {
-    color: white; /* Ta couleur personnalisée */
-    text-decoration: none; /* Ou selon ton besoin */
+    color: white;
+    text-decoration: none;
 }
 
 .leaflet-popup-content a[href^="mailto:"] {
