@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, send_file
 from flask_login import LoginManager
 from flask_mail import Mail
 from controllers.ControllerOrganisme import *
@@ -11,6 +11,9 @@ from database import *
 import os
 from dotenv import load_dotenv
 from datetime import datetime
+import csv
+import io
+import json
 
 load_dotenv()  # Charge les variables d'environnement depuis .env
 
@@ -48,17 +51,22 @@ def carte():
 def dashboard():
     nb_formations = Formation.query.count()
     nb_organismes = Organisme.query.count()
+    nb_users = Utilisateur.query.count()
+    users = Utilisateur.query.all()
 
-    formations = []
-    if current_user.id_organisme:
-        # Récupérer toutes les formations liées à l'organisme de l'utilisateur
-        formations = Formation.query.filter_by(id_organisme=current_user.id_organisme).all()
+    # Récupérer toutes les formations pour l'administrateur
+    if current_user.role == 'admin':
+        formations = Formation.query.all()
+    else:
+        formations = Formation.query.filter_by(id_organisme=current_user.id_organisme).all() if current_user.id_organisme else []
 
     return render_template('dashboard.html',
-                           user=current_user,
-                           nb_formations=nb_formations,
-                           nb_organismes=nb_organismes,
-                           formations=formations)
+                         user=current_user,
+                         nb_formations=nb_formations,
+                         nb_organismes=nb_organismes,
+                         nb_users=nb_users,
+                         users=users,
+                         formations=formations)
 
 
 @app.context_processor
@@ -85,6 +93,58 @@ def bad_request(e):
 @app.errorhandler(Exception)
 def handle_unexpected_error(e):
     return render_template('404.html'), 500
+
+# Ajouter après les autres routes
+@app.route('/export/<string:type>/<string:format>')
+@login_required
+@admin_required
+def export_data(type, format):
+    if type == 'organismes':
+        data = Organisme.query.all()
+        fields = ['id_organisme', 'nom', 'adresse', 'email', 'telephone', 
+                 'site_web', 'presentation', 'num_adherent', 'statut', 'label']
+    else:
+        data = Formation.query.all()
+        fields = ['id_formation', 'nom', 'type', 'description', 'duree', 
+                 'duree_heures', 'dates', 'lieu', 'prix', 'conditions_acces',
+                 'financement', 'presentation_intervenants', 'lien_inscription',
+                 'label', 'certifications', 'id_organisme', 'etat']
+
+    if format == 'csv':
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(fields)
+        
+        for item in data:
+            row = []
+            for field in fields:
+                value = getattr(item, field)
+                row.append(str(value) if value is not None else '')
+            writer.writerow(row)
+            
+        output.seek(0)
+        return send_file(
+            io.BytesIO(output.getvalue().encode('utf-8-sig')),
+            mimetype='text/csv',
+            as_attachment=True,
+            download_name=f'{type}_export.csv'
+        )
+
+    elif format == 'json':
+        result = []
+        for item in data:
+            item_dict = {}
+            for field in fields:
+                value = getattr(item, field)
+                item_dict[field] = str(value) if value is not None else None
+            result.append(item_dict)
+
+        return send_file(
+            io.BytesIO(json.dumps(result, ensure_ascii=False, indent=2).encode('utf-8')),
+            mimetype='application/json',
+            as_attachment=True,
+            download_name=f'{type}_export.json'
+        )
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

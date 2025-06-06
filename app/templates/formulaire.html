@@ -284,7 +284,13 @@
                                 <div class="form-row" style="gap: 24px;">
                                     <div class="form-group" style="flex:1;">
                                         <label class="required-field">Lien d'inscription</label>
-                                        <input type="url" name="lien_inscription" required placeholder="https://votre-lien-inscription.com">
+                                        <input type="text" name="lien_inscription" required 
+                                               placeholder="https://votre-lien-inscription.com"
+                                               pattern="https?://.+"
+                                               title="Le lien doit commencer par http:// ou https://"
+                                               oninput="this.setCustomValidity('')"
+                                               oninvalid="this.setCustomValidity('Veuillez entrer une URL valide commençant par http:// ou https://')"
+                                    >
                                     </div>
                                 </div>
                                 <div class="form-row" style="gap: 24px;">
@@ -748,28 +754,46 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Validation spécifique pour le code postal (5 chiffres)
         if (tabId === 'tab-2') {
-            const codePostalInput = document.querySelector('input[name="code_postal"]');
-            if (codePostalInput) {
-                const value = codePostalInput.value.trim();
-                const errorMsgId = 'code-postal-error';
-                let errorMsg = codePostalInput.parentNode.querySelector(`#${errorMsgId}`);
-                if (!/^\d{5}$/.test(value)) {
-                    codePostalInput.style.borderColor = 'var(--danger-color)';
+            // Validation du lien d'inscription
+            const lienInscriptionInput = document.querySelector('input[name="lien_inscription"]');
+            if (lienInscriptionInput) {
+                const value = lienInscriptionInput.value.trim();
+                const urlPattern = /^https?:\/\/.+\..+/;
+                
+                if (!value) {
+                    lienInscriptionInput.style.borderColor = 'var(--danger-color)';
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'error-message';
+                    errorMsg.style.color = 'var(--danger-color)';
+                    errorMsg.style.fontSize = '0.8rem';
+                    errorMsg.style.marginTop = '5px';
+                    errorMsg.textContent = 'Le lien d\'inscription est obligatoire';
+                    
+                    // Supprimer l'ancien message d'erreur s'il existe
+                    const oldError = lienInscriptionInput.parentNode.querySelector('.error-message');
+                    if (oldError) oldError.remove();
+                    
+                    lienInscriptionInput.parentNode.appendChild(errorMsg);
                     isValid = false;
-                    if (!errorMsg) {
-                        errorMsg = document.createElement('div');
-                        errorMsg.id = errorMsgId;
-                        errorMsg.className = 'error-message';
-                        errorMsg.style.color = 'var(--danger-color)';
-                        errorMsg.style.fontSize = '0.8rem';
-                        errorMsg.style.marginTop = '5px';
-                        codePostalInput.parentNode.appendChild(errorMsg);
-                    }
-                    errorMsg.textContent = "Le code postal doit comporter exactement 5 chiffres.";
-                    errorMsg.style.display = '';
+                } else if (!urlPattern.test(value)) {
+                    lienInscriptionInput.style.borderColor = 'var(--danger-color)';
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'error-message';
+                    errorMsg.style.color = 'var(--danger-color)';
+                    errorMsg.style.fontSize = '0.8rem';
+                    errorMsg.style.marginTop = '5px';
+                    errorMsg.textContent = 'Veuillez entrer une URL valide (ex: https://www.exemple.com)';
+                    
+                    // Supprimer l'ancien message d'erreur s'il existe
+                    const oldError = lienInscriptionInput.parentNode.querySelector('.error-message');
+                    if (oldError) oldError.remove();
+                    
+                    lienInscriptionInput.parentNode.appendChild(errorMsg);
+                    isValid = false;
                 } else {
-                    codePostalInput.style.borderColor = '';
-                    if (errorMsg) errorMsg.style.display = 'none';
+                    lienInscriptionInput.style.borderColor = '';
+                    const errorMsg = lienInscriptionInput.parentNode.querySelector('.error-message');
+                    if (errorMsg) errorMsg.remove();
                 }
             }
         }
